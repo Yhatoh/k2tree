@@ -1,6 +1,9 @@
 #include "k2tree_bp_sdsl.hpp"
+#include "k2tree_bp_sdsl_idems.hpp"
 //#include "k2tree_bp.hpp"
 
+
+#include <algorithm>
 #include <random>
 
 class Randomer {
@@ -50,11 +53,19 @@ bool test_pow_2_matrices(uint64_t p) {
   cout << "Getting ones from k2 tree" << endl;
 
   auto check = k2tree.get_pos_ones();
+
+  k2tree_bp_sdsl_idems<2> k2tree_idem(k2tree);
+  auto check2 = k2tree_idem.get_pos_ones();
+
   assert(check.size() == ones.size());
+  assert(check2.size() == ones.size());
+
   sort(check.begin(), check.end());
+  sort(check2.begin(), check2.end());
   sort(ones.begin(), ones.end());
   for(uint64_t i = 0; i < ones.size(); i++) {
     assert(check[i] == ones[i]);
+    assert(check2[i] == ones[i]);
   }
 
   return true;
@@ -66,18 +77,26 @@ bool test_gen_matrices(uint64_t n, uint64_t m) {
 
   cout << "Generating k2 tree" << endl;
   k2tree_bp_sdsl<2> k2tree(ones);
+  k2tree_bp_sdsl_idems<2> k2tree_idem(k2tree);
 
   cout << "Getting ones from k2 tree" << endl;
   auto check = k2tree.get_pos_ones();
+  auto check2 = k2tree_idem.get_pos_ones();
+
   assert(check.size() == ones.size());
+  assert(check2.size() == ones.size());
+
   sort(check.begin(), check.end());
+  sort(check2.begin(), check2.end());
   sort(ones.begin(), ones.end());
   for(uint64_t i = 0; i < ones.size(); i++) {
     assert(check[i] == ones[i]);
+    assert(check2[i] == ones[i]);
   }
 
   return true;
 }
+
 
 int main() {
   cout << "Testing pow 2 square matrices" << endl;

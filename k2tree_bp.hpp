@@ -1,3 +1,6 @@
+#ifndef K2_TREE_BP
+#define K2_TREE_BP
+
 // std includes
 #include <algorithm>
 #include <cassert>
@@ -284,3 +287,4 @@ class k2tree_bp {
       return os;
     }
 };
+#endif // !K2_TREE_BP

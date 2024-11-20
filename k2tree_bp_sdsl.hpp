@@ -1,3 +1,6 @@
+#ifndef K2_TREE_BP_SDSL
+#define K2_TREE_BP_SDSL
+
 // std includes
 #include <algorithm>
 #include <cassert>
@@ -346,3 +349,4 @@ class k2tree_bp_sdsl {
       return os;
     }
 };
+#endif // !K2_TREE_BP_SDSL
