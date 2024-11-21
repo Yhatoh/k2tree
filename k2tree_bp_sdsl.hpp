@@ -63,6 +63,8 @@ class k2tree_bp_sdsl {
     }
 
   public:
+    uint64_t nodes() { return (tree_support.find_close(0) + 1) / 2; }
+
     k2tree_bp_sdsl(vector< pair< uint64_t, uint64_t > > &ones, uint64_t n = -1) { 
       m = ones.size();
 

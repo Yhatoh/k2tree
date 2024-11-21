@@ -44,19 +44,19 @@ struct union_find {
 // k2-tree
 // parameters:
 //   * k * k: amount of children per node
-template< uint64_t k = 2 >
+template< uint64_t k = 2, class bit_vector_ = bit_vector, class rank1 = rank_support_v5<>, class rank0 = rank_support_v5<0>, class select1 = select_support_mcl<>, class select0 = select_support_mcl<0> >
 class k2tree_bp_sdsl_idems {
   private:
     int_vector<64> P;
 
-    sd_vector<> occ_PoL;
-    rank_support_sd<> rank1_occ_PoL;
+    bit_vector_ occ_PoL;
+    rank1 rank1_occ_PoL;
 
-    sd_vector<> PoL;
-    rank_support_sd<> rank1_PoL;
-    rank_support_sd<0> rank0_PoL;
-    select_support_sd<> select1_PoL;
-    select_support_sd<0> select0_PoL;
+    bit_vector_ PoL;
+    rank1 rank1_PoL;
+    rank0 rank0_PoL;
+    select1 select1_PoL;
+    select0 select0_PoL;
 
     uint64_t height_tree;
 
@@ -89,6 +89,8 @@ class k2tree_bp_sdsl_idems {
     }
 
   public:
+    uint64_t nodes() { return (tree_support.find_close(0) + 1) / 2; }
+
     k2tree_bp_sdsl_idems(k2tree_bp_sdsl<k> &k2tree) { 
       msize = k2tree.msize;
       rmsize = k2tree.rmsize;
@@ -128,7 +130,9 @@ class k2tree_bp_sdsl_idems {
           cout << "   Subtree pos: " << curr_start_pos << " " << curr_end_pos << endl;
 #endif
           // ignoring leaves
-          if(curr_end_pos - curr_start_pos <= 3) continue;
+          if(curr_end_pos - curr_start_pos + 1 <= 4) continue;
+          // ignoring small subtrees
+          if(curr_end_pos - curr_start_pos + 1 <= 34) continue;
 
           if(curr_end_pos - curr_start_pos == prev_end_pos - prev_start_pos) {
             bool flag = true;
@@ -242,10 +246,12 @@ class k2tree_bp_sdsl_idems {
       }
 
 
-      occ_PoL = sd_vector<>(count_PoL.begin(), count_PoL.end());
+      util::bit_compress(P);
+      cout << "idem subtrees: " << P.size() << "\n";
+      occ_PoL = bit_vector_(count_PoL.begin(), count_PoL.end());
       util::init_support(rank1_occ_PoL, &occ_PoL);
 
-      PoL = sd_vector<>(PoL_bv.begin(), PoL_bv.end());
+      PoL = bit_vector_(PoL_bv.begin(), PoL_bv.end());
       util::init_support(rank1_PoL, &PoL);
       util::init_support(rank0_PoL, &PoL);
       util::init_support(select1_PoL, &PoL);
@@ -358,10 +364,13 @@ class k2tree_bp_sdsl_idems {
       return sizeof(uint64_t) * 5 +
              size_in_bytes(tree) * 8 +
              size_in_bytes(tree_support) * 8 +
-             size_in_bytes(l) * 8;
+             size_in_bytes(l) * 8 + 
+             size_in_bytes(P) * 8 +
+             size_in_bytes(occ_PoL) * 8 + size_in_bytes(rank1_occ_PoL) * 8 +
+             size_in_bytes(PoL) * 8 + size_in_bytes(rank1_PoL) * 8 + size_in_bytes(rank0_PoL) * 8 + size_in_bytes(select1_PoL) * 8 + size_in_bytes(select0_PoL) * 8;
     } 
 
-    friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl_idems<k> &k2tree) {
+    friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl_idems< k, bit_vector_, rank1, rank0, select1, select0 > &k2tree) {
       cout << "Height Tree: " << k2tree.height_tree << endl;
       cout << "Tree: ";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {
