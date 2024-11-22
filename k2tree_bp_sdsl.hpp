@@ -26,6 +26,23 @@
 using namespace std;
 using namespace sdsl;
 
+template< typename T, typename T2 >
+ostream& operator<<(ostream& os, const pair< T, T2 > &p) {
+  os << "(" << p.first << "," << p.second << ")";
+  return os;
+}
+
+template< typename T >
+ostream& operator<<(ostream& os, const vector< T > &vec) {
+  os << "[";
+  for(uint64_t i = 0; i < vec.size(); i++) {
+    os << vec[i];
+    if(i != vec.size() - 1)
+      os << ", ";
+  }
+  os << "]";
+  return os;
+}
 // k2-tree
 // parameters:
 //   * k * k: amount of children per node
@@ -45,13 +62,89 @@ class k2tree_bp_sdsl {
     uint64_t rmsize;
     uint64_t m;
 
-    bool has_at_least_one(vector< vector< uint64_t > > &adj_list, vector< vector< uint64_t > ::iterator > &pointers, uint64_t init_x, uint64_t init_y, uint64_t subm_size) {
+//    bool has_at_least_one(vector< vector< uint64_t > > &adj_list, vector< vector< uint64_t > ::iterator > &pointers, uint64_t init_x, uint64_t init_y, uint64_t subm_size) {
+//      for(uint64_t x = init_x; x < init_x + subm_size; x++) {
+//        if(pointers[x] != adj_list[x].end() && *(pointers[x]) < init_y + subm_size) {
+//          return true;
+//        }
+//      }
+//      return false;
+//    }
+
+    bool has_at_least_one(vector< pair< uint64_t, uint64_t > > &ones, uint64_t init_x, uint64_t init_y, uint64_t subm_size) {
+#ifdef DEBUG
+      cout << "Ones: ";
+      cout << ones << endl;
+      cout << "Matrix at positions: " << init_x << " " << init_x + subm_size - 1 << " " << init_y << " " << init_y + subm_size - 1 << endl;
+#endif
       for(uint64_t x = init_x; x < init_x + subm_size; x++) {
-        if(pointers[x] != adj_list[x].end() && *(pointers[x]) < init_y + subm_size) {
-          return true;
+        uint64_t pos_f_x = lower_bound_first(ones, x);
+        uint64_t pos_l_x = upper_bound_first(ones, x);
+#ifdef DEBUG
+        cout << " Searched " << x << " " << pos_f_x << " " << pos_l_x << endl;
+#endif
+        if(pos_f_x < pos_l_x) {
+          uint64_t pos_f_y = lower_bound_second(ones, pos_f_x, pos_l_x, init_y);
+          uint64_t pos_l_y = upper_bound_second(ones, pos_f_x, pos_l_x, init_y + subm_size - 1);
+#ifdef DEBUG
+          cout << " Searched " << init_y << " " << pos_f_y << " Searched " << init_y + subm_size - 1 << " " << pos_l_y << endl;
+#endif
+          if(pos_f_y != pos_l_y) {
+#ifdef DEBUG
+            cout << "  True" << endl;
+#endif
+            return true;
+          }
         }
       }
+#ifdef DEBUG
+      cout << "  False" << endl;
+#endif
       return false;
+    }
+
+    uint64_t lower_bound_first(vector< pair< uint64_t, uint64_t > > &ones, uint64_t first) {
+      uint64_t l = 0;
+      uint64_t r = ones.size();
+      while(l < r) {
+        uint64_t mid = (r + l) / 2;
+        if(ones[mid].first >= first) r = mid;
+        else l = mid + 1;
+      }
+      return l;
+    }
+
+    uint64_t upper_bound_first(vector< pair< uint64_t, uint64_t > > &ones, uint64_t first) {
+      uint64_t l = 0;
+      uint64_t r = ones.size();
+      while(l < r) {
+        uint64_t mid = (r + l) / 2;
+        if(ones[mid].first > first) r = mid;
+        else l = mid + 1;
+      }
+      return l;
+    }
+
+    uint64_t lower_bound_second(vector< pair< uint64_t, uint64_t > > &ones, uint64_t i, uint64_t j, uint64_t second) {
+      uint64_t l = i;
+      uint64_t r = j;
+      while(l < r) {
+        uint64_t mid = (r + l) / 2;
+        if(ones[mid].second >= second) r = mid;
+        else l = mid + 1;
+      }
+      return l;
+    }
+
+    uint64_t upper_bound_second(vector< pair< uint64_t, uint64_t > > &ones, uint64_t i, uint64_t j, uint64_t second) {
+      uint64_t l = i;
+      uint64_t r = j;
+      while(l < r) {
+        uint64_t mid = (r + l) / 2;
+        if(ones[mid].second > second) r = mid;
+        else l = mid + 1;
+      }
+      return l;
     }
 
     void add_one(vector< uint64_t > &bv, uint64_t &pos_to_add) {
@@ -89,14 +182,14 @@ class k2tree_bp_sdsl {
 #ifdef DEBUG
       cout << "Generating adjacency list..." << endl;
 #endif // DEBUG
-      vector< vector< uint64_t > > adj_list(msize);
-      for(const auto& one : ones) adj_list[one.first].push_back(one.second);
+//      vector< vector< uint64_t > > adj_list(msize);
+//      for(const auto& one : ones) adj_list[one.first].push_back(one.second);
 
 #ifdef DEBUG
       cout << "Generating pointers..." << endl;
 #endif // DEBUG
-      vector< vector< uint64_t >::iterator > pointers(msize);
-      for(uint64_t i = 0; i < msize; i++) pointers[i] = adj_list[i].begin();
+//      vector< vector< uint64_t >::iterator > pointers(msize);
+//      for(uint64_t i = 0; i < msize; i++) pointers[i] = adj_list[i].begin();
 
       // first i will do it asuming k = 2
       // then i will generalize
@@ -127,20 +220,48 @@ class k2tree_bp_sdsl {
         cout << "Current Sub Matrix Size: " << subm_size << " init x: " << init_x << " init y: " << init_y << " visited: " << flag << endl;
 #endif // DEBUG
         recursion.pop();
+//
+//        if(subm_size == k && has_at_least_one(adj_list, pointers, init_x, init_y, subm_size)) { // submatrix of size k^2
+//          
+//          for(uint64_t x = init_x; x < init_x + subm_size; x++) {
+//            for(uint64_t y = init_y; y < init_y + subm_size; y++) {
+//              if(pointers[x] != adj_list[x].end() && *(pointers[x]) == y) {
+//                add_one(bv_l, pos_to_add_l);
+//                pointers[x]++;
+//              } else {
+//                add_zero(bv_l, pos_to_add_l);
+//              }
+//            }
+//          }
 
-        if(subm_size == k && has_at_least_one(adj_list, pointers, init_x, init_y, subm_size)) { // submatrix of size k^2
+        if(subm_size == k && has_at_least_one(ones, init_x, init_y, subm_size)) { // submatrix of size k^2
           
           for(uint64_t x = init_x; x < init_x + subm_size; x++) {
-            for(uint64_t y = init_y; y < init_y + subm_size; y++) {
-              if(pointers[x] != adj_list[x].end() && *(pointers[x]) == y) {
+            uint64_t pos_f_x = lower_bound_first(ones, x);
+            uint64_t pos_l_x = upper_bound_first(ones, x);
+            if(pos_f_x < pos_l_x) {
+              uint64_t pos_f_y = lower_bound_second(ones, pos_f_x, pos_l_x, init_y);
+              uint64_t pos_l_y = upper_bound_second(ones, pos_f_x, pos_l_x, init_y + subm_size - 1);
+              if(pos_l_y - pos_f_y == 2) {
                 add_one(bv_l, pos_to_add_l);
-                pointers[x]++;
+                add_one(bv_l, pos_to_add_l);
+              } else if(pos_l_y - pos_f_y == 1) {
+                if(ones[pos_f_y].second == init_y) {
+                  add_one(bv_l, pos_to_add_l);
+                  add_zero(bv_l, pos_to_add_l);
+                } else {
+                  add_zero(bv_l, pos_to_add_l);
+                  add_one(bv_l, pos_to_add_l);
+                }
               } else {
                 add_zero(bv_l, pos_to_add_l);
+                add_zero(bv_l, pos_to_add_l);
               }
+            } else {
+              add_zero(bv_l, pos_to_add_l);
+              add_zero(bv_l, pos_to_add_l);
             }
           }
-
 #ifdef DEBUG
           cout << "Adding (..." << endl;
 #endif // DEBUG
@@ -183,7 +304,7 @@ class k2tree_bp_sdsl {
 #endif // DEBUG
           add_one(bv_tree, pos_to_add);
           
-          if(has_at_least_one(adj_list, pointers, init_x, init_y, subm_size)) {
+          if(has_at_least_one(ones, init_x, init_y, subm_size)) {
             recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2, init_y + subm_size / 2, false));
             recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2, init_y, false));
             recursion.push(make_tuple(subm_size / 2, init_x, init_y + subm_size / 2, false));

@@ -69,7 +69,6 @@ class bp_sdsl_idems {
 
     bp_sdsl_idems(bit_vector &bp) { 
       
-      csa_sada<> csa;
       string string_bp = "";
       for(uint64_t i = 0; i < bp.size(); i++) {
         string_bp += (bp[i] ? "(" : ")");
@@ -80,7 +79,6 @@ class bp_sdsl_idems {
       cout << "Building suffix array" << endl;
 #endif
 
-      construct_im(csa, string_bp, 1);
 
 #ifdef DEBUG
       cout << "Building tree support" << endl;
@@ -108,7 +106,7 @@ class bp_sdsl_idems {
       union_find idems_tree(bp.size());
 
 
-      for(uint64_t pos_bp = 2; pos_bp < csa.size(); pos_bp++) {
+      for(uint64_t pos_bp = 2; pos_bp < string_bp.length(); pos_bp++) {
         // only considering suffix starting with (
         if(bp[csa[pos_bp]]) {
           
