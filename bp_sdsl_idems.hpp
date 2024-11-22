@@ -233,6 +233,7 @@ class bp_sdsl_idems {
         }
       }
 
+      util::bit_compress(P);
       cout << count_PoL.size() << "\n";
 
       occ_PoL = sd_vector<>(count_PoL.begin(), count_PoL.end());
