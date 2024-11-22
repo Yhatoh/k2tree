@@ -30,7 +30,7 @@ int main() {
   k2tree_bp_sdsl<> k2tree(ones);
   cout << k2tree << "\n";
 
-  k2tree_bp_sdsl_idems<2> k2tree_idem(k2tree);
+  k2tree_bp_sdsl_idems<2, sd_vector<>, rank_support_sd<>, rank_support_sd<0>, select_support_sd<>, select_support_sd<0>> k2tree_idem(k2tree);
   cout << k2tree_idem << "\n";
 
   auto check = k2tree_idem.get_pos_ones();

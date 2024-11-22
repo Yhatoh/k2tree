@@ -13,6 +13,7 @@
 
 // local includes
 #include "k2tree_bp_sdsl.hpp"
+#include "libsais/include/libsais64.h"
 
 // sdsl includes
 #include <sdsl/int_vector.hpp>
@@ -20,6 +21,7 @@
 #include <sdsl/bp_support_sada.hpp>
 #include <sdsl/util.hpp>
 #include <sdsl/lcp.hpp>
+
 
 using namespace std;
 using namespace sdsl;
@@ -71,23 +73,6 @@ class k2tree_bp_sdsl_idems {
     uint64_t rmsize;
     uint64_t m;
 
-    bool has_at_least_one(vector< vector< uint64_t > > &adj_list, vector< vector< uint64_t > ::iterator > &pointers, uint64_t init_x, uint64_t init_y, uint64_t subm_size) {
-      for(uint64_t x = init_x; x < init_x + subm_size; x++) {
-        if(pointers[x] != adj_list[x].end() && *(pointers[x]) < init_y + subm_size) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    void add_one(vector< uint64_t > &bv, uint64_t &pos_to_add) {
-      bv.push_back(pos_to_add++);
-    }
-
-    void add_zero(vector< uint64_t > &bv, uint64_t &pos_to_add) {
-      pos_to_add++;
-    }
-
   public:
     uint64_t nodes() { return (tree_support.find_close(0) + 1) / 2; }
 
@@ -100,13 +85,21 @@ class k2tree_bp_sdsl_idems {
 
       l = k2tree.l;
 
-      csa_sada<> csa;
       string bp = "";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {
         bp += (k2tree.tree[i] ? "(" : ")");
       }
 
-      construct_im(csa, bp, 1);
+      uint8_t *text = reinterpret_cast<uint8_t*>(bp.data());
+      int64_t *csa = new int64_t[bp.length()];
+      int64_t *plcp = new int64_t[bp.length()];
+      int64_t *lcp = new int64_t[bp.length()];
+
+      if(libsais64(text, csa, bp.length(), 0, NULL) != 0) throw std::runtime_error("SA construction failed");
+
+      if(libsais64_plcp(text, csa, plcp, bp.length()) != 0) throw std::runtime_error("PLCP array construction failed");
+
+      if(libsais64_lcp(plcp, csa, lcp, bp.length()) != 0) throw std::runtime_error("LCP array construction failed");
 
       uint64_t amount_idem_subtree = 0;
       uint64_t amount_of_groups = 0;
@@ -115,7 +108,7 @@ class k2tree_bp_sdsl_idems {
       union_find idems_tree(k2tree.tree.size());
 
 
-      for(uint64_t pos_bp = 2; pos_bp < csa.size(); pos_bp++) {
+      for(uint64_t pos_bp = 2; pos_bp < bp.size(); pos_bp++) {
         // only considering suffix starting with (
         if(k2tree.tree[csa[pos_bp]]) {
           
@@ -132,16 +125,17 @@ class k2tree_bp_sdsl_idems {
           // ignoring leaves
           if(curr_end_pos - curr_start_pos + 1 <= 4) continue;
           // ignoring small subtrees
-          if(curr_end_pos - curr_start_pos + 1 <= 34) continue;
+          //if(curr_end_pos - curr_start_pos + 1 <= 34) continue;
 
           if(curr_end_pos - curr_start_pos == prev_end_pos - prev_start_pos) {
             bool flag = true;
-            for(uint64_t i = 0; i < curr_end_pos - curr_start_pos + 1; i++) {
-              if(k2tree.tree[curr_start_pos + i] != k2tree.tree[prev_start_pos + i]) {
-                flag = false;
-                break;
-              }
-            }
+            if(lcp[pos_bp] < curr_end_pos - curr_start_pos + 1) flag = false;
+//            for(uint64_t i = 0; i < curr_end_pos - curr_start_pos + 1; i++) {
+//              if(k2tree.tree[curr_start_pos + i] != k2tree.tree[prev_start_pos + i]) {
+//                flag = false;
+//                break;
+//              }
+//            }
 
             if(flag) {
               idems_tree.union_set(curr_start_pos, prev_start_pos);

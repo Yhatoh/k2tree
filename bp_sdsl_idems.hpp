@@ -1,5 +1,5 @@
-#ifndef K2_TREE_BP_SDSL_IDEM
-#define K2_TREE_BP_SDSL_IDEM
+#ifndef TREE_BP_SDSL_IDEM
+#define TREE_BP_SDSL_IDEM
 // std includes
 #include <cassert>
 #include <cstdint>
@@ -10,6 +10,9 @@
 #include <sdsl/rank_support_v5.hpp>
 #include <utility>
 #include <vector>
+
+// local includes
+#include "libsais/include/libsais64.h"
 
 // sdsl includes
 #include <sdsl/int_vector.hpp>
@@ -89,6 +92,17 @@ class bp_sdsl_idems {
 #endif
       uint64_t amount_idem_subtree = 0;
       uint64_t amount_of_groups = 0;
+
+      uint8_t *text = reinterpret_cast<uint8_t*>(string_bp.data());
+      int64_t *csa = new int64_t[string_bp.length()];
+      int64_t *plcp = new int64_t[string_bp.length()];
+      int64_t *lcp = new int64_t[string_bp.length()];
+
+      if(libsais64(text, csa, string_bp.length(), 0, NULL) != 0) throw std::runtime_error("SA construction failed");
+
+      if(libsais64_plcp(text, csa, plcp, string_bp.length()) != 0) throw std::runtime_error("PLCP array construction failed");
+
+      if(libsais64_lcp(plcp, csa, lcp, string_bp.length()) != 0) throw std::runtime_error("LCP array construction failed");
 
       // remove later
       union_find idems_tree(bp.size());
