@@ -62,97 +62,42 @@ class k2tree_bp_sdsl {
     uint64_t rmsize;
     uint64_t m;
 
-//    bool has_at_least_one(vector< vector< uint64_t > > &adj_list, vector< vector< uint64_t > ::iterator > &pointers, uint64_t init_x, uint64_t init_y, uint64_t subm_size) {
-//      for(uint64_t x = init_x; x < init_x + subm_size; x++) {
-//        if(pointers[x] != adj_list[x].end() && *(pointers[x]) < init_y + subm_size) {
-//          return true;
-//        }
-//      }
-//      return false;
-//    }
-
-    bool has_at_least_one(vector< pair< uint64_t, uint64_t > > &ones, uint64_t init_x, uint64_t init_y, uint64_t subm_size) {
-#ifdef DEBUG
-      cout << "Ones: ";
-      cout << ones << endl;
-      cout << "Matrix at positions: " << init_x << " " << init_x + subm_size - 1 << " " << init_y << " " << init_y + subm_size - 1 << endl;
-#endif
-      for(uint64_t x = init_x; x < init_x + subm_size; x++) {
-        uint64_t pos_f_x = lower_bound_first(ones, x);
-        uint64_t pos_l_x = upper_bound_first(ones, x);
-#ifdef DEBUG
-        cout << " Searched " << x << " " << pos_f_x << " " << pos_l_x << endl;
-#endif
-        if(pos_f_x < pos_l_x) {
-          uint64_t pos_f_y = lower_bound_second(ones, pos_f_x, pos_l_x, init_y);
-          uint64_t pos_l_y = upper_bound_second(ones, pos_f_x, pos_l_x, init_y + subm_size - 1);
-#ifdef DEBUG
-          cout << " Searched " << init_y << " " << pos_f_y << " Searched " << init_y + subm_size - 1 << " " << pos_l_y << endl;
-#endif
-          if(pos_f_y != pos_l_y) {
-#ifdef DEBUG
-            cout << "  True" << endl;
-#endif
-            return true;
-          }
-        }
-      }
-#ifdef DEBUG
-      cout << "  False" << endl;
-#endif
-      return false;
-    }
-
-    uint64_t lower_bound_first(vector< pair< uint64_t, uint64_t > > &ones, uint64_t first) {
-      uint64_t l = 0;
-      uint64_t r = ones.size();
-      while(l < r) {
-        uint64_t mid = (r + l) / 2;
-        if(ones[mid].first >= first) r = mid;
-        else l = mid + 1;
-      }
-      return l;
-    }
-
-    uint64_t upper_bound_first(vector< pair< uint64_t, uint64_t > > &ones, uint64_t first) {
-      uint64_t l = 0;
-      uint64_t r = ones.size();
-      while(l < r) {
-        uint64_t mid = (r + l) / 2;
-        if(ones[mid].first > first) r = mid;
-        else l = mid + 1;
-      }
-      return l;
-    }
-
-    uint64_t lower_bound_second(vector< pair< uint64_t, uint64_t > > &ones, uint64_t i, uint64_t j, uint64_t second) {
-      uint64_t l = i;
-      uint64_t r = j;
-      while(l < r) {
-        uint64_t mid = (r + l) / 2;
-        if(ones[mid].second >= second) r = mid;
-        else l = mid + 1;
-      }
-      return l;
-    }
-
-    uint64_t upper_bound_second(vector< pair< uint64_t, uint64_t > > &ones, uint64_t i, uint64_t j, uint64_t second) {
-      uint64_t l = i;
-      uint64_t r = j;
-      while(l < r) {
-        uint64_t mid = (r + l) / 2;
-        if(ones[mid].second > second) r = mid;
-        else l = mid + 1;
-      }
-      return l;
-    }
-
     void add_one(vector< uint64_t > &bv, uint64_t &pos_to_add) {
       bv.push_back(pos_to_add++);
     }
 
     void add_zero(vector< uint64_t > &bv, uint64_t &pos_to_add) {
       pos_to_add++;
+    }
+
+    uint64_t bits_interleave(int64_t a, int64_t b) {
+      uint64_t r = 0;
+      assert(a<=UINT32_MAX && b <= UINT32_MAX);
+      int c = 0;
+      while(a!=0 || b!=0) {
+        r |= (b&1)<<c++;
+        r |= (a&1)<<c++;
+        a >>= 1; b>>=1;  
+        assert(c<=64);
+      }
+      return r;
+    }
+
+    size_t binsearch(vector< uint64_t >::iterator ia, size_t n, uint64_t x) {
+      assert(n>0);
+      size_t l=0, r=n-1;
+      while(l<r) {
+        size_t m = (l+r)/2;
+        if(ia[m]<x) l=m+1;
+        else if(ia[m]==x) return m;
+        else r=m; // replace with r = m-1 and later return r+1?
+      }
+      assert(l==r);
+      if(ia[l]<x) {
+        assert(r==n-1);
+        return n;   // replace with return r+1?
+      }
+      return l;
     }
 
   public:
@@ -177,163 +122,149 @@ class k2tree_bp_sdsl {
       cout << "Height Tree: " << height_tree << endl;
 #endif // DEBUG
       
-      sort(ones.begin(), ones.end());
+      vector< uint64_t > ia_ones;
+      for(const auto& one : ones) {
+        ia_ones.push_back(bits_interleave(one.first, one.second));
+      }
 
-#ifdef DEBUG
-      cout << "Generating adjacency list..." << endl;
-#endif // DEBUG
-//      vector< vector< uint64_t > > adj_list(msize);
-//      for(const auto& one : ones) adj_list[one.first].push_back(one.second);
-
-#ifdef DEBUG
-      cout << "Generating pointers..." << endl;
-#endif // DEBUG
-//      vector< vector< uint64_t >::iterator > pointers(msize);
-//      for(uint64_t i = 0; i < msize; i++) pointers[i] = adj_list[i].begin();
+      sort(ia_ones.begin(), ia_ones.end());
 
       // first i will do it asuming k = 2
       // then i will generalize
 #ifdef DEBUG
+      string balance_string = "";
       cout << "Initialize recursion..." << endl;
 #endif // DEBUG
-      stack< tuple< uint64_t, uint64_t, uint64_t, bool > > recursion;
-      recursion.push(make_tuple(msize / 2, msize / 2, msize / 2, false));
-      recursion.push(make_tuple(msize / 2, msize / 2, 0, false));
-      recursion.push(make_tuple(msize / 2, 0, msize / 2, false));
-      recursion.push(make_tuple(msize / 2, 0, 0, false));
+      stack< tuple< uint64_t, uint64_t, uint64_t, uint64_t, vector< uint64_t >::iterator, uint64_t, bool, bool > > recursion;
+      recursion.push(make_tuple(msize, 0, 0, 0, ia_ones.begin(), ia_ones.size(), true, false));
 
-
-#ifdef DEBUG
-      cout << "Adding ( of root..." << endl;
-#endif // DEBUG
       vector< uint64_t > bv_tree;
       vector< uint64_t > bv_l;
 
-      bv_tree.push_back(0);
-
-      uint64_t pos_to_add = 1;
+      uint64_t pos_to_add = 0;
       uint64_t pos_to_add_l = 0;
 
       while(!recursion.empty()) {
-        auto [subm_size, init_x, init_y, flag] = recursion.top();
+        auto [subm_size, init_x, init_y, smin, ia, n_ia, one_one, flag] = recursion.top();
 #ifdef DEBUG
+        cout << "Recursion call..." << endl;
         cout << "Current Sub Matrix Size: " << subm_size << " init x: " << init_x << " init y: " << init_y << " visited: " << flag << endl;
+        cout << " n ia: " << n_ia << endl;
 #endif // DEBUG
         recursion.pop();
-//
-//        if(subm_size == k && has_at_least_one(adj_list, pointers, init_x, init_y, subm_size)) { // submatrix of size k^2
-//          
-//          for(uint64_t x = init_x; x < init_x + subm_size; x++) {
-//            for(uint64_t y = init_y; y < init_y + subm_size; y++) {
-//              if(pointers[x] != adj_list[x].end() && *(pointers[x]) == y) {
-//                add_one(bv_l, pos_to_add_l);
-//                pointers[x]++;
-//              } else {
-//                add_zero(bv_l, pos_to_add_l);
-//              }
-//            }
-//          }
+        
+        if(flag) {
+#ifdef DEBUG
+          balance_string += ")";
+          cout << "Adding )..." << endl;
+#endif // DEBUG
+          add_zero(bv_tree, pos_to_add);
+          continue;
+        }
 
-        if(subm_size == k && has_at_least_one(ones, init_x, init_y, subm_size)) { // submatrix of size k^2
-          
-          for(uint64_t x = init_x; x < init_x + subm_size; x++) {
-            uint64_t pos_f_x = lower_bound_first(ones, x);
-            uint64_t pos_l_x = upper_bound_first(ones, x);
-            if(pos_f_x < pos_l_x) {
-              uint64_t pos_f_y = lower_bound_second(ones, pos_f_x, pos_l_x, init_y);
-              uint64_t pos_l_y = upper_bound_second(ones, pos_f_x, pos_l_x, init_y + subm_size - 1);
-              if(pos_l_y - pos_f_y == 2) {
-                add_one(bv_l, pos_to_add_l);
-                add_one(bv_l, pos_to_add_l);
-              } else if(pos_l_y - pos_f_y == 1) {
-                if(ones[pos_f_y].second == init_y) {
-                  add_one(bv_l, pos_to_add_l);
-                  add_zero(bv_l, pos_to_add_l);
-                } else {
-                  add_zero(bv_l, pos_to_add_l);
-                  add_one(bv_l, pos_to_add_l);
-                }
-              } else {
-                add_zero(bv_l, pos_to_add_l);
-                add_zero(bv_l, pos_to_add_l);
-              }
-            } else {
-              add_zero(bv_l, pos_to_add_l);
-              add_zero(bv_l, pos_to_add_l);
-            }
+        recursion.push(make_tuple(subm_size, init_x, init_y, smin, ia, n_ia, one_one, true));
+#ifdef DEBUG
+        balance_string += "(";
+        cout << "Adding (..." << endl;
+#endif // DEBUG
+        add_one(bv_tree, pos_to_add);
+
+        if(!one_one) {
+          continue;
+        }
+
+        
+        if(subm_size == k) {
+          vector< int64_t > t(4, 0);
+
+          for(size_t i = 0; i < n_ia; i++) {
+#ifdef DEBUG
+            cout << "IA[" << i << "] = " << ia[i] << endl;
+            cout << "smin = " << smin << endl;
+#endif
+            int64_t pos = (int64_t) (ia[i] - smin);
+#ifdef DEBUG
+            cout << "pos = " << pos << endl;
+#endif
+            t[pos] = 1;
           }
+
+          for(const auto& bit : t) {
+            if(bit) add_one(bv_l, pos_to_add_l);
+            else add_zero(bv_l, pos_to_add_l);
+          }
+
 #ifdef DEBUG
+          balance_string += "(";
           cout << "Adding (..." << endl;
 #endif // DEBUG
           add_one(bv_tree, pos_to_add);
 #ifdef DEBUG
-          cout << "Adding (..." << endl;
-#endif // DEBUG
-          add_one(bv_tree, pos_to_add);
-#ifdef DEBUG
+          balance_string += ")";
           cout << "Adding )..." << endl;
 #endif // DEBUG
           add_zero(bv_tree, pos_to_add);
-#ifdef DEBUG
-          cout << "Adding )..." << endl;
-#endif // DEBUG
-          add_zero(bv_tree, pos_to_add);
-        } else if(subm_size == k) {
-#ifdef DEBUG
-          cout << "Adding (..." << endl;
-#endif // DEBUG
-          add_one(bv_tree, pos_to_add);
-#ifdef DEBUG
-          cout << "Adding )..." << endl;
-#endif // DEBUG
-          add_zero(bv_tree, pos_to_add);
+          continue;
+        }
+
+        uint64_t range = (subm_size / 2) * (subm_size / 2);
+        uint64_t left = smin + range;
+        uint64_t mid = left + range;
+        uint64_t right = mid + range;
+
+        size_t imid = binsearch(ia, n_ia, mid);
+        size_t ileft = imid >0 ? binsearch(ia, imid, left) : 0;
+        size_t iright = imid < n_ia ? binsearch(ia + imid, n_ia - imid, right) + imid : n_ia;
+
+        if(iright < n_ia) { // right-bot 
+          recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2, init_y + subm_size / 2, right, ia + iright, n_ia - iright, true, false));
         } else {
+          recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2, init_y + subm_size / 2, right, ia + iright, n_ia - iright, false, false));
+        }
+        
+        if(iright > imid) { // left-bot 
+          recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2, init_y, mid, ia + imid, iright - imid, true, false));
+        } else {
+          recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2, init_y, mid, ia + imid, iright - imid, false, false));
+        }
+        
+        if(ileft < imid) { // right-up
+          recursion.push(make_tuple(subm_size / 2, init_x, init_y + subm_size / 2, left, ia + ileft, imid - ileft, true, false));
+        } else {
+          recursion.push(make_tuple(subm_size / 2, init_x, init_y + subm_size / 2, left, ia + ileft, imid - ileft, false, false));
+        }
 
-          if(flag) {
-#ifdef DEBUG
-          cout << "Adding )..." << endl;
-#endif // DEBUG
-            add_zero(bv_tree, pos_to_add);
-            continue;
-          } else {
-            recursion.push(make_tuple(subm_size, init_x, init_y, true));
-          }
-
-#ifdef DEBUG
-          cout << "Adding (..." << endl;
-#endif // DEBUG
-          add_one(bv_tree, pos_to_add);
-          
-          if(has_at_least_one(ones, init_x, init_y, subm_size)) {
-            recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2, init_y + subm_size / 2, false));
-            recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2, init_y, false));
-            recursion.push(make_tuple(subm_size / 2, init_x, init_y + subm_size / 2, false));
-            recursion.push(make_tuple(subm_size / 2, init_x, init_y, false));
-          } else {
-#ifdef DEBUG
-          cout << "Adding )..." << endl;
-#endif // DEBUG
-            add_zero(bv_tree, pos_to_add);
-            recursion.pop();
-          }
+        if(ileft > 0) { // left-up
+          recursion.push(make_tuple(subm_size / 2, init_x, init_y, smin, ia, ileft, true, false));
+        } else {
+          recursion.push(make_tuple(subm_size / 2, init_x, init_y, smin, ia, ileft, false, false));
         }
       }
-#ifdef DEBUG
-      cout << "Adding ) of root ..." << endl;
-#endif // DEBUG
-      add_zero(bv_tree, pos_to_add);
-      recursion.pop();
 
       last_bit_t = pos_to_add;
       last_bit_l = pos_to_add_l;
 
+#ifdef DEBUG
+      cout << "Result: " << balance_string << "..." << endl;
+      cout << "Init tree " << pos_to_add << "..." << endl;
+#endif // DEBUG
       tree = bit_vector(pos_to_add, 0);
       for(const auto& bit : bv_tree) tree[bit] = 1;
 
+#ifdef DEBUG
+      cout << "Init L " << pos_to_add_l << "..." << endl;
+#endif // DEBUG
       l = bit_vector(pos_to_add_l, 0);
       for(const auto& bit : bv_l) l[bit] = 1;
 
+#ifdef DEBUG
+      cout << "Init Tree support..." << endl;
+#endif // DEBUG
       tree_support = bp_support_sada<>(&tree);
+
+#ifdef DEBUG
+      cout << "End k2tree building..." << endl;
+#endif // DEBUG
     }
 
     vector< pair< uint64_t, uint64_t > > get_pos_ones() {
