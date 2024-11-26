@@ -12,7 +12,7 @@ using namespace std;
 int main(int argc, char** argv) {
 
   string n = argv[1];
-  for(uint64_t i = 2; i < argc; i += 1) {
+  for(uint64_t i = 3; i < argc; i += 1) {
     ifstream file;
     file.open(argv[i]);
 

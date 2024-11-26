@@ -240,7 +240,7 @@ class k2tree_bp_sdsl_idems {
       }
 
 
-      //util::bit_compress(P);
+      util::bit_compress(P);
       cout << "idem subtrees: " << P.size() << "\n";
       occ_PoL = bit_vector_(count_PoL.begin(), count_PoL.end());
       util::init_support(rank1_occ_PoL, &occ_PoL);
