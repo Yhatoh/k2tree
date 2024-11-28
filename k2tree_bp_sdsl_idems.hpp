@@ -1,6 +1,7 @@
 #ifndef K2_TREE_BP_SDSL_IDEM
 #define K2_TREE_BP_SDSL_IDEM
 // std includes
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <iostream>
@@ -14,6 +15,7 @@
 // local includes
 #include "k2tree_bp_sdsl.hpp"
 #include "libsais/include/libsais64.h"
+#include "util.hpp"
 
 // sdsl includes
 #include <sdsl/int_vector.hpp>
@@ -41,6 +43,7 @@ struct union_find {
     e[x] += e[y], e[y] = x;
     return 1;
   }
+  void clear() { e.clear(); }
 };
 
 // k2-tree
@@ -107,6 +110,7 @@ class k2tree_bp_sdsl_idems {
       // remove later
       union_find idems_tree(k2tree.tree.size());
 
+      uint64_t maxi_repre = 0;
 
       for(uint64_t pos_bp = 2; pos_bp < bp.size(); pos_bp++) {
         // only considering suffix starting with (
@@ -144,6 +148,7 @@ class k2tree_bp_sdsl_idems {
               cout << "   Subtree pos: " << curr_start_pos << " " << curr_end_pos << endl;
               cout << "   Head: " << idems_tree.find_set(curr_start_pos) << endl;
 #endif
+              maxi_repre = idems_tree.find_set(curr_start_pos);
               amount_idem_subtree++;
             } else {
 #ifdef DEBUG
@@ -181,6 +186,7 @@ class k2tree_bp_sdsl_idems {
       uint64_t ref_bit = 0;
 
       uint64_t amount_of_bits_removed = 0;
+      uint64_t log2_w = ceil_log2(maxi_repre);
 
       vector< uint64_t > prefix_help(k2tree.tree.size(), 0);
 
@@ -190,7 +196,8 @@ class k2tree_bp_sdsl_idems {
 
           uint64_t repre = idems_tree.find_set(bit);
 
-          if(repre != bit) {
+          // if has an identical tree and is big enough
+          if(repre != bit && k2tree.tree_support.find_close(repre) - repre + 1 > log2_w) {
             new_tree_bv.push_back(ref_bit++);
             pointer.push_back(repre - prefix_help[repre - 1]);
             ref_bit += 2;
@@ -208,14 +215,17 @@ class k2tree_bp_sdsl_idems {
           ref_bit++;
           prefix_help[bit] = prefix_help[bit - 1];
         }
-
       }
+      prefix_help.clear();
+      idems_tree.clear();
       
       P = int_vector<64>(pointer.size());
       for(uint64_t i = 0; i < pointer.size(); i++) P[i] = pointer[i];
+      pointer.clear();
 
       tree = bit_vector(ref_bit, 0);
       for(const auto& bit : new_tree_bv) tree[bit] = 1;
+      new_tree_bv.clear();
 
       vector< uint64_t > PoL_bv;
       vector< uint64_t > count_PoL;
@@ -244,12 +254,14 @@ class k2tree_bp_sdsl_idems {
       cout << "idem subtrees: " << P.size() << "\n";
       occ_PoL = bit_vector_(count_PoL.begin(), count_PoL.end());
       util::init_support(rank1_occ_PoL, &occ_PoL);
+      count_PoL.clear();
 
       PoL = bit_vector_(PoL_bv.begin(), PoL_bv.end());
       util::init_support(rank1_PoL, &PoL);
       util::init_support(rank0_PoL, &PoL);
       util::init_support(select1_PoL, &PoL);
       util::init_support(select0_PoL, &PoL);
+      PoL_bv.clear();
       
       tree_support = bp_support_sada<>(&tree);
 
