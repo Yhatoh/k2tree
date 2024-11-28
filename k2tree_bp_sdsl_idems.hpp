@@ -110,8 +110,6 @@ class k2tree_bp_sdsl_idems {
       // remove later
       union_find idems_tree(k2tree.tree.size());
 
-      uint64_t maxi_repre = 0;
-
       for(uint64_t pos_bp = 2; pos_bp < bp.size(); pos_bp++) {
         // only considering suffix starting with (
         if(k2tree.tree[csa[pos_bp]]) {
@@ -148,7 +146,6 @@ class k2tree_bp_sdsl_idems {
               cout << "   Subtree pos: " << curr_start_pos << " " << curr_end_pos << endl;
               cout << "   Head: " << idems_tree.find_set(curr_start_pos) << endl;
 #endif
-              maxi_repre = idems_tree.find_set(curr_start_pos);
               amount_idem_subtree++;
             } else {
 #ifdef DEBUG
@@ -173,6 +170,17 @@ class k2tree_bp_sdsl_idems {
         } else {
           // ( < ) = true
           break;
+        }
+      }
+
+      free(csa);
+      free(plcp);
+      free(lcp);
+      uint64_t maxi_repre = 0;
+      for(uint64_t nodes = 0; nodes < k2tree.tree.size(); nodes) {
+        uint64_t repre = idems_tree.find_set(nodes);
+        if(repre != nodes) {
+          maxi_repre = max(repre, maxi_repre);
         }
       }
 
