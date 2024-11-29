@@ -7,6 +7,8 @@
 #include "k2tree_bp_sdsl.hpp"
 #include "k2tree_bp_sdsl_idems.hpp"
 
+#include <sdsl/rrr_vector.hpp>
+
 using namespace std;
 
 int main(int argc, char** argv) {
@@ -44,7 +46,10 @@ int main(int argc, char** argv) {
 //    sort(ret.begin(), ret.end());
 //    assert(ret.size() == ones.size());
 
-    k2tree_bp_sdsl_idems<2, sd_vector<>, rank_support_sd<>, rank_support_sd<0>, select_support_sd<>, select_support_sd<0>> k2tree_idems(k2tree);
+    k2tree_bp_sdsl_idems<2,
+                         rrr_vector<127>, rank_support_rrr<1, 127>,
+                         rrr_vector<127>, rank_support_rrr<1, 127>, rank_support_rrr<0, 127>,
+                                          select_support_rrr<1, 127>, select_support_rrr<0, 127>> k2tree_idems(k2tree);
     cout << k2tree_idems.size_in_bits() << " " << (double) k2tree_idems.size_in_bits() / amount << " " << (double) k2tree_idems.size_in_bits() / k2tree.nodes() << endl;
 
 //    auto ret = k2tree.get_pos_ones();

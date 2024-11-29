@@ -54,8 +54,11 @@ bool test_pow_2_matrices(uint64_t p) {
 
   auto check = k2tree.get_pos_ones();
 
-  k2tree_bp_sdsl_idems<2, sd_vector<>, rank_support_sd<>, rank_support_sd<0>, select_support_sd<>, select_support_sd<0>> k2tree_idem(k2tree);
 
+  k2tree_bp_sdsl_idems<2,
+    rrr_vector<127>, rank_support_rrr<1, 127>,
+    rrr_vector<127>, rank_support_rrr<1, 127>, rank_support_rrr<0, 127>,
+    select_support_rrr<1, 127>, select_support_rrr<0, 127>> k2tree_idem(k2tree);
   auto check2 = k2tree_idem.get_pos_ones();
 
   assert(check.size() == ones.size());
@@ -78,7 +81,10 @@ bool test_gen_matrices(uint64_t n, uint64_t m) {
 
   cout << "Generating k2 tree" << endl;
   k2tree_bp_sdsl<2> k2tree(ones);
-  k2tree_bp_sdsl_idems<2, sd_vector<>, rank_support_sd<>, rank_support_sd<0>, select_support_sd<>, select_support_sd<0>> k2tree_idem(k2tree);
+  k2tree_bp_sdsl_idems<2,
+    rrr_vector<127>, rank_support_rrr<1, 127>,
+    rrr_vector<127>, rank_support_rrr<1, 127>, rank_support_rrr<0, 127>,
+    select_support_rrr<1, 127>, select_support_rrr<0, 127>> k2tree_idem(k2tree);
 
   cout << "Getting ones from k2 tree" << endl;
   auto check = k2tree.get_pos_ones();
