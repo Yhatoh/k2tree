@@ -12,7 +12,7 @@ using namespace std;
 int main(int argc, char** argv) {
 
   string n = argv[1];
-  for(uint64_t i = 3; i < argc; i += 1) {
+  for(uint64_t i = 2; i < argc; i += 1) {
     ifstream file;
     file.open(argv[i]);
 
@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
     vector< pair< uint64_t, uint64_t > > ones;
     
     cout << "Reading file " << argv[i] << endl;
+    assert(file.is_open());
     while(!file.eof()) {
       uint64_t a, b;
 

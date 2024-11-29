@@ -88,6 +88,7 @@ class k2tree_bp_sdsl_idems {
 
       l = k2tree.l;
 
+      cout << "Building suffix array..." << endl;
       string bp = "";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {
         bp += (k2tree.tree[i] ? "(" : ")");
@@ -107,6 +108,7 @@ class k2tree_bp_sdsl_idems {
       uint64_t amount_idem_subtree = 0;
       uint64_t amount_of_groups = 0;
 
+      cout << "Searching identical subtrees..." << endl;
       // remove later
       union_find idems_tree(k2tree.tree.size());
 
@@ -178,8 +180,9 @@ class k2tree_bp_sdsl_idems {
       free(plcp);
       free(lcp);
 
+      cout << "Finding maximum head..." << endl;
       uint64_t maxi_repre = 0;
-      for(uint64_t nodes = 0; nodes < k2tree.tree.size(); nodes) {
+      for(uint64_t nodes = 0; nodes < k2tree.tree.size(); nodes++) {
         uint64_t repre = idems_tree.find_set(nodes);
         if(repre != nodes) {
           maxi_repre = max(repre, maxi_repre);
@@ -198,6 +201,7 @@ class k2tree_bp_sdsl_idems {
       uint64_t amount_of_bits_removed = 0;
       uint64_t log2_w = ceil_log2(maxi_repre);
 
+      cout << "Replacing identical subtrees..." << endl;
       vector< uint64_t > prefix_help(k2tree.tree.size(), 0);
 
       for(uint64_t bit = 0; bit < k2tree.tree.size(); bit++) {
@@ -231,6 +235,7 @@ class k2tree_bp_sdsl_idems {
       prefix_help.clear();
       idems_tree.clear();
       
+      cout << "Creating auxiliary bit vectors..." << endl;
       P = int_vector<64>(pointer.size());
       for(uint64_t i = 0; i < pointer.size(); i++) P[i] = pointer[i];
 
@@ -246,9 +251,9 @@ class k2tree_bp_sdsl_idems {
       vector< uint64_t > PoL_bv;
       vector< uint64_t > count_PoL;
       ref_bit = 0;
-#ifdef DEBUG
+
       cout << "Creating PoL" << endl;
-#endif
+
       for(uint64_t bit = 0, level = 0; bit < tree.size() - 3; bit++) {
         if(tree[bit]) level++;
         else level--;
