@@ -51,10 +51,11 @@ struct union_find {
 //   * k * k: amount of children per node
 template< uint64_t k = 2, 
           class bit_vector_1 = bit_vector, class rank1_1 = rank_support_v5<>,
-          class bit_vector_2 = bit_vector, class rank1_2 = rank_support_v5<>, class rank0_2 = rank_support_v5<0>, class select1_2 = select_support_mcl<>, class select0_2 = select_support_mcl<0> >
+          class bit_vector_2 = bit_vector, class rank1_2 = rank_support_v5<>, class rank0_2 = rank_support_v5<0>,
+                                           class select1_2 = select_support_mcl<>, class select0_2 = select_support_mcl<0> >
 class k2tree_bp_sdsl_idems {
   private:
-    int_vector<64> P;
+    int_vector<> P;
 
     bit_vector_1 occ_PoL;
     rank1_1 rank1_occ_PoL;
@@ -186,8 +187,9 @@ class k2tree_bp_sdsl_idems {
       uint64_t maxi_repre = 0;
       for(uint64_t nodes = 0; nodes < k2tree.tree.size(); nodes++) {
         uint64_t repre = idems_tree.find_set(nodes);
-        if(repre != nodes) {
+        if(k2tree.tree[nodes] == 1 && repre != nodes) {
           maxi_repre = max(repre, maxi_repre);
+          nodes = k2tree.tree_support.find_close(nodes);
         }
       }
 
@@ -238,9 +240,12 @@ class k2tree_bp_sdsl_idems {
       idems_tree.clear();
       
       cout << "Creating auxiliary bit vectors..." << endl;
-      P = int_vector<64>(pointer.size());
-      for(uint64_t i = 0; i < pointer.size(); i++) P[i] = pointer[i];
+      P = int_vector<>(pointer.size());
+      for(uint64_t i = 0; i < pointer.size(); i++) {
+        P[i] = pointer[i];
+      }
 
+      cout << "idem subtrees: " << pointer.size() << "\n";
       // clean, is useless
       pointer.clear();
 
@@ -273,8 +278,7 @@ class k2tree_bp_sdsl_idems {
       }
 
 
-      //util::bit_compress(P);
-      cout << "idem subtrees: " << P.size() << "\n";
+      util::bit_compress(P);
 
       bit_vector bv_occ_PoL(count_PoL.back() + 1, 0);
       for(const auto& bit : count_PoL) bv_occ_PoL[bit] = 1;
@@ -410,6 +414,13 @@ class k2tree_bp_sdsl_idems {
     }
 
     uint64_t size_in_bits() {
+      cout << "BITS" << endl;
+      cout << "  Tree:         " << (size_in_bytes(tree)) * 8 << endl;
+      cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << endl;
+      cout << "  L:            " << (size_in_bytes(l)) * 8 << endl;
+      cout << "  P:            " << (size_in_bytes(P)) * 8 << endl;
+      cout << "  occ_PoL:      " << (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 << endl;
+      cout << "  PoL:          " << (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 << endl;
       return sizeof(uint64_t) * 5 +
              size_in_bytes(tree) * 8 +
              size_in_bytes(tree_support) * 8 +
