@@ -238,13 +238,19 @@ class k2tree_bp_sdsl_idems {
       // clean, is useless
       prefix_help.clear();
       idems_tree.clear();
-      
+
       cout << "Creating auxiliary bit vectors..." << endl;
+      map< uint64_t, uint64_t > unique_pointer;
+      uint64_t code = 0;
+
       P = int_vector<>(pointer.size());
       for(uint64_t i = 0; i < pointer.size(); i++) {
+        unique_pointer[pointer[i]] = code++;
         P[i] = pointer[i];
       }
 
+
+      cout << ceil_log2(code - 1) << " " << code << "\n";
       cout << "idem subtrees: " << pointer.size() << "\n";
       // clean, is useless
       pointer.clear();
