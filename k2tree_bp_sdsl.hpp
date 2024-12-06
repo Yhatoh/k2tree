@@ -26,23 +26,6 @@
 using namespace std;
 using namespace sdsl;
 
-template< typename T, typename T2 >
-ostream& operator<<(ostream& os, const pair< T, T2 > &p) {
-  os << "(" << p.first << "," << p.second << ")";
-  return os;
-}
-
-template< typename T >
-ostream& operator<<(ostream& os, const vector< T > &vec) {
-  os << "[";
-  for(uint64_t i = 0; i < vec.size(); i++) {
-    os << vec[i];
-    if(i != vec.size() - 1)
-      os << ", ";
-  }
-  os << "]";
-  return os;
-}
 // k2-tree
 // parameters:
 //   * k * k: amount of children per node
