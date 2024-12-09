@@ -75,7 +75,7 @@ class k2tree_bp_sdsl_idems {
     bit_vector tree; // k2tree
     uint64_t last_bit_t; // universe
 
-    bit_vector l; // real values
+    rrr_vector<127> l; // real values
     uint64_t last_bit_l; // universe
 
     uint64_t msize;
@@ -92,7 +92,7 @@ class k2tree_bp_sdsl_idems {
 
       height_tree = k2tree.height_tree;
 
-      l = k2tree.l;
+      l = rrr_vector<127>(k2tree.l);
 
       cout << "Building suffix array..." << endl;
       string bp = "";
@@ -446,11 +446,12 @@ class k2tree_bp_sdsl_idems {
       cout << "  Real P      : " << (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 << endl;
       cout << "  occ_PoL     : " << (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 << endl;
       cout << "  PoL         : " << (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 << endl;
-      return sizeof(uint64_t) * 5 +
+      return sizeof(uint64_t) * 4 +
              size_in_bytes(tree) * 8 +
              size_in_bytes(tree_support) * 8 +
              size_in_bytes(l) * 8 + 
              size_in_bytes(P) * 8 +
+             (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 +
              size_in_bytes(occ_PoL) * 8 + size_in_bytes(rank1_occ_PoL) * 8 +
              size_in_bytes(PoL) * 8 + size_in_bytes(rank1_PoL) * 8 + size_in_bytes(rank0_PoL) * 8 +
              size_in_bytes(select1_PoL) * 8 + size_in_bytes(select0_PoL) * 8;

@@ -1,3 +1,6 @@
 [submodule "libsais"]
 	path = libsais
 	url = https://github.com/IlyaGrebnov/libsais.git
+[submodule "sdsl-lite"]
+	path = sdsl-lite
+	url = git@github.com:vgteam/sdsl-lite.git

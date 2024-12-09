@@ -13,15 +13,15 @@ using namespace std;
 
 int main(int argc, char** argv) {
 
-  string n = argv[1];
-  for(uint64_t i = 2; i < argc; i += 1) {
+  for(uint64_t i = 1; i < argc; i += 2) {
+    string n = argv[i];
     ifstream file;
-    file.open(argv[i]);
+    file.open(argv[i + 1]);
 
     uint64_t amount = 0;
     vector< pair< uint64_t, uint64_t > > ones;
     
-    cout << "Reading file " << argv[i] << endl;
+    cout << "Reading file " << argv[i + 1] << endl;
     assert(file.is_open());
     while(!file.eof()) {
       uint64_t a, b;
