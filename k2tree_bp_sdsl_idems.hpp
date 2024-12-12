@@ -12,18 +12,18 @@
 #include "k2tree_bp_sdsl.hpp"
 #include "libsais/include/libsais64.h"
 #include "util.hpp"
+//#include "Modificacion-S18/s18/head/s18_vector.hpp"
 
 // sdsl includes
 #include <sdsl/construct.hpp>
 #include <sdsl/io.hpp>
-#include <sdsl/lcp_support_sada.hpp>
 #include <sdsl/rank_support_v5.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/sd_vector.hpp>
+#include <sdsl/rle_vector.hpp>
 #include <sdsl/bp_support_sada.hpp>
 #include <sdsl/util.hpp>
-#include <sdsl/lcp.hpp>
-
+#include <sdsl/vectors.hpp>
 
 using namespace std;
 using namespace sdsl;
@@ -55,7 +55,10 @@ template< uint64_t k = 2,
                                            class select1_2 = select_support_mcl<>, class select0_2 = select_support_mcl<0> >
 class k2tree_bp_sdsl_idems {
   private:
-    int_vector<> P;
+    //int_vector<> P;
+    //vlc_vector<coder::fibonacci> P; // indo 5.2
+    //dac_vector<> P; // indo 5.1
+    dac_vector_dp<rrr_vector<127>> P;
 
     bit_vector_1 occ_PoL;
     rank1_1 rank1_occ_PoL;
@@ -94,7 +97,7 @@ class k2tree_bp_sdsl_idems {
 
       l = rrr_vector<127>(k2tree.l);
 
-      cout << "Building suffix array..." << endl;
+      //cout << "Building suffix array..." << endl;
       string bp = "";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {
         bp += (k2tree.tree[i] ? "(" : ")");
@@ -114,7 +117,7 @@ class k2tree_bp_sdsl_idems {
       uint64_t amount_idem_subtree = 0;
       uint64_t amount_of_groups = 0;
 
-      cout << "Searching identical subtrees..." << endl;
+      //cout << "Searching identical subtrees..." << endl;
       // remove later
       union_find idems_tree(k2tree.tree.size());
 
@@ -135,17 +138,10 @@ class k2tree_bp_sdsl_idems {
           // ignoring leaves
           if(curr_end_pos - curr_start_pos + 1 <= 4) continue;
           // ignoring small subtrees
-          //if(curr_end_pos - curr_start_pos + 1 <= 34) continue;
 
           if(curr_end_pos - curr_start_pos == prev_end_pos - prev_start_pos) {
             bool flag = true;
             if(lcp[pos_bp] < curr_end_pos - curr_start_pos + 1) flag = false;
-//            for(uint64_t i = 0; i < curr_end_pos - curr_start_pos + 1; i++) {
-//              if(k2tree.tree[curr_start_pos + i] != k2tree.tree[prev_start_pos + i]) {
-//                flag = false;
-//                break;
-//              }
-//            }
 
             if(flag) {
               idems_tree.union_set(curr_start_pos, prev_start_pos);
@@ -167,9 +163,6 @@ class k2tree_bp_sdsl_idems {
             cout << "!= Subtree pos: " << prev_start_pos << " " << prev_end_pos << endl;
             cout << "   Subtree pos: " << curr_start_pos << " " << curr_end_pos << endl;
             cout << "Subtree Start: " << curr_start_pos << " End: " << curr_end_pos << endl;
-            //for(uint64_t i = curr_start_pos; i < curr_end_pos + 1; i++) {
-            //  cout << (k2tree.tree[i] ? "(" : ")");
-            //}
             cout << endl;
 #endif // DEBUG
             amount_of_groups++;
@@ -186,13 +179,37 @@ class k2tree_bp_sdsl_idems {
       free(plcp);
       free(lcp);
 
-      cout << "Finding maximum head..." << endl;
+      //cout << "Finding maximum head..." << endl;
       uint64_t maxi_repre = 0;
-      for(uint64_t nodes = 0; nodes < k2tree.tree.size(); nodes++) {
-        uint64_t repre = idems_tree.find_set(nodes);
-        if(k2tree.tree[nodes] == 1 && repre != nodes) {
-          maxi_repre = max(repre, maxi_repre);
-          nodes = k2tree.tree_support.find_close(nodes);
+//      for(uint64_t nodes = 0; nodes < k2tree.tree.size(); nodes++) {
+//        uint64_t repre = idems_tree.find_set(nodes);
+//        if(k2tree.tree[nodes] == 1 && repre != nodes) {
+//          maxi_repre = max(repre, maxi_repre);
+//          nodes = k2tree.tree_support.find_close(nodes);
+//        }
+//      }
+      vector< uint64_t > prefix_help(k2tree.tree.size(), 0);
+
+      for(uint64_t bit = 0; bit < k2tree.tree.size(); bit++) {
+        if(k2tree.tree[bit]) {
+
+          uint64_t repre = idems_tree.find_set(bit);
+
+          // if has an identical tree and is big enough
+          if(repre != bit) {
+            maxi_repre = (repre - prefix_help[repre - 1]);
+
+            uint64_t next_bit = k2tree.tree_support.find_close(bit);
+            for(uint64_t pfh = bit; pfh <= next_bit; pfh++) {
+              prefix_help[pfh] = prefix_help[pfh - 1] + 1;
+            }
+            prefix_help[next_bit] -= 4;
+            bit = next_bit;
+          } else {
+            if(bit > 0) prefix_help[bit] = prefix_help[bit - 1];
+          }
+        } else {
+          prefix_help[bit] = prefix_help[bit - 1];
         }
       }
 
@@ -208,8 +225,8 @@ class k2tree_bp_sdsl_idems {
       uint64_t amount_of_bits_removed = 0;
       uint64_t log2_w = ceil_log2(maxi_repre);
 
-      cout << "Replacing identical subtrees..." << endl;
-      vector< uint64_t > prefix_help(k2tree.tree.size(), 0);
+      //cout << "Replacing identical subtrees..." << endl;
+      prefix_help.resize(k2tree.tree.size(), 0);
 
       for(uint64_t bit = 0; bit < k2tree.tree.size(); bit++) {
         if(k2tree.tree[bit]) {
@@ -246,7 +263,7 @@ class k2tree_bp_sdsl_idems {
       tree = bit_vector(ref_bit, 0);
       for(const auto& bit : new_tree_bv) tree[bit] = 1;
 
-      cout << "Creating auxiliary bit vectors..." << endl;
+      //cout << "Creating auxiliary bit vectors..." << endl;
 
       map< uint64_t, uint64_t > unique_pointer;
       uint64_t code = 0;
@@ -259,13 +276,14 @@ class k2tree_bp_sdsl_idems {
         itr->second = code++;
       }
 
-      cout << ceil_log2(code - 1) << " " << code << "\n";
-      cout << "idem subtrees: " << pointer.size() << "\n";
+      //cout << ceil_log2(code - 1) << " " << code << "\n";
+      //cout << "idem subtrees: " << pointer.size() << "\n";
 
-      P = int_vector<>(pointer.size());
+      int_vector<> aux(pointer.size());
       bit_vector bv_real_tree(tree.size(), 0);
       for(uint64_t i = 0; i < pointer.size(); i++) {
-        P[i] = unique_pointer[pointer[i]];
+        //P[i] = unique_pointer[pointer[i]];
+        aux[i] = unique_pointer[pointer[i]];
         bv_real_tree[pointer[i]] = 1;
       }
 
@@ -281,7 +299,7 @@ class k2tree_bp_sdsl_idems {
       vector< uint64_t > count_PoL;
       ref_bit = 0;
 
-      cout << "Creating PoL" << endl;
+      //cout << "Creating PoL" << endl;
 
       for(uint64_t bit = 0, level = 0; bit < tree.size() - 3; bit++) {
         if(tree[bit]) level++;
@@ -300,7 +318,10 @@ class k2tree_bp_sdsl_idems {
       }
 
 
-      util::bit_compress(P);
+      util::bit_compress(aux);
+      //P = vlc_vector<coder::fibonacci>(aux);
+      //P = dac_vector<>(aux);
+      P = dac_vector_dp<rrr_vector<127>>(aux);
 
       bit_vector bv_occ_PoL(count_PoL.back() + 1, 0);
       for(const auto& bit : count_PoL) bv_occ_PoL[bit] = 1;
@@ -324,7 +345,7 @@ class k2tree_bp_sdsl_idems {
       
       tree_support = bp_support_sada<>(&tree);
 
-      cout << "Finish building tree" << endl;
+      //cout << "Finish building tree" << endl;
     }
 
     uint64_t access_PoL(uint64_t i) {
