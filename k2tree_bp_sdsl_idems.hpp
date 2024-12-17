@@ -78,7 +78,8 @@ class k2tree_bp_sdsl_idems {
     bit_vector tree; // k2tree
     uint64_t last_bit_t; // universe
 
-    rrr_vector<127> l; // real values
+    //rrr_vector<127> l; // real values
+    dac_vector_dp<rrr_vector<127>> l;
     uint64_t last_bit_l; // universe
 
     uint64_t msize;
@@ -95,7 +96,8 @@ class k2tree_bp_sdsl_idems {
 
       height_tree = k2tree.height_tree;
 
-      l = rrr_vector<127>(k2tree.l);
+      //l = rrr_vector<127>(k2tree.l);
+      l = k2tree.l;
 
       //cout << "Building suffix array..." << endl;
       string bp = "";
