@@ -20,7 +20,7 @@
 #include <sdsl/rank_support_v5.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/sd_vector.hpp>
-#include <sdsl/rle_vector.hpp>
+//#include <sdsl/rle_vector.hpp>
 #include <sdsl/bp_support_sada.hpp>
 #include <sdsl/util.hpp>
 #include <sdsl/vectors.hpp>
@@ -318,7 +318,7 @@ class k2tree_bp_sdsl_idems {
       }
 
 
-      util::bit_compress(aux);
+      //util::bit_compress(aux);
       //P = vlc_vector<coder::fibonacci>(aux);
       //P = dac_vector<>(aux);
       P = dac_vector_dp<rrr_vector<127>>(aux);
@@ -389,7 +389,7 @@ class k2tree_bp_sdsl_idems {
           c = c_ + (vis % k) * (1 << (height_tree - child_visit.size()));
           child_visit.push({0, r, c});
 
-          if(i < tree.size() - 4 && tree[i + 1] && !tree[i + 2] && !tree[i + 3]) {
+          if(P.size() > 0 && i < tree.size() - 4 && tree[i + 1] && !tree[i + 2] && !tree[i + 3]) {
             uint64_t read_PoL = (i >= occ_PoL.size() ? PoL.size() : rank1_occ_PoL(i));
 #ifdef DEBUG
             cout << "Is a pointer or a leaf?" << endl;
@@ -428,13 +428,14 @@ class k2tree_bp_sdsl_idems {
             cout << "L size " << l.size() << " ";
             cout << "Current bit " << to_read_l << endl;
 #endif // DEBUG
+            uint64_t value = l[to_read_l];
             for(uint64_t j = 0; j < k * k; j++) {
-              if(l[to_read_l]) {
+              if(value & (1 << j)) {
                 auto [vis, r_, c_] = child_visit.top();
                 ret.push_back({r_ + j / k, c_ + j % k});
               }
-              to_read_l++;
             }
+            to_read_l++;
 #ifdef DEBUG
             cout << "Finishing reading real values" << endl;
 #endif // DEBUG
@@ -487,8 +488,11 @@ class k2tree_bp_sdsl_idems {
       cout << endl;
       cout << "L:         ";
       for(uint64_t i = 0; i < k2tree.l.size(); i++) {
-        if(i % 4 == 0 && !(i == 0)) cout << " ";
-        cout << (k2tree.l[i] ? "1" : "0");
+        uint64_t value = k2tree.l[i];
+        for(uint64_t j = 0; j < k * k; j++) {
+          cout << (value & (1 << j) ? 1 : 0); 
+        }
+        cout << " ";
       }
       cout << endl;
       cout << "P:         ";
