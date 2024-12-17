@@ -38,7 +38,8 @@ class k2tree_bp_sdsl {
     bit_vector tree; // k2tree
     uint64_t last_bit_t; // universe
 
-    bit_vector l; // real values
+    //bit_vector l; // real values
+    dac_vector_dp<rrr_vector<127>> l;
     uint64_t last_bit_l; // universe
 
     uint64_t msize;
@@ -237,8 +238,22 @@ class k2tree_bp_sdsl {
 #ifdef DEBUG
       cout << "Init L " << pos_to_add_l << "..." << endl;
 #endif // DEBUG
-      l = bit_vector(pos_to_add_l, 0);
-      for(const auto& bit : bv_l) l[bit] = 1;
+      bit_vector aux_l = bit_vector(pos_to_add_l, 0);
+      for(const auto& bit : bv_l) aux_l[bit] = 1;
+      
+      vector< uint8_t > nums;
+      uint8_t value = aux_l[0];
+      for(uint64_t i = 1; i < aux_l.size(); i++) {
+        if(i % 4) {
+          value |= (aux_l[i] << (i % 4));
+        } else {
+          nums.push_back(value);
+          value = 0;
+          value |= aux_l[i];
+        }
+      }
+
+      l = dac_vector_dp<rrr_vector<127>>(aux_l);
 
 #ifdef DEBUG
       cout << "Init Tree support..." << endl;

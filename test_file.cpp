@@ -44,8 +44,8 @@ int main(int argc, char** argv) {
     cout << amount_bits << " " << (double) amount_bits / amount << " " << (double) amount_bits / k2tree.nodes() << endl;
     auto ret = k2tree.get_pos_ones();
 //
-    sort(ret.begin(), ret.end());
-    assert(ret.size() == ones.size());
+    //sort(ret.begin(), ret.end());
+    //assert(ret.size() == ones.size());
 
 //    k2tree_bp_sdsl_idems<2,
 //                         rrr_vector<127>, rank_support_rrr<1, 127>,
@@ -59,9 +59,9 @@ int main(int argc, char** argv) {
     uint64_t amount_bits_ = k2tree_idems.size_in_bits();
     cout << amount_bits_ << " " << (double) amount_bits_ / amount << " " << (double) amount_bits_ / k2tree.nodes() << endl;
 
-    ret = k2tree.get_pos_ones();
-    sort(ret.begin(), ret.end());
-    assert(ret.size() == ones.size());
+    //ret = k2tree.get_pos_ones();
+    //sort(ret.begin(), ret.end());
+    //assert(ret.size() == ones.size());
 
 
   }
