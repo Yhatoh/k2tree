@@ -320,7 +320,7 @@ class k2tree_bp_sdsl_idems {
       }
 
 
-      //util::bit_compress(aux);
+      util::bit_compress(aux);
       //P = vlc_vector<coder::fibonacci>(aux);
       //P = dac_vector<>(aux);
       P = dac_vector_dp<rrr_vector<127>>(aux);
