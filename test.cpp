@@ -27,7 +27,7 @@ class Randomer {
     
 };
 
-Randomer pow2matrix(2, 10, 49);
+Randomer pow2matrix(3, 10, 49);
 Randomer genmatrix(1, 10000, 49);
 Randomer zerone(0, 1, 49);
 
@@ -49,6 +49,7 @@ bool test_pow_2_matrices(uint64_t p) {
 
   cout << "Generating k2 tree" << endl;
   k2tree_bp_sdsl<2> k2tree(ones);
+  //cout << k2tree << endl;
 
   cout << "Getting ones from k2 tree" << endl;
 
@@ -59,7 +60,6 @@ bool test_pow_2_matrices(uint64_t p) {
   for(uint64_t i = 0; i < ones.size(); i++) {
     assert(check[i] == ones[i]);
   }
-  //cout << k2tree << endl;
 
   k2tree_bp_sdsl_idems<2,
     sd_vector<>, rank_support_sd<1>,

@@ -252,8 +252,8 @@ class k2tree_bp_sdsl {
           value |= aux_l[i];
         }
       }
-
-      l = dac_vector_dp<rrr_vector<127>>(aux_l);
+      nums.push_back(value);
+      l = dac_vector_dp<rrr_vector<127>>(nums);
 
 #ifdef DEBUG
       cout << "Init Tree support..." << endl;
