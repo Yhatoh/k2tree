@@ -85,6 +85,14 @@ class k2tree_bp_sdsl_idems {
     uint64_t rmsize;
     uint64_t m;
 
+    void add_one(vector< uint64_t > &bv, uint64_t &pos_to_add) {
+      bv.push_back(pos_to_add++);
+    }
+
+    void add_zero(vector< uint64_t > &bv, uint64_t &pos_to_add) {
+      pos_to_add++;
+    }
+
   public:
     uint64_t nodes() { return (tree_support.find_close(0) + 1) / 2; }
 
@@ -455,6 +463,199 @@ class k2tree_bp_sdsl_idems {
         }
       }
       return ret;
+    }
+
+    k2tree_bp_sdsl<k> operator|(const k2tree_bp_sdsl_idems< k, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B) {
+      uint64_t pa, pb;
+      uint64_t pLa, pLb;
+
+      pa = pb = pLa = pLb = 0;
+
+      k2tree_bp_sdsl<k> C;
+
+      uint64_t curr_bit_tree = 0;
+      vector< uint64_t > bits_tree;
+
+      uint64_t curr_bit_L = 0;
+      vector< uint64_t > bits_L;
+
+      stack< pair< uint64_t, uint64_t > > recover_pos_A;
+      stack< pair< uint64_t, uint64_t > > recover_pos_B;
+#ifdef DEBUG
+      cout << "Starting algorithm" << endl;
+#endif
+
+      int64_t curr_depth = 0;
+      while(pa < tree.size() && pb < B.tree.size()) {
+        // see if there is a pointer A
+        if(P.size() > 0 && pa < tree.size() - 4 && tree[pa] && tree[pa + 1] && !tree[pa + 2] && !tree[pa + 3]) {
+          uint64_t read_PoL = (pa >= occ_PoL.size() ? PoL.size() : rank1_occ_PoL(pa));
+          if(!(read_PoL >= PoL.size() || access_PoL(read_PoL) == 0)) {
+            uint64_t read_P = rank1_PoL(read_PoL);
+
+            uint64_t where_to_move = select_real_tree(P[read_P] + 1);
+            recover_pos_A.push({pa, tree_support.find_close(where_to_move)});
+            pa = where_to_move;
+          }
+        }
+        // see if there is a pointer B
+        if(B.P.size() > 0 && pb < B.tree.size() - 4 && B.tree[pb] && B.tree[pb + 1] && !B.tree[pb + 2] && !B.tree[pb + 3]) {
+            uint64_t read_PoL = (pb >= B.occ_PoL.size() ? B.PoL.size() : B.rank1_occ_PoL(pb));
+            if(!(read_PoL >= B.PoL.size() || B.PoL[read_PoL] == 0)) {
+              uint64_t read_P = B.rank1_PoL(read_PoL);
+             
+              uint64_t where_to_move = B.select_real_tree(B.P[read_P] + 1);
+              recover_pos_B.push({pb, B.tree_support.find_close(where_to_move)});
+              pb = where_to_move;
+            }
+        }
+
+        // check if you need to comeback A
+        if(!tree[pa] && !recover_pos_A.empty() && recover_pos_A.top().second <= pa) {
+          pa = recover_pos_A.top().first + 3;
+          recover_pos_A.pop();
+        }
+
+        // check if you need to comeback B
+        if(!B.tree[pb] && !recover_pos_B.empty() && recover_pos_B.top().second <= pb) {
+          pb = recover_pos_B.top().first + 3;
+          recover_pos_B.pop();
+        }
+
+        if(tree[pa] && B.tree[pb] && curr_depth < height_tree) {
+#ifdef DEBUG
+          cout << "Entering a subtree in both cases" << endl;
+          cout << " curr depth: " << curr_depth << endl;
+          cout << " pos tree A: " << pa << endl;
+          cout << " pos L    A: " << pLa << endl;
+          cout << " pos tree B: " << pb << endl;
+          cout << " pos L    B: " << pLb << endl;
+#endif
+          pa++; pb++; curr_depth++;
+          add_one(bits_tree, curr_bit_tree);
+        } else if(tree[pa] && B.tree[pb]) {
+#ifdef DEBUG
+          cout << "Entering a subtree in both cases and last level" << endl;
+          cout << " curr depth: " << curr_depth << endl;
+          cout << " pos tree A: " << pa << endl;
+          cout << " pos L    A: " << pLa << endl;
+          cout << " pos tree B: " << pb << endl;
+          cout << " pos L    B: " << pLb << endl;
+#endif
+          add_one(bits_tree, curr_bit_tree);
+          for(uint64_t i = 0; i < 4; i++) {
+            if(pLa < l.size() && l[pLa] && 
+               pLb < B.l.size() && B.l[pLb])
+              add_one(bits_L, curr_bit_L);
+            else
+             add_zero(bits_L, curr_bit_L);
+            pLa++; pLb++;
+          }
+          pa++;
+          pb++;
+          curr_depth++;
+        } else if(tree[pa] && !B.tree[pb]) {
+#ifdef DEBUG
+          cout << "Copying subtree A" << endl;
+          cout << " curr depth: " << curr_depth << endl;
+          cout << " pos tree A: " << pa << endl;
+          cout << " pos L    A: " << pLa << endl;
+          cout << " pos tree B: " << pb << endl;
+          cout << " pos L    B: " << pLb << endl;
+#endif
+          // end tree A
+          uint64_t counter = 1;
+          while(counter > 0) {
+            if(tree[pa] && curr_depth < height_tree) {
+              add_one(bits_tree, curr_bit_tree);
+              counter++;
+              curr_depth++;
+            } else if(tree[pa]) {
+              add_one(bits_tree, curr_bit_tree);
+              for(uint64_t i = 0; i < 4; i++) {
+                if(l[pLa]) add_one(bits_L, curr_bit_L);
+                else add_zero(bits_L, curr_bit_L);
+                pLa++;
+              }
+              counter++;
+              curr_depth++;
+            } else {
+              add_zero(bits_tree, curr_bit_tree);
+              counter--;
+              curr_depth--;
+            }
+            pa++;
+          }
+          
+          // end tree B
+          pb++;
+        } else if(!tree[pa] && B.tree[pb]) {
+#ifdef DEBUG
+          cout << "Copying subtree B" << endl;
+          cout << " curr depth: " << curr_depth << endl;
+          cout << " pos tree A: " << pa << endl;
+          cout << " pos L    A: " << pLa << endl;
+          cout << " pos tree B: " << pb << endl;
+          cout << " pos L    B: " << pLb << endl;
+#endif
+          // end tree A
+          pa++;
+          
+          // end tree B
+          uint64_t counter = 1;
+          while(counter > 0) {
+            if(B.tree[pb] && curr_depth < height_tree) {
+              add_one(bits_tree, curr_bit_tree);
+              counter++;
+              curr_depth++;
+            } else if(B.tree[pb]) {
+              add_one(bits_tree, curr_bit_tree);
+              for(uint64_t i = 0; i < 4; i++) {
+                if(B.l[pLb]) add_one(bits_L, curr_bit_L);
+                else add_zero(bits_L, curr_bit_L);
+                pLb++;
+              }
+              counter++;
+              curr_depth++;
+            } else {
+              add_zero(bits_tree, curr_bit_tree);
+              counter--;
+              curr_depth--;
+            }
+            pb++;
+          }
+        } else {
+#ifdef DEBUG
+          cout << "Both submatrices 0" << endl;
+          cout << " curr depth: " << curr_depth << endl;
+          cout << " pos tree A: " << pa << endl;
+          cout << " pos L    A: " << pLa << endl;
+          cout << " pos tree B: " << pb << endl;
+          cout << " pos L    B: " << pLb << endl;
+#endif
+          add_zero(bits_tree, curr_bit_tree);
+          pa++; pb++;
+          curr_depth--;
+        }
+      }
+
+
+      C.tree = bit_vector(curr_bit_tree, 0);
+      for(auto bit : bits_tree) C.tree[bit] = 1;
+
+      C.l = bit_vector(curr_bit_L, 0);
+      for(auto bit : bits_L) C.l[bit] = 1;
+
+      C.tree_support = bp_support_sada<>(&C.tree);
+
+      C.last_bit_t = curr_bit_tree;
+      C.last_bit_l = curr_bit_L;
+      C.height_tree = height_tree;
+      C.msize = msize;
+      C.rmsize = rmsize;
+      C.m = m;
+      
+      return C;
     }
 
     uint64_t size_in_bits() {
