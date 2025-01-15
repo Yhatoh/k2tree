@@ -473,6 +473,37 @@ class k2tree_bp_sdsl_idems {
 
       k2tree_bp_sdsl<k> C;
 
+      if(B.tree.size() == 2 && tree.size() == 2) {
+        C.tree = bit_vector(2, 0);
+        C.tree[0] = 1;
+        C.height_tree = height_tree;
+        C.msize = msize;
+        C.rmsize = rmsize;
+        C.m = m;
+      }
+
+      if(B.tree.size() == 2) {
+        C.tree = tree;
+        C.tree_support = tree_support;
+        C.l = l;
+        C.height_tree = height_tree;
+        C.msize = msize;
+        C.rmsize = rmsize;
+        C.m = m;
+        return C;
+      }
+
+      if(tree.size() == 2) {
+        C.tree = B.tree;
+        C.tree_support = B.tree_support;
+        C.l = B.l;
+        C.height_tree = B.height_tree;
+        C.msize = B.msize;
+        C.rmsize = B.rmsize;
+        C.m = B.m;
+        return C;
+      }
+
       uint64_t curr_bit_tree = 0;
       vector< uint64_t > bits_tree;
 
@@ -511,13 +542,13 @@ class k2tree_bp_sdsl_idems {
         }
 
         // check if you need to comeback A
-        if(!tree[pa] && !recover_pos_A.empty() && recover_pos_A.top().second <= pa) {
+        if(!recover_pos_A.empty() && recover_pos_A.top().second <= pa) {
           pa = recover_pos_A.top().first + 3;
           recover_pos_A.pop();
         }
 
         // check if you need to comeback B
-        if(!B.tree[pb] && !recover_pos_B.empty() && recover_pos_B.top().second <= pb) {
+        if(!recover_pos_B.empty() && recover_pos_B.top().second <= pb) {
           pb = recover_pos_B.top().first + 3;
           recover_pos_B.pop();
         }
@@ -544,8 +575,8 @@ class k2tree_bp_sdsl_idems {
 #endif
           add_one(bits_tree, curr_bit_tree);
           for(uint64_t i = 0; i < 4; i++) {
-            if(pLa < l.size() && l[pLa] && 
-               pLb < B.l.size() && B.l[pLb])
+            if((pLa < l.size() && l[pLa]) || 
+               (pLb < B.l.size() && B.l[pLb]))
               add_one(bits_L, curr_bit_L);
             else
              add_zero(bits_L, curr_bit_L);
@@ -566,6 +597,24 @@ class k2tree_bp_sdsl_idems {
           // end tree A
           uint64_t counter = 1;
           while(counter > 0) {
+            // see if there is a pointer A
+            if(P.size() > 0 && pa < tree.size() - 4 && tree[pa] && tree[pa + 1] && !tree[pa + 2] && !tree[pa + 3]) {
+              uint64_t read_PoL = (pa >= occ_PoL.size() ? PoL.size() : rank1_occ_PoL(pa));
+              if(!(read_PoL >= PoL.size() || access_PoL(read_PoL) == 0)) {
+                uint64_t read_P = rank1_PoL(read_PoL);
+
+                uint64_t where_to_move = select_real_tree(P[read_P] + 1);
+                recover_pos_A.push({pa, tree_support.find_close(where_to_move)});
+                pa = where_to_move;
+              }
+            }
+
+            // check if you need to comeback A
+            if(!recover_pos_A.empty() && recover_pos_A.top().second <= pa) {
+              pa = recover_pos_A.top().first + 3;
+              recover_pos_A.pop();
+            }
+
             if(tree[pa] && curr_depth < height_tree) {
               add_one(bits_tree, curr_bit_tree);
               counter++;
@@ -573,7 +622,7 @@ class k2tree_bp_sdsl_idems {
             } else if(tree[pa]) {
               add_one(bits_tree, curr_bit_tree);
               for(uint64_t i = 0; i < 4; i++) {
-                if(l[pLa]) add_one(bits_L, curr_bit_L);
+                if(pLa < l.size() && l[pLa]) add_one(bits_L, curr_bit_L);
                 else add_zero(bits_L, curr_bit_L);
                 pLa++;
               }
@@ -604,16 +653,33 @@ class k2tree_bp_sdsl_idems {
           // end tree B
           uint64_t counter = 1;
           while(counter > 0) {
-            if(B.tree[pb] && curr_depth < height_tree) {
+            // see if there is a pointer B
+            if(B.P.size() > 0 && pb < B.tree.size() - 4 && B.tree[pb] && B.tree[pb + 1] && !B.tree[pb + 2] && !B.tree[pb + 3]) {
+              uint64_t read_PoL = (pb >= B.occ_PoL.size() ? B.PoL.size() : B.rank1_occ_PoL(pb));
+              if(!(read_PoL >= B.PoL.size() || B.PoL[read_PoL] == 0)) {
+                uint64_t read_P = B.rank1_PoL(read_PoL);
+
+                uint64_t where_to_move = B.select_real_tree(B.P[read_P] + 1);
+                recover_pos_B.push({pb, B.tree_support.find_close(where_to_move)});
+                pb = where_to_move;
+              }
+            }
+
+            // check if you need to comeback B
+            if(!recover_pos_B.empty() && recover_pos_B.top().second <= pb) {
+              pb = recover_pos_B.top().first + 3;
+              recover_pos_B.pop();
+            }
+
+            if(B.tree[pb] && curr_depth < B.height_tree) {
               add_one(bits_tree, curr_bit_tree);
               counter++;
               curr_depth++;
             } else if(B.tree[pb]) {
               add_one(bits_tree, curr_bit_tree);
               for(uint64_t i = 0; i < 4; i++) {
-                if(B.l[pLb]) add_one(bits_L, curr_bit_L);
+                if(pLb < B.l.size() && B.l[pLb++]) add_one(bits_L, curr_bit_L);
                 else add_zero(bits_L, curr_bit_L);
-                pLb++;
               }
               counter++;
               curr_depth++;
@@ -643,8 +709,9 @@ class k2tree_bp_sdsl_idems {
       C.tree = bit_vector(curr_bit_tree, 0);
       for(auto bit : bits_tree) C.tree[bit] = 1;
 
-      C.l = bit_vector(curr_bit_L, 0);
-      for(auto bit : bits_L) C.l[bit] = 1;
+      auto aux_l = bit_vector(curr_bit_L, 0);
+      for(auto bit : bits_L) aux_l[bit] = 1;
+      C.l = rrr_vector<127>(aux_l);
 
       C.tree_support = bp_support_sada<>(&C.tree);
 
@@ -654,7 +721,203 @@ class k2tree_bp_sdsl_idems {
       C.msize = msize;
       C.rmsize = rmsize;
       C.m = m;
+
+      // i think this can be improved
+      bit_vector aux_leaves(curr_bit_tree, 0);
+      for(uint64_t i = 0; i < curr_bit_tree - 3; i++) {
+        if(C.tree[i] && C.tree[i + 1] && !C.tree[i + 2] && !C.tree[i + 3])
+          aux_leaves[i] = 1;
+      }
+
+      C.leaves = sd_vector<>(aux_leaves);
+      util::init_support(C.rank_leaves, &C.leaves);     
       
+      return C;
+    }
+
+    k2tree_bp_sdsl<k> operator*(const k2tree_bp_sdsl<k>& B) {
+      return mul(0, 0, B, 0, 0, height_tree);
+    }   
+
+    k2tree_bp_sdsl<k> mul(uint64_t A_tree, uint64_t A_L,
+                          const k2tree_bp_sdsl<k> &B, uint64_t B_tree, uint64_t B_L,
+                          uint64_t curr_h) {
+#ifdef DEBUG
+      cout << "Current Height: " << curr_h << endl;
+      cout << "Start Matrix A: " << A_tree << endl;
+      cout << "Start Matrix B: " << B_tree << endl;
+#endif
+      k2tree_bp_sdsl<k> C;
+      // submatrix A or B full of 0's
+      if((tree[A_tree] && !tree[A_tree + 1]) ||
+         (B.tree[B_tree] && !B.tree[B_tree + 1])) { 
+#ifdef DEBUG
+        cout << "Full of 0's" << endl;
+#endif
+        C.tree = bit_vector(2, 0);
+        C.tree[0] = 1;
+        C.height_tree = curr_h;
+        C.m = m;
+        C.msize = msize;
+        C.rmsize = rmsize;
+        return C;
+      }
+
+      // base case, leave 
+      if(curr_h == 1) { 
+#ifdef DEBUG
+        cout << "Leaf!" << endl;
+#endif
+        auto aux_l = bit_vector(4, 0);
+        bool found_1 = 0;
+        aux_l[0] = (l[A_L] & B.l[B_L]) | (l[A_L + 1] * B.l[B_L + 2]);
+        found_1 = found_1 | aux_l[0];
+        aux_l[1] = (l[A_L] & B.l[B_L + 1]) | (l[A_L + 1] * B.l[B_L + 3]);
+        found_1 = found_1 | aux_l[1];
+        aux_l[2] = (l[A_L + 2] & B.l[B_L]) | (l[A_L + 3] * B.l[B_L + 2]);
+        found_1 = found_1 | aux_l[2];
+        aux_l[3] = (l[A_L + 2] & B.l[B_L + 1]) | (l[A_L + 3] * B.l[B_L + 3]);
+        found_1 = found_1 | aux_l[3];
+
+        if(found_1) {
+          C.tree = bit_vector(4, 0);
+          C.tree[0] = 1;
+          C.tree[1] = 1;
+          C.l = rrr_vector<127>(aux_l);
+        } else {
+          C.tree = bit_vector(2, 0);
+          C.tree[0] = 1;
+        }
+        C.height_tree = curr_h;
+        C.m = m;
+        C.msize = msize;
+        C.rmsize = rmsize;
+        return C;
+      }
+
+ 
+
+      //  A_0 | A_1
+      //  ---------
+      //  A_2 | A_3
+      uint64_t A_0 = A_tree + 1;
+      uint64_t A_L_0 = rank_leaves(A_0) * 4;
+#ifdef DEBUG
+      cout << "A_0" << endl;
+      cout << "  " << A_0 << endl;
+      cout << "  " << A_L_0 << endl;
+#endif
+      uint64_t A_1 = tree_support.find_close(A_0) + 1;
+      uint64_t A_L_1 = rank_leaves(A_1) * 4;
+#ifdef DEBUG
+      cout << "A_1" << endl;
+      cout << "  " << A_1 << endl;
+      cout << "  " << A_L_1 << endl;
+#endif
+      uint64_t A_2 = tree_support.find_close(A_1) + 1;
+      uint64_t A_L_2 = rank_leaves(A_2) * 4;
+#ifdef DEBUG
+      cout << "A_2" << endl;
+      cout << "  " << A_2 << endl;
+      cout << "  " << A_L_2 << endl;
+#endif
+      uint64_t A_3 = tree_support.find_close(A_2) + 1;
+      uint64_t A_L_3 = rank_leaves(A_3) * 4;
+#ifdef DEBUG
+      cout << "A_3" << endl;
+      cout << "  " << A_3 << endl;
+      cout << "  " << A_L_3 << endl;
+#endif
+
+      //  B_0 | B_1
+      //  ---------
+      //  B_2 | B_3
+      uint64_t B_0 = B_tree + 1;
+      uint64_t B_L_0 = B.rank_leaves(B_0) * 4;
+#ifdef DEBUG
+      cout << "B_0" << endl;
+      cout << "  " << B_0 << endl;
+      cout << "  " << B_L_0 << endl;
+#endif
+      uint64_t B_1 = B.tree_support.find_close(B_0) + 1;
+      uint64_t B_L_1 = B.rank_leaves(B_1) * 4;
+#ifdef DEBUG
+      cout << "B_1" << endl;
+      cout << "  " << B_1 << endl;
+      cout << "  " << B_L_1 << endl;
+#endif
+      uint64_t B_2 = B.tree_support.find_close(B_1) + 1;
+      uint64_t B_L_2 = B.rank_leaves(B_2) * 4;
+#ifdef DEBUG
+      cout << "B_2" << endl;
+      cout << "  " << B_2 << endl;
+      cout << "  " << B_L_2 << endl;
+#endif
+      uint64_t B_3 = B.tree_support.find_close(B_2) + 1;
+      uint64_t B_L_3 = B.rank_leaves(B_3) * 4;
+#ifdef DEBUG
+      cout << "B_3" << endl;
+      cout << "  " << B_3 << endl;
+      cout << "  " << B_L_3 << endl;
+#endif
+
+      //  C_0 | C_1
+      //  ---------
+      //  C_2 | C_3
+      auto C_0 = mul(A_0, A_L_0, B, B_0, B_L_0, curr_h - 1) | mul(A_1, A_L_1, B, B_2, B_L_2, curr_h - 1);
+      auto C_1 = mul(A_0, A_L_0, B, B_1, B_L_1, curr_h - 1) | mul(A_1, A_L_1, B, B_3, B_L_3, curr_h - 1);
+      auto C_2 = mul(A_2, A_L_2, B, B_0, B_L_0, curr_h - 1) | mul(A_3, A_L_3, B, B_2, B_L_2, curr_h - 1);
+      auto C_3 = mul(A_2, A_L_2, B, B_1, B_L_1, curr_h - 1) | mul(A_3, A_L_3, B, B_3, B_L_3, curr_h - 1);
+
+      if(C_0.tree.size() == 2 &&
+         C_1.tree.size() == 2 &&
+         C_2.tree.size() == 2 &&
+         C_3.tree.size() == 2) {
+        C.tree = bit_vector(2, 0);
+        C.tree[0] = 1;
+        C.height_tree = curr_h;
+        C.m = m;
+        C.msize = msize;
+        C.rmsize = rmsize;
+        return C;
+      }
+
+      // merge results
+#ifdef DEBUG
+      cout << "MERGE" << endl;
+      cout << C_0 << endl;
+      cout << C_1 << endl;
+      cout << C_2 << endl;
+      cout << C_3 << endl;
+#endif
+      C.tree = bit_vector(C_0.tree.size() + C_1.tree.size() + C_2.tree.size() + C_3.tree.size() + 2, 0);
+      C.tree[0] = 1;
+      for(uint64_t i = 0; i < C_0.tree.size(); i++)
+        C.tree[1 + i] = C_0.tree[i];
+      for(uint64_t i = 0; i < C_1.tree.size(); i++)
+        C.tree[1 + C_0.tree.size() + i] = C_1.tree[i];
+      for(uint64_t i = 0; i < C_2.tree.size(); i++)
+        C.tree[1 + C_0.tree.size() + C_1.tree.size() + i] = C_2.tree[i];
+      for(uint64_t i = 0; i < C_3.tree.size(); i++)
+        C.tree[1 + C_0.tree.size() + C_1.tree.size() + C_2.tree.size() + i] = C_3.tree[i];
+
+      auto aux_C_L = bit_vector(C_0.l.size() + C_1.l.size() + C_2.l.size() + C_3.l.size(), 0);
+      for(uint64_t i = 0; i < C_0.l.size(); i++)
+        aux_C_L[i] = C_0.l[i];
+      for(uint64_t i = 0; i < C_1.l.size(); i++)
+        aux_C_L[C_0.l.size() + i] = C_1.l[i];
+      for(uint64_t i = 0; i < C_2.l.size(); i++)
+        aux_C_L[C_0.l.size() + C_1.l.size() + i] = C_2.l[i];
+      for(uint64_t i = 0; i < C_3.l.size(); i++)
+        aux_C_L[C_0.l.size() + C_1.l.size() + C_2.l.size() + i] = C_3.l[i];
+
+      C.l = rrr_vector<127>(aux_C_L);
+      C.height_tree = curr_h;
+      C.m = m;
+      C.msize = msize;
+      C.rmsize = rmsize;
+
+
       return C;
     }
 
