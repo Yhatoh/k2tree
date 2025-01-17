@@ -75,7 +75,7 @@ sdsl::bit_vector build_cartesian_tree(const std::vector<K> &data) {
 int main() {
 
     const int32_t u = 1e9;
-    const size_t n = 1e9; 
+    const size_t n = 30; 
 
     std::vector<int32_t> data = generate_uniform<int32_t>(n, u);
     //std::vector<int32_t> data = {5, 2, 3, 1, 4, 3, 1, 4, 1, 2};
@@ -85,9 +85,9 @@ int main() {
     cout << size_in_bytes(bp) * 8 + size_in_bytes(x) * 8 << endl;
 
 
-    //for(const auto &b : bp)
-    //    if(b) std::cout << "(";
-    //    else std::cout << ")";
+//    for(const auto &b : bp)
+//        if(b) std::cout << "(";
+//        else std::cout << ")";
     std::cout << "----" << std::endl;
 
     bp_sdsl_idems<> attempt(bp);
