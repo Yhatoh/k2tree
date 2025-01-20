@@ -91,7 +91,8 @@ int main() {
     std::cout << "----" << std::endl;
 
     bp_sdsl_idems<> attempt(bp);
-    cout << attempt.size_in_bits() << " " << (double) attempt.size_in_bits() / attempt.nodes() << "\n";
+    uint64_t bits = attempt.size_in_bits();
+    cout << bits << " " << (double) bits / n << "\n";
 
 
     return 0;

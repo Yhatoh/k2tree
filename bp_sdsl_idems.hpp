@@ -51,6 +51,9 @@ class bp_sdsl_idems {
   private:
     dac_vector_dp<rrr_vector<127>> P;
 
+    sd_vector<> inside_idem;
+    rank_support_sd<> rank1_inside_idem;
+
     sd_vector<> occ_PoL;
     rank_support_sd<> rank1_occ_PoL;
 
@@ -190,6 +193,7 @@ class bp_sdsl_idems {
       
       vector< uint64_t > new_tree_bv;
       vector< uint64_t > pointer;
+      vector< uint64_t > inside_idem_bv;
       uint64_t ref_bit = 0;
 
       uint64_t amount_of_bits_removed = 0;
@@ -207,6 +211,7 @@ class bp_sdsl_idems {
 
           // if has an identical tree and is big enough
           if(repre != bit && tree_support.find_close(repre) - repre + 1 > log2_w) {
+            inside_idem_bv.push_back(bit);
             pointers_pos.push_back(ref_bit - 1);
             //new_tree_bv.push_back(ref_bit++);
             pointer.push_back(repre - prefix_help[repre - 1]);
@@ -218,6 +223,7 @@ class bp_sdsl_idems {
             }
             prefix_help[next_bit] -= 2;
             bit = next_bit;
+            inside_idem_bv.push_back(bit);
           } else {
             if(bit > 0) prefix_help[bit] = prefix_help[bit - 1];
           }
@@ -231,6 +237,9 @@ class bp_sdsl_idems {
       prefix_help.clear();
       idems_tree.clear();
 
+
+      inside_idem = sd_vector<>(inside_idem_bv.begin(), inside_idem_bv.end());
+      util::init_support(rank1_inside_idem, &inside_idem);
 
       this->tree = bit_vector(ref_bit, 0);
       for(const auto& bit : new_tree_bv) this->tree[bit] = 1;
@@ -322,12 +331,17 @@ class bp_sdsl_idems {
 
 
     uint64_t size_in_bits() {
+      cout << "Tree:        " << size_in_bytes(tree) * 8 << endl;
+      cout << "Tree support:" <<  size_in_bytes(tree_support) * 8 << endl;
+      cout << "P           :" << size_in_bytes(P) * 8 << endl;
+      cout << "Inside idem :" << size_in_bytes(inside_idem) * 8 << endl;
       return sizeof(uint64_t) * 5 +
              size_in_bytes(tree) * 8 +
              size_in_bytes(tree_support) * 8 +
              size_in_bytes(P) * 8 +
-             size_in_bytes(occ_PoL) * 8 + size_in_bytes(rank1_occ_PoL) * 8;
-             size_in_bytes(PoL) * 8 + size_in_bytes(rank1_PoL) * 8 + size_in_bytes(rank0_PoL) * 8 + size_in_bytes(select1_PoL) * 8 + size_in_bytes(select0_PoL) * 8;
+             size_in_bytes(inside_idem) * 8;
+             //size_in_bytes(occ_PoL) * 8 + size_in_bytes(rank1_occ_PoL) * 8;
+             //size_in_bytes(PoL) * 8 + size_in_bytes(rank1_PoL) * 8 + size_in_bytes(rank0_PoL) * 8 + size_in_bytes(select1_PoL) * 8 + size_in_bytes(select0_PoL) * 8;
     } 
 
     friend ostream& operator<<(ostream& os, const bp_sdsl_idems<k> &tree) {
