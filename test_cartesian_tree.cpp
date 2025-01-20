@@ -92,6 +92,7 @@ int main() {
 
     bp_sdsl_idems<> attempt(bp);
     uint64_t bits = attempt.size_in_bits();
+    cout << "New amount_of_nodes: " << attempt.nodes() << "\n";
     cout << bits << " " << (double) bits / n << "\n";
 
 

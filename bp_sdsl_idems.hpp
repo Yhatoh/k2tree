@@ -51,8 +51,8 @@ class bp_sdsl_idems {
   private:
     dac_vector_dp<rrr_vector<127>> P;
 
-    rrr_vector<127> inside_idem;
-    rank_support_rrr<1, 127> rank1_inside_idem;
+    sd_vector<> inside_idem;
+    rank_support_sd<> rank1_inside_idem;
 
     sd_vector<> occ_PoL;
     rank_support_sd<> rank1_occ_PoL;
@@ -210,7 +210,7 @@ class bp_sdsl_idems {
           uint64_t repre = idems_tree.find_set(bit);
 
           // if has an identical tree and is big enough
-          if(repre != bit && tree_support.find_close(repre) - repre + 1 > log2_w) {
+          if(repre != bit && tree_support.find_close(repre) - repre + 1 > log2_w + 2) {
             inside_idem_bv.push_back(bit);
             pointers_pos.push_back(ref_bit - 1);
             //new_tree_bv.push_back(ref_bit++);
@@ -241,7 +241,7 @@ class bp_sdsl_idems {
       bit_vector bv_aux(inside_idem_bv.back() + 1, 0);
       for(auto p : inside_idem_bv) bv_aux[p] = 1;
 
-      inside_idem = rrr_vector<127>(bv_aux);
+      inside_idem = sd_vector<>(bv_aux);
       util::init_support(rank1_inside_idem, &inside_idem);
 
       this->tree = bit_vector(ref_bit, 0);
@@ -305,7 +305,9 @@ class bp_sdsl_idems {
       }
 
 
-      P = dac_vector_dp<rrr_vector<127>>(aux);
+      P = dac_vector_dp<rrr_vector<256>>(aux);
+      cout << "Amount Identical Subtrees: " << P.size() << endl;
+
       bit_vector bv_occ_PoL((this->tree).size(), 0);
       for(const auto& bit : count_PoL) bv_occ_PoL[bit] = 1;
       occ_PoL = sd_vector<>(bv_occ_PoL);
