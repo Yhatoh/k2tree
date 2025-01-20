@@ -75,7 +75,7 @@ sdsl::bit_vector build_cartesian_tree(const std::vector<K> &data) {
 int main() {
 
     const int32_t u = 1e9;
-    const size_t n = 30; 
+    const size_t n = 1e9; 
 
     std::vector<int32_t> data = generate_uniform<int32_t>(n, u);
     //std::vector<int32_t> data = {5, 2, 3, 1, 4, 3, 1, 4, 1, 2};
