@@ -51,8 +51,8 @@ class bp_sdsl_idems {
   private:
     dac_vector_dp<rrr_vector<127>> P;
 
-    rrr_vector<127> inside_idem;
-    rank_support_rrr<1, 127> rank1_inside_idem;
+    sd_vector<> inside_idem;
+    rank_support_sd<> rank1_inside_idem;
 
     sd_vector<> occ_PoL;
     rank_support_sd<> rank1_occ_PoL;
@@ -241,7 +241,7 @@ class bp_sdsl_idems {
       bit_vector bv_aux(inside_idem_bv.back() + 1, 0);
       for(auto p : inside_idem_bv) bv_aux[p] = 1;
 
-      inside_idem = rrr_vector<127>(bv_aux);
+      inside_idem = sd_vector<>(bv_aux);
       util::init_support(rank1_inside_idem, &inside_idem);
 
       this->tree = bit_vector(ref_bit, 0);
@@ -305,7 +305,10 @@ class bp_sdsl_idems {
       }
 
 
-      P = dac_vector_dp<rrr_vector<127>>(aux);
+      //P = dac_vector_dp<rrr_vector<127>>(aux);
+      P = int_vector<>(aux);
+      util::bit_compress(P);
+
       bit_vector bv_occ_PoL((this->tree).size(), 0);
       for(const auto& bit : count_PoL) bv_occ_PoL[bit] = 1;
       occ_PoL = sd_vector<>(bv_occ_PoL);
@@ -337,11 +340,13 @@ class bp_sdsl_idems {
       cout << "Tree:        " << size_in_bytes(tree) * 8 << endl;
       cout << "Tree support:" <<  size_in_bytes(tree_support) * 8 << endl;
       cout << "P           :" << size_in_bytes(P) * 8 << endl;
+      cout << "Real Tree   :" << size_in_bytes(real_tree) * 8 << endl;
       cout << "Inside idem :" << size_in_bytes(inside_idem) * 8 + size_in_bytes(rank1_inside_idem) * 8 << endl;
       return sizeof(uint64_t) * 3 +
              size_in_bytes(tree) * 8 +
              size_in_bytes(tree_support) * 8 +
              size_in_bytes(P) * 8 +
+             size_in_bytes(real_tree) * 8 +
              size_in_bytes(inside_idem) * 8 + size_in_bytes(rank1_inside_idem) * 8;
              //size_in_bytes(occ_PoL) * 8 + size_in_bytes(rank1_occ_PoL) * 8;
              //size_in_bytes(PoL) * 8 + size_in_bytes(rank1_PoL) * 8 + size_in_bytes(rank0_PoL) * 8 + size_in_bytes(select1_PoL) * 8 + size_in_bytes(select0_PoL) * 8;
