@@ -50,15 +50,16 @@ struct union_find {
 template< uint64_t k = 2 >
 class bp_sdsl_idems {
   private:
-    //dac_vector_dp<rrr_vector<127>> P;
-    tunstall_coder<16> P;
+    dac_vector_dp<rrr_vector<127>> P;
+    //tunstall_coder<16> P;
 
     sd_vector<> inside_idem;
     rank_support_sd<> rank1_inside_idem;
 
     // to replace inside_idem
     rrr_vector<127> one_or_two;
-    tunstall_coder<16> runs_0;
+    dac_vector_dp<rrr_vector<127>> runs_0;
+    //tunstall_coder<16> runs_0;
 
     sd_vector<> occ_PoL;
     rank_support_sd<> rank1_occ_PoL;
@@ -265,7 +266,8 @@ class bp_sdsl_idems {
 
       one_or_two = rrr_vector<127>(aux_one_or_two);
 
-      runs_0 = tunstall_coder<16>(runs_0_pos, 256, 1 << 16);
+      runs_0 = dac_vector_dp<rrr_vector<127>>(runs_0_pos);
+      //runs_0 = tunstall_coder<16>(runs_0_pos, 256, 1 << 16);
 
       bit_vector bv_aux(inside_idem_bv.back() + 1, 0);
       for(auto p : inside_idem_bv) bv_aux[p] = 1;
@@ -335,8 +337,8 @@ class bp_sdsl_idems {
       }
 
 
-      //P = dac_vector_dp<rrr_vector<127>>(aux);
-      P = tunstall_coder<16>(aux, 256, 1 << 16);
+      P = dac_vector_dp<rrr_vector<127>>(aux);
+      //P = tunstall_coder<16>(aux, 256, 1 << 16);
 
       bit_vector bv_occ_PoL((this->tree).size(), 0);
       for(const auto& bit : count_PoL) bv_occ_PoL[bit] = 1;
@@ -368,17 +370,18 @@ class bp_sdsl_idems {
     uint64_t size_in_bits() {
       cout << "Tree           :" << size_in_bytes(tree) * 8 << endl;
       cout << "Tree support   :" <<  size_in_bytes(tree_support) * 8 << endl;
-      //cout << "P              :" << size_in_bytes(P) * 8 << endl;
-      cout << "P              :" << P.size() * 8 << endl;
+      cout << "P              :" << size_in_bytes(P) * 8 << endl;
+      //cout << "P              :" << P.size() * 8 << endl;
       cout << "Real Tree      :" << size_in_bytes(real_tree) * 8 << endl;
       cout << "Inside idem    :" << size_in_bytes(inside_idem) * 8 + size_in_bytes(rank1_inside_idem) * 8 << endl;
-      cout << "Inside runs_0  :" << runs_0.size() * 8 << endl; 
+      cout << "Inside runs_0  :" << size_in_bytes(runs_0) * 8 << endl; 
+      //cout << "Inside runs_0  :" << runs_0.size() * 8 << endl; 
       cout << "Inside 1/2     :" << size_in_bytes(one_or_two) * 8 << endl;
       return sizeof(uint64_t) * 3 +
              size_in_bytes(tree) * 8 +
              size_in_bytes(tree_support) * 8 +
-             //size_in_bytes(P) * 8 + 
-             P.size() * 8 +
+             size_in_bytes(P) * 8 + 
+             //P.size() * 8 +
              size_in_bytes(real_tree) * 8 +
              size_in_bytes(inside_idem) * 8 + size_in_bytes(rank1_inside_idem) * 8;
              //size_in_bytes(occ_PoL) * 8 + size_in_bytes(rank1_occ_PoL) * 8;
