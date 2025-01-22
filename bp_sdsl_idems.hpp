@@ -50,14 +50,15 @@ struct union_find {
 template< uint64_t k = 2 >
 class bp_sdsl_idems {
   private:
-    dac_vector_dp<rrr_vector<127>> P;
+    //dac_vector_dp<rrr_vector<127>> P;
+    tunstall_coder<16> P;
 
     sd_vector<> inside_idem;
     rank_support_sd<> rank1_inside_idem;
 
     // to replace inside_idem
     rrr_vector<127> one_or_two;
-    sd_vector<> runs_0;
+    tunstall_coder<16> runs_0;
 
     sd_vector<> occ_PoL;
     rank_support_sd<> rank1_occ_PoL;
@@ -203,7 +204,6 @@ class bp_sdsl_idems {
 
       uint64_t amount_of_bits_removed = 0;
       uint64_t log2_w = ceil_log2(repres.size() - 1);
-      cout << "Min pos " << *repres.begin() << endl;
 
       cout << "Replacing identical subtrees..." << endl;
       prefix_help.resize(tree.size(), 0);
@@ -243,7 +243,7 @@ class bp_sdsl_idems {
       prefix_help.clear();
       idems_tree.clear();
 
-      vector< uint64_t > runs_0_pos;
+      vector< uint32_t > runs_0_pos;
       vector< uint64_t > one_or_two_pos;
       if(inside_idem_bv.size() > 0) {
         runs_0_pos.push_back(inside_idem_bv[0]);
@@ -255,7 +255,7 @@ class bp_sdsl_idems {
         if(inside_idem_bv[i] == inside_idem_bv[i - 1] + 1) {
           one_or_two_pos.push_back(bit_12);
         } else {
-          runs_0_pos.push_back(runs_0_pos.back() + inside_idem_bv[i] - inside_idem_bv[i - 1]);
+          runs_0_pos.push_back(inside_idem_bv[i] - inside_idem_bv[i - 1]);
           bit_12++;
         }
       }
@@ -265,7 +265,7 @@ class bp_sdsl_idems {
 
       one_or_two = rrr_vector<127>(aux_one_or_two);
 
-      runs_0 = sd_vector<>(runs_0_pos.begin(), runs_0_pos.end());
+      runs_0 = tunstall_coder<16>(runs_0_pos, 256, 1 << 16);
 
       bit_vector bv_aux(inside_idem_bv.back() + 1, 0);
       for(auto p : inside_idem_bv) bv_aux[p] = 1;
@@ -292,7 +292,8 @@ class bp_sdsl_idems {
       cout << ceil_log2(code - 1) << " " << code << "\n";
       cout << "idem subtrees: " << pointer.size() << "\n";
 
-      int_vector<> aux(pointer.size());
+      //int_vector<> aux(pointer.size());
+      vector<uint32_t> aux(pointer.size());
       bit_vector bv_real_tree(this->tree.size(), 0);
       for(uint64_t i = 0; i < pointer.size(); i++) {
         //P[i] = unique_pointer[pointer[i]];
@@ -334,7 +335,8 @@ class bp_sdsl_idems {
       }
 
 
-      P = dac_vector_dp<rrr_vector<127>>(aux);
+      //P = dac_vector_dp<rrr_vector<127>>(aux);
+      P = tunstall_coder<16>(aux, 256, 1 << 16);
 
       bit_vector bv_occ_PoL((this->tree).size(), 0);
       for(const auto& bit : count_PoL) bv_occ_PoL[bit] = 1;
@@ -366,15 +368,17 @@ class bp_sdsl_idems {
     uint64_t size_in_bits() {
       cout << "Tree           :" << size_in_bytes(tree) * 8 << endl;
       cout << "Tree support   :" <<  size_in_bytes(tree_support) * 8 << endl;
-      cout << "P              :" << size_in_bytes(P) * 8 << endl;
+      //cout << "P              :" << size_in_bytes(P) * 8 << endl;
+      cout << "P              :" << P.size() * 8 << endl;
       cout << "Real Tree      :" << size_in_bytes(real_tree) * 8 << endl;
       cout << "Inside idem    :" << size_in_bytes(inside_idem) * 8 + size_in_bytes(rank1_inside_idem) * 8 << endl;
-      cout << "Inside runs_0  :" << size_in_bytes(runs_0) * 8 << endl; 
+      cout << "Inside runs_0  :" << runs_0.size() * 8 << endl; 
       cout << "Inside 1/2     :" << size_in_bytes(one_or_two) * 8 << endl;
       return sizeof(uint64_t) * 3 +
              size_in_bytes(tree) * 8 +
              size_in_bytes(tree_support) * 8 +
-             size_in_bytes(P) * 8 +
+             //size_in_bytes(P) * 8 + 
+             P.size() * 8 +
              size_in_bytes(real_tree) * 8 +
              size_in_bytes(inside_idem) * 8 + size_in_bytes(rank1_inside_idem) * 8;
              //size_in_bytes(occ_PoL) * 8 + size_in_bytes(rank1_occ_PoL) * 8;
@@ -387,10 +391,10 @@ class bp_sdsl_idems {
         cout << (tree.tree[i] ? "(" : ")");
       }
       cout << endl;
-      cout << "P:         ";
-      for(uint64_t i = 0; i < tree.P.size(); i++) {
-        cout << tree.P[i] << " ";
-      }
+//      cout << "P:         ";
+//      for(uint64_t i = 0; i < tree.P.size(); i++) {
+//        cout << tree.P[i] << " ";
+//      }
       cout << endl;
       cout << "Real Tree: ";
       for(uint64_t i = 0; i < tree.real_tree.size(); i++) {
