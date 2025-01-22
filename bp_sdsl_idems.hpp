@@ -22,6 +22,7 @@
 #include <sdsl/util.hpp>
 #include <sdsl/lcp.hpp>
 
+
 using namespace std;
 using namespace sdsl;
 
@@ -53,6 +54,10 @@ class bp_sdsl_idems {
 
     sd_vector<> inside_idem;
     rank_support_sd<> rank1_inside_idem;
+
+    // to replace inside_idem
+    rrr_vector<127> one_or_two;
+    sd_vector<> runs_0;
 
     sd_vector<> occ_PoL;
     rank_support_sd<> rank1_occ_PoL;
@@ -160,7 +165,7 @@ class bp_sdsl_idems {
       free(lcp);
 
       cout << "Finding maximum head..." << endl;
-      uint64_t maxi_repre = 0;
+      set< uint64_t > repres;
       vector< uint64_t > prefix_help(tree.size(), 0);
 
       for(uint64_t bit = 0; bit < tree.size(); bit++) {
@@ -170,7 +175,7 @@ class bp_sdsl_idems {
 
           // if has an identical tree and is big enough
           if(repre != bit) {
-            maxi_repre = (repre - prefix_help[repre - 1]);
+            repres.insert((repre - prefix_help[repre - 1]));
 
             uint64_t next_bit = tree_support.find_close(bit);
             for(uint64_t pfh = bit; pfh <= next_bit; pfh++) {
@@ -197,7 +202,8 @@ class bp_sdsl_idems {
       uint64_t ref_bit = 0;
 
       uint64_t amount_of_bits_removed = 0;
-      uint64_t log2_w = ceil_log2(maxi_repre);
+      uint64_t log2_w = ceil_log2(repres.size() - 1);
+      cout << "Min pos " << *repres.begin() << endl;
 
       cout << "Replacing identical subtrees..." << endl;
       prefix_help.resize(tree.size(), 0);
@@ -237,12 +243,35 @@ class bp_sdsl_idems {
       prefix_help.clear();
       idems_tree.clear();
 
+      vector< uint64_t > runs_0_pos;
+      vector< uint64_t > one_or_two_pos;
+      if(inside_idem_bv.size() > 0) {
+        runs_0_pos.push_back(inside_idem_bv[0]);
+      }
+
+
+      uint64_t bit_12 = 0;
+      for(uint64_t i = 1; i < inside_idem_bv.size(); i++) {
+        if(inside_idem_bv[i] == inside_idem_bv[i - 1] + 1) {
+          one_or_two_pos.push_back(bit_12);
+        } else {
+          runs_0_pos.push_back(runs_0_pos.back() + inside_idem_bv[i] - inside_idem_bv[i - 1]);
+          bit_12++;
+        }
+      }
+
+      auto aux_one_or_two = bit_vector(one_or_two_pos.back() + 1, 0);
+      for(auto p : one_or_two_pos) aux_one_or_two[p] = 1;
+
+      one_or_two = rrr_vector<127>(aux_one_or_two);
+
+      runs_0 = sd_vector<>(runs_0_pos.begin(), runs_0_pos.end());
 
       bit_vector bv_aux(inside_idem_bv.back() + 1, 0);
       for(auto p : inside_idem_bv) bv_aux[p] = 1;
 
       inside_idem = sd_vector<>(bv_aux);
-      util::init_support(rank1_inside_idem, &inside_idem);
+      sdsl::util::init_support(rank1_inside_idem, &inside_idem);
 
       this->tree = bit_vector(ref_bit, 0);
       for(const auto& bit : new_tree_bv) this->tree[bit] = 1;
@@ -260,8 +289,8 @@ class bp_sdsl_idems {
         itr->second = code++;
       }
 
-      //cout << ceil_log2(code - 1) << " " << code << "\n";
-      //cout << "idem subtrees: " << pointer.size() << "\n";
+      cout << ceil_log2(code - 1) << " " << code << "\n";
+      cout << "idem subtrees: " << pointer.size() << "\n";
 
       int_vector<> aux(pointer.size());
       bit_vector bv_real_tree(this->tree.size(), 0);
@@ -272,7 +301,7 @@ class bp_sdsl_idems {
       }
 
       real_tree = sd_vector(bv_real_tree);
-      util::init_support(select_real_tree, &real_tree);
+      sdsl::util::init_support(select_real_tree, &real_tree);
 
       // clean, is useless
       pointer.clear();
@@ -305,14 +334,12 @@ class bp_sdsl_idems {
       }
 
 
-      //P = dac_vector_dp<rrr_vector<127>>(aux);
-      P = int_vector<>(aux);
-      util::bit_compress(P);
+      P = dac_vector_dp<rrr_vector<127>>(aux);
 
       bit_vector bv_occ_PoL((this->tree).size(), 0);
       for(const auto& bit : count_PoL) bv_occ_PoL[bit] = 1;
       occ_PoL = sd_vector<>(bv_occ_PoL);
-      util::init_support(rank1_occ_PoL, &occ_PoL);
+      sdsl::util::init_support(rank1_occ_PoL, &occ_PoL);
 
       // clean, is useless
       count_PoL.clear();
@@ -321,10 +348,10 @@ class bp_sdsl_idems {
       for(const auto& bit : PoL_bv) bv_PoL[bit] = 1;
       PoL = sd_vector<>(bv_PoL);
 
-      util::init_support(rank1_PoL, &PoL);
-      util::init_support(rank0_PoL, &PoL);
-      util::init_support(select1_PoL, &PoL);
-      util::init_support(select0_PoL, &PoL);
+      sdsl::util::init_support(rank1_PoL, &PoL);
+      sdsl::util::init_support(rank0_PoL, &PoL);
+      sdsl::util::init_support(select1_PoL, &PoL);
+      sdsl::util::init_support(select0_PoL, &PoL);
 
       // clean, is useless
       PoL_bv.clear();
@@ -337,11 +364,13 @@ class bp_sdsl_idems {
 
 
     uint64_t size_in_bits() {
-      cout << "Tree:        " << size_in_bytes(tree) * 8 << endl;
-      cout << "Tree support:" <<  size_in_bytes(tree_support) * 8 << endl;
-      cout << "P           :" << size_in_bytes(P) * 8 << endl;
-      cout << "Real Tree   :" << size_in_bytes(real_tree) * 8 << endl;
-      cout << "Inside idem :" << size_in_bytes(inside_idem) * 8 + size_in_bytes(rank1_inside_idem) * 8 << endl;
+      cout << "Tree           :" << size_in_bytes(tree) * 8 << endl;
+      cout << "Tree support   :" <<  size_in_bytes(tree_support) * 8 << endl;
+      cout << "P              :" << size_in_bytes(P) * 8 << endl;
+      cout << "Real Tree      :" << size_in_bytes(real_tree) * 8 << endl;
+      cout << "Inside idem    :" << size_in_bytes(inside_idem) * 8 + size_in_bytes(rank1_inside_idem) * 8 << endl;
+      cout << "Inside runs_0  :" << size_in_bytes(runs_0) * 8 << endl; 
+      cout << "Inside 1/2     :" << size_in_bytes(one_or_two) * 8 << endl;
       return sizeof(uint64_t) * 3 +
              size_in_bytes(tree) * 8 +
              size_in_bytes(tree_support) * 8 +
