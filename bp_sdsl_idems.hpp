@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstdint>
 #include <iostream>
+#include <fstream>
 #include <sdsl/construct.hpp>
 #include <sdsl/io.hpp>
 #include <sdsl/lcp_support_sada.hpp>
@@ -14,6 +15,7 @@
 // local includes
 #include "libsais/include/libsais64.h"
 #include "util.hpp"
+#include "huffman_coder.hpp"
 
 // sdsl includes
 #include <sdsl/int_vector.hpp>
@@ -50,15 +52,17 @@ struct union_find {
 template< uint64_t k = 2 >
 class bp_sdsl_idems {
   private:
-    dac_vector_dp<rrr_vector<127>> P;
+    //dac_vector_dp<rrr_vector<127>> P;
+    huffman_coder P;
     //tunstall_coder<16> P;
 
-    sd_vector<> inside_idem;
-    rank_support_sd<> rank1_inside_idem;
+    //sd_vector<> inside_idem;
+    //rank_support_sd<> rank1_inside_idem;
 
     // to replace inside_idem
-    rrr_vector<127> one_or_two;
-    dac_vector_dp<rrr_vector<127>> runs_0;
+    huffman_coder gaps_inside_idem;
+    //rrr_vector<127> one_or_two;
+    //huffman_coder runs_0;
     //tunstall_coder<16> runs_0;
 
     sd_vector<> occ_PoL;
@@ -217,7 +221,8 @@ class bp_sdsl_idems {
           uint64_t repre = idems_tree.find_set(bit);
 
           // if has an identical tree and is big enough
-          if(repre != bit && tree_support.find_close(repre) - repre + 1 > log2_w + 2) {
+          //if(repre != bit && tree_support.find_close(repre) - repre + 1 > 21 + 2 + 12) {
+          if(repre != bit && tree_support.find_close(repre) - repre + 1 > log2_w + 2 && idems_tree.size(repre) >= 100) {
             inside_idem_bv.push_back(bit);
             pointers_pos.push_back(ref_bit - 1);
             //new_tree_bv.push_back(ref_bit++);
@@ -244,36 +249,46 @@ class bp_sdsl_idems {
       prefix_help.clear();
       idems_tree.clear();
 
-      vector< uint32_t > runs_0_pos;
-      vector< uint64_t > one_or_two_pos;
+//      vector< uint32_t > runs_0_pos;
+//      vector< uint64_t > one_or_two_pos;
+//      if(inside_idem_bv.size() > 0) {
+//        runs_0_pos.push_back(inside_idem_bv[0]);
+//      }
+//
+//
+//      uint64_t bit_12 = 0;
+//      for(uint64_t i = 1; i < inside_idem_bv.size(); i++) {
+//        if(inside_idem_bv[i] == inside_idem_bv[i - 1] + 1) {
+//          one_or_two_pos.push_back(bit_12);
+//        } else {
+//          runs_0_pos.push_back(inside_idem_bv[i] - inside_idem_bv[i - 1]);
+//          bit_12++;
+//        }
+//      }
+      vector< uint32_t > gaps;
       if(inside_idem_bv.size() > 0) {
-        runs_0_pos.push_back(inside_idem_bv[0]);
+        gaps.push_back(inside_idem_bv[0]);
       }
-
-
-      uint64_t bit_12 = 0;
       for(uint64_t i = 1; i < inside_idem_bv.size(); i++) {
-        if(inside_idem_bv[i] == inside_idem_bv[i - 1] + 1) {
-          one_or_two_pos.push_back(bit_12);
-        } else {
-          runs_0_pos.push_back(inside_idem_bv[i] - inside_idem_bv[i - 1]);
-          bit_12++;
-        }
+        gaps.push_back(inside_idem_bv[i] - inside_idem_bv[i - 1]);
       }
+      gaps_inside_idem.encode(gaps, 256);
 
-      auto aux_one_or_two = bit_vector(one_or_two_pos.back() + 1, 0);
-      for(auto p : one_or_two_pos) aux_one_or_two[p] = 1;
 
-      one_or_two = rrr_vector<127>(aux_one_or_two);
+ //     auto aux_one_or_two = bit_vector(one_or_two_pos.back() + 1, 0);
+ //     for(auto p : one_or_two_pos) aux_one_or_two[p] = 1;
 
-      runs_0 = dac_vector_dp<rrr_vector<127>>(runs_0_pos);
+ //     one_or_two = rrr_vector<127>(aux_one_or_two);
+
+      //runs_0 = dac_vector_dp<rrr_vector<127>>(runs_0_pos);
+//      runs_0.encode(runs_0_pos, 256);
       //runs_0 = tunstall_coder<16>(runs_0_pos, 256, 1 << 16);
 
-      bit_vector bv_aux(inside_idem_bv.back() + 1, 0);
-      for(auto p : inside_idem_bv) bv_aux[p] = 1;
-
-      inside_idem = sd_vector<>(bv_aux);
-      sdsl::util::init_support(rank1_inside_idem, &inside_idem);
+//      bit_vector bv_aux(inside_idem_bv.back() + 1, 0);
+//      for(auto p : inside_idem_bv) bv_aux[p] = 1;
+//
+//      inside_idem = sd_vector<>(bv_aux);
+//      sdsl::util::init_support(rank1_inside_idem, &inside_idem);
 
       this->tree = bit_vector(ref_bit, 0);
       for(const auto& bit : new_tree_bv) this->tree[bit] = 1;
@@ -335,9 +350,23 @@ class bp_sdsl_idems {
           ref_bit++;
         }
       }
+//
+//      {
+//        // check stats
+//        vector< uint32_t > stats(code, 0);
+//        for(uint64_t i = 0; i < aux.size(); i++) {
+//          stats[aux[i]]++;
+//        }
+//        ofstream file_stat;
+//        file_stat.open("freq_idems_trees");
+//        for(uint64_t i = 0; i < stats.size(); i++) {
+//          file_stat << i << " " << stats[i] << "\n";
+//        }
+//        file_stat.close();
+//      }
 
-
-      P = dac_vector_dp<rrr_vector<127>>(aux);
+      //P = dac_vector_dp<rrr_vector<127>>(aux);
+      P.encode(aux, 1024);
       //P = tunstall_coder<16>(aux, 256, 1 << 16);
 
       bit_vector bv_occ_PoL((this->tree).size(), 0);
@@ -370,20 +399,23 @@ class bp_sdsl_idems {
     uint64_t size_in_bits() {
       cout << "Tree           :" << size_in_bytes(tree) * 8 << endl;
       cout << "Tree support   :" <<  size_in_bytes(tree_support) * 8 << endl;
-      cout << "P              :" << size_in_bytes(P) * 8 << endl;
-      //cout << "P              :" << P.size() * 8 << endl;
+      //cout << "P              :" << size_in_bytes(P) * 8 << endl;
+      cout << "P              :" << P.size() * 8 << endl;
       cout << "Real Tree      :" << size_in_bytes(real_tree) * 8 << endl;
-      cout << "Inside idem    :" << size_in_bytes(inside_idem) * 8 + size_in_bytes(rank1_inside_idem) * 8 << endl;
-      cout << "Inside runs_0  :" << size_in_bytes(runs_0) * 8 << endl; 
+      cout << "G inside idem  :" << gaps_inside_idem.size() * 8 << endl;
+      //cout << "Inside idem    :" << size_in_bytes(inside_idem) * 8 + size_in_bytes(rank1_inside_idem) * 8 << endl;
+      //cout << "Inside runs_0  :" << size_in_bytes(runs_0) * 8 << endl; 
       //cout << "Inside runs_0  :" << runs_0.size() * 8 << endl; 
-      cout << "Inside 1/2     :" << size_in_bytes(one_or_two) * 8 << endl;
+      //cout << "Inside 1/2     :" << size_in_bytes(one_or_two) * 8 << endl;
       return sizeof(uint64_t) * 3 +
              size_in_bytes(tree) * 8 +
              size_in_bytes(tree_support) * 8 +
-             size_in_bytes(P) * 8 + 
-             //P.size() * 8 +
+             //size_in_bytes(P) * 8 + 
+             P.size() * 8 +
              size_in_bytes(real_tree) * 8 +
-             size_in_bytes(inside_idem) * 8 + size_in_bytes(rank1_inside_idem) * 8;
+             gaps_inside_idem.size() * 8;
+             //size_in_bytes(inside_idem) * 8 + size_in_bytes(rank1_inside_idem) * 8;
+             //runs_0.size() * 8 + size_in_bytes(one_or_two);
              //size_in_bytes(occ_PoL) * 8 + size_in_bytes(rank1_occ_PoL) * 8;
              //size_in_bytes(PoL) * 8 + size_in_bytes(rank1_PoL) * 8 + size_in_bytes(rank0_PoL) * 8 + size_in_bytes(select1_PoL) * 8 + size_in_bytes(select0_PoL) * 8;
     } 

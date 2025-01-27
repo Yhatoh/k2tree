@@ -19,6 +19,8 @@
 #include <sdsl/coder_elias_delta.hpp>
 #include <sdsl/suffix_arrays.hpp>
 
+#include "block_element.hpp"
+
 using namespace std;
 // from succint repository
 static const uint8_t debruijn64_mapping[64] = {
@@ -69,10 +71,6 @@ inline uint64_t floor_log2(uint64_t x) {
   return (x > 1) ? msb(x) : 0;
 }
 
-struct blockElement {
-    uint64_t prefix_sum;  // prefix sum
-    uint32_t starting_position;
-};
 
 typedef std::pair<float, uint64_t>   heap_node; 
 typedef std::tuple<uint64_t, uint64_t, std::string>   heap_node_str; 
