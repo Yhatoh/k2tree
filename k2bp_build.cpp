@@ -5,14 +5,16 @@
 #include "k2tree_bp_sdsl.hpp"
 
 int main(int argc, char** argv) {
-  if(argc <= 2) {
+  if(argc < 3) {
     std::cerr << "At least three arguments:" << endl;
     std::cerr << "  ./k2bp_build.x <path file matrix> <size of squared matrix> <amount of ones>" << endl;
+    exit(1);
   }
 
-  if(argc % 2) {
-    std::cerr << "The arguments should be of group of 2:" << endl;
+  if((argc - 1) % 3) {
+    std::cerr << "The arguments should be of group of 3:" << endl;
     std::cerr << "  ./k2bp_build.x <matrix1> <size1> <#ones1> ... <matrixn> <sizen> <#onesn>" << endl;
+    exit(1);
   }
 
   for(uint64_t i = 1; i < argc; i += 3) {
@@ -29,6 +31,7 @@ int main(int argc, char** argv) {
 
     if(!ones_txt.is_open()) {
       cerr << "Error opening file. Check if the file exists or the path is writed correctly" << endl;
+      exit(1);
     }
 
     cerr << "Reading ones..." << endl;
