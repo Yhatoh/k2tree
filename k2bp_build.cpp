@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     std::cerr << "  ./k2bp_build.x <matrix1> <size1> <#ones1> ... <matrixn> <sizen> <#onesn>" << endl;
   }
 
-  for(uint64_t i = 1; i < argc; i += 2) {
+  for(uint64_t i = 1; i < argc; i += 3) {
     cerr << "Getting parameters..." << endl;
 
     std::string matrix = argv[i];
