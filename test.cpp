@@ -4,6 +4,7 @@
 
 
 #include <algorithm>
+#include <fstream>
 #include <random>
 
 class Randomer {
@@ -29,13 +30,13 @@ class Randomer {
 
 Randomer pow2matrix(2, 10, 49);
 Randomer genmatrix(256, 256, 49);
-Randomer zerone(0, 1, 49);
+Randomer zerone(0, 10, 49);
 
 vector< pair< uint64_t, uint64_t > > gen_ones_matrix(uint64_t n, uint64_t m) {
     vector< pair< uint64_t, uint64_t > > ones;
     for (uint64_t i = 0; i < n; ++i) {
         for (uint64_t j = 0; j < m; ++j) {
-            if(zerone()) {
+            if(zerone() > 8) {
               ones.push_back({i, j});
             }
         }
@@ -246,6 +247,134 @@ bool test_union_algorithm_tree_comp(uint64_t n, uint64_t m) {
   return true;
 }
 
+bool test_multi_algorithm_tree_comp(uint64_t n, uint64_t m) {
+  cout << "Generating a matrix of size " << n << "x"  << m << endl;
+  vector< pair< uint64_t, uint64_t> > ones = gen_ones_matrix(n, m);
+  vector< pair< uint64_t, uint64_t> > ones2 = gen_ones_matrix(n, m);
+  vector< pair< uint64_t, uint64_t> > expected;
+
+  cout << "Brute force multiplication" << endl;
+  {
+    vector< vector< uint64_t > > mA(n, vector<uint64_t>(m, 0));
+    for(auto p : ones) mA[p.first][p.second] = 1;
+
+    vector< vector< uint64_t > > mB(n, vector<uint64_t>(m, 0));
+    for(auto p : ones2) mB[p.first][p.second] = 1;
+
+    vector< vector< uint64_t > > mC(n, vector< uint64_t >(m, 0));
+
+    for(uint64_t i = 0; i < n; i++) {
+      for(uint64_t j = 0; j < m; j++) {
+        for(uint64_t k = 0; k < n; k++) {
+          mC[i][j] |= mA[i][k] & mB[k][j];
+        }
+      }
+    }
+
+
+    for(uint64_t i = 0; i < n; i++) {
+      for(uint64_t j = 0; j < m; j++) {
+        if(mC[i][j]) expected.push_back({i, j});
+      }
+    }
+  }
+
+  cout << "Generating A" << endl;
+  k2tree_bp_sdsl<2> A(ones);
+  k2tree_bp_sdsl_idems<2,
+    sd_vector<>, rank_support_sd<1>,
+    sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
+    select_support_sd<1>, select_support_sd<0>> A_idem(A);
+
+  cout << "Generating B" << endl;
+  k2tree_bp_sdsl<2> B(ones2);
+  k2tree_bp_sdsl_idems<2,
+    sd_vector<>, rank_support_sd<1>,
+    sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
+    select_support_sd<1>, select_support_sd<0>> B_idem(A);
+
+  cout << "C = A * B" << endl;
+  auto C = A * B;
+  cout << C << endl;
+  cout << "Compressing C" << endl;
+  k2tree_bp_sdsl_idems<2,
+    sd_vector<>, rank_support_sd<1>,
+    sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
+    select_support_sd<1>, select_support_sd<0>> C_idem(C);
+
+  auto check = C_idem.get_pos_ones();
+
+  assert(check.size() == expected.size());
+
+  sort(check.begin(), check.end());
+  sort(expected.begin(), expected.end());
+  for(uint64_t i = 0; i < expected.size(); i++) {
+    assert(check[i] == expected[i]);
+  }
+
+  return true;
+}
+
+bool test_write_load(uint64_t n, uint64_t m) {
+  cout << "Generating a matrix of size " << n << "x"  << m << endl;
+  vector< pair< uint64_t, uint64_t> > ones = gen_ones_matrix(n, m);
+
+  cout << "Generating k2 tree" << endl;
+  k2tree_bp_sdsl<2> k2tree(ones);
+  {
+    cout << "Writing on file" << endl;
+    ofstream file_k2_write;
+    file_k2_write.open("matrix.k2");
+    k2tree.write(file_k2_write);
+    file_k2_write.close();
+    cout << "Reading from file" << endl;
+
+    ifstream file_k2_read;
+    file_k2_read.open("matrix.k2");
+    k2tree_bp_sdsl<2> k2tree_load;
+    k2tree_load.load(file_k2_read);
+    file_k2_read.close();
+
+    cout << "Check ones k2" << endl;
+
+    auto check = k2tree_load.get_pos_ones();
+    sort(check.begin(), check.end());
+    sort(ones.begin(), ones.end());
+    for(uint64_t i = 0; i < ones.size(); i++) {
+      assert(check[i] == ones[i]);
+    }
+  }
+  cout << "Compressing k2 tree" << endl;
+  k2tree_bp_sdsl_idems<2,
+    sd_vector<>, rank_support_sd<1>,
+    sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
+    select_support_sd<1>, select_support_sd<0>> k2tree_idem(k2tree);
+  {
+    cout << "Writing on file" << endl;
+    ofstream file_k2_write;
+    file_k2_write.open("matrix.k2_idem");
+    k2tree_idem.write(file_k2_write);
+    file_k2_write.close();
+    cout << "Reading from file" << endl;
+
+    ifstream file_k2_read;
+    file_k2_read.open("matrix.k2");
+    k2tree_bp_sdsl<2> k2tree_load;
+    k2tree_load.load(file_k2_read);
+    file_k2_read.close();
+
+    cout << "Check ones k2idem" << endl;
+
+    auto check = k2tree_load.get_pos_ones();
+    sort(check.begin(), check.end());
+    sort(ones.begin(), ones.end());
+    for(uint64_t i = 0; i < ones.size(); i++) {
+      assert(check[i] == ones[i]);
+    }
+  }
+
+  return true;
+}
 
 int main() {
 //  cout << "Testing pow 2 square matrices" << endl;
@@ -268,18 +397,31 @@ int main() {
 //    cout << "Passed!" << endl;
 //  }
 
-  cout << "Testing Union Algorithm tree compression" << endl;
-  for(uint64_t t = 0; t < 50; t++) {
-    cout << "Test " << t + 1 << endl;
-    test_union_algorithm_tree_comp(genmatrix(), genmatrix());
-    cout << "Passed!" << endl;
-  }
-//
+//  cout << "Testing Union Algorithm tree compression" << endl;
+//  for(uint64_t t = 0; t < 50; t++) {
+//    cout << "Test " << t + 1 << endl;
+//    test_union_algorithm_tree_comp(genmatrix(), genmatrix());
+//    cout << "Passed!" << endl;
+//  }
+
 //  cout << "Testing Multiply Algorithm" << endl;
 //  for(uint64_t t = 0; t < 50; t++) {
 //    cout << "Test " << t + 1 << endl;
 //    test_multi_algorithm(genmatrix(), genmatrix());
 //    cout << "Passed!" << endl;
 //  }
+//
+//  cout << "Testing Multiply Algorithm tree compression" << endl;
+//  for(uint64_t t = 0; t < 50; t++) {
+//    cout << "Test " << t + 1 << endl;
+//    test_multi_algorithm_tree_comp(genmatrix(), genmatrix());
+//    cout << "Passed!" << endl;
+//  }
+  cout << "Testing writing and load" << endl;
+  for(uint64_t t = 0; t < 50; t++) {
+    cout << "Test " << t + 1 << endl;
+    test_write_load(genmatrix(), genmatrix());
+    cout << "Passed!" << endl;
+  }
   return 0;
 }

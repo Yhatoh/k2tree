@@ -12,7 +12,6 @@
 #include <sdsl/rrr_vector.hpp>
 #include <sdsl/sd_vector.hpp>
 #include <stack>
-#include <type_traits>
 #include <utility>
 #include <vector>
 #include <tuple>
@@ -766,7 +765,49 @@ class k2tree_bp_sdsl {
       return C;
     }
 
+    void write(ofstream& out) {
+      // writing integers first
+      out.write((char*) &msize, sizeof(uint64_t));
+      out.write((char*) &rmsize, sizeof(uint64_t));
+      out.write((char*) &m, sizeof(uint64_t));
+      out.write((char*) &height_tree, sizeof(uint64_t));
+      out.write((char*) &last_bit_t, sizeof(uint64_t));
+      out.write((char*) &last_bit_l, sizeof(uint64_t));
+
+      leaves.serialize(out);
+      rank_leaves.serialize(out);
+
+      tree.serialize(out);
+      tree_support.serialize(out);
+      l.serialize(out);
+    }
+
+    void load(ifstream& in) {
+      // writing integers first
+      in.read((char*) &msize, sizeof(uint64_t));
+      in.read((char*) &rmsize, sizeof(uint64_t));
+      in.read((char*) &m, sizeof(uint64_t));
+      in.read((char*) &height_tree, sizeof(uint64_t));
+      in.read((char*) &last_bit_t, sizeof(uint64_t));
+      in.read((char*) &last_bit_l, sizeof(uint64_t));
+
+      leaves.load(in);
+      rank_leaves.load(in, &leaves);
+
+      tree.load(in);
+      tree_support.load(in, &tree);
+
+      l.load(in);
+    }
+
     uint64_t size_in_bits() {
+#ifdef INFO_SPACE
+      cout << "BITS" << endl;
+      cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << endl;
+      cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << endl;
+      cout << "  L           : " << (size_in_bytes(l)) * 8 << endl;
+      cout << "  leaves      : " << (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 << endl;
+#endif
       return sizeof(uint64_t) * 5 +
              size_in_bytes(tree) * 8 +
              size_in_bytes(tree_support) * 8 +
@@ -776,18 +817,18 @@ class k2tree_bp_sdsl {
 
     friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl<k> &k2tree) {
       cout << "Height Tree: " << k2tree.height_tree << endl;
-      cout << "Tree: ";
+      cout << "Tree       : ";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {
         cout << (k2tree.tree[i] ? "(" : ")");
       }
       cout << endl;
-      cout << "L: ";
+      cout << "L          : ";
       for(uint64_t i = 0; i < k2tree.l.size(); i++) {
         if(i % 4 == 0 && !(i == 0)) cout << " ";
         cout << (k2tree.l[i] ? "1" : "0");
       }
       cout << endl;
-      cout << "Leaves: ";
+      cout << "Leaves     : ";
       for(uint64_t i = 0; i < k2tree.leaves.size(); i++) {
         cout << (k2tree.leaves[i] ? "1" : "0");
       }
