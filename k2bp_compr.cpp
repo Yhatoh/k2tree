@@ -32,11 +32,11 @@ int main(int argc, char** argv) {
 
     k2_file.close();
 
-    cerr << "Reading k2tree..." << endl;
+    cerr << "Getting ones k2tree..." << endl;
 
     auto ones = k2tree.get_pos_ones();
 
-    cerr << "Building k2tree..." << endl;
+    cerr << "Compressing k2tree..." << endl;
 
     k2tree_bp_sdsl_idems<2,
       sd_vector<>, rank_support_sd<1>,
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
     cerr << "Writing file..." << endl;
 
     ofstream k2_file_idem;
-    k2_file_idem.open(k2_path + ".k2bpi");
+    k2_file_idem.open(k2_path + "i");
     k2tree_idem.write(k2_file_idem);
     k2_file_idem.close();
 
