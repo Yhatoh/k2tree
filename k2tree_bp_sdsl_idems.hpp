@@ -85,6 +85,8 @@ class k2tree_bp_sdsl_idems {
     uint64_t rmsize;
     uint64_t m;
 
+    uint64_t maximal_subtrees; // just for information purposes
+
     void add_one(vector< uint64_t > &bv, uint64_t &pos_to_add) {
       bv.push_back(pos_to_add++);
     }
@@ -94,6 +96,10 @@ class k2tree_bp_sdsl_idems {
     }
 
   public:
+    uint64_t size() { return m; }
+    uint64_t size_matrix() { return rmsize; }
+    uint64_t size_comp_subtrees() { return P.size(); }
+    uint64_t size_maximal_subtrees() { return maximal_subtrees; }
     uint64_t nodes() { return (tree_support.find_close(0) + 1) / 2; }
 
     k2tree_bp_sdsl_idems(k2tree_bp_sdsl<k> &k2tree) { 
@@ -277,6 +283,8 @@ class k2tree_bp_sdsl_idems {
       for(auto itr = unique_pointer.begin(); itr != unique_pointer.end(); itr++) {
         itr->second = code++;
       }
+
+      maximal_subtrees = code;
 
       int_vector<> aux(pointer.size());
       bit_vector bv_real_tree(tree.size(), 0);
