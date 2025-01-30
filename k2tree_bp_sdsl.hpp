@@ -384,13 +384,11 @@ class k2tree_bp_sdsl {
       }
     }
 
-    k2tree_bp_sdsl<k> operator|(const k2tree_bp_sdsl<k>& B) {
+    void binsum(const k2tree_bp_sdsl<k>& B, k2tree_bp_sdsl<k> &C) {
       uint64_t pa, pb;
       uint64_t pLa, pLb;
 
       pa = pb = pLa = pLb = 0;
-
-      k2tree_bp_sdsl<k> C;
 
       if(B.tree.size() == 2 && tree.size() == 2) {
         C.tree = bit_vector(2, 0);
@@ -399,6 +397,7 @@ class k2tree_bp_sdsl {
         C.msize = msize;
         C.rmsize = rmsize;
         C.m = m;
+        return;
       }
 
       if(B.tree.size() == 2) {
@@ -409,7 +408,7 @@ class k2tree_bp_sdsl {
         C.msize = msize;
         C.rmsize = rmsize;
         C.m = m;
-        return C;
+        return;
       }
 
       if(tree.size() == 2) {
@@ -420,7 +419,7 @@ class k2tree_bp_sdsl {
         C.msize = B.msize;
         C.rmsize = B.rmsize;
         C.m = B.m;
-        return C;
+        return;
       }
       uint64_t curr_bit_tree = 0;
       vector< uint64_t > bits_tree;
@@ -578,22 +577,22 @@ class k2tree_bp_sdsl {
 
       C.leaves = sd_vector<>(aux_leaves);
       util::init_support(C.rank_leaves, &C.leaves);     
-      return C;
+      return;
     }
 
-    k2tree_bp_sdsl<k> operator*(const k2tree_bp_sdsl<k>& B) {
-      return mul(0, B, 0, height_tree);
-    }   
+    void mul(const k2tree_bp_sdsl<k> &B, k2tree_bp_sdsl<2> &C) {
+      mul(0, B, 0, C, height_tree);
+    }
 
-    k2tree_bp_sdsl<k> mul(uint64_t A_tree,
-                          const k2tree_bp_sdsl<k> &B, uint64_t B_tree,
-                          uint64_t curr_h) {
+    void mul(uint64_t A_tree,
+             const k2tree_bp_sdsl<k> &B, uint64_t B_tree,
+             k2tree_bp_sdsl<2> &C,
+             uint64_t curr_h) {
 #ifdef DEBUG
       cout << "Current Height: " << curr_h << endl;
       cout << "Start Matrix A: " << A_tree << endl;
       cout << "Start Matrix B: " << B_tree << endl;
 #endif
-      k2tree_bp_sdsl<k> C;
       // submatrix A or B full of 0's
       if((tree[A_tree] && !tree[A_tree + 1]) ||
          (B.tree[B_tree] && !B.tree[B_tree + 1])) { 
@@ -606,7 +605,7 @@ class k2tree_bp_sdsl {
         C.m = m;
         C.msize = msize;
         C.rmsize = rmsize;
-        return C;
+        return;
       }
 
       // base case, leave 
@@ -618,13 +617,13 @@ class k2tree_bp_sdsl {
         uint64_t B_L = B.rank_leaves(B_tree) * 4;
         auto aux_l = bit_vector(4, 0);
         bool found_1 = 0;
-        aux_l[0] = (l[A_L] & B.l[B_L]) | (l[A_L + 1] * B.l[B_L + 2]);
+        aux_l[0] = (l[A_L] & B.l[B_L]) | (l[A_L + 1] & B.l[B_L + 2]);
         found_1 = found_1 | aux_l[0];
-        aux_l[1] = (l[A_L] & B.l[B_L + 1]) | (l[A_L + 1] * B.l[B_L + 3]);
+        aux_l[1] = (l[A_L] & B.l[B_L + 1]) | (l[A_L + 1] & B.l[B_L + 3]);
         found_1 = found_1 | aux_l[1];
-        aux_l[2] = (l[A_L + 2] & B.l[B_L]) | (l[A_L + 3] * B.l[B_L + 2]);
+        aux_l[2] = (l[A_L + 2] & B.l[B_L]) | (l[A_L + 3] & B.l[B_L + 2]);
         found_1 = found_1 | aux_l[2];
-        aux_l[3] = (l[A_L + 2] & B.l[B_L + 1]) | (l[A_L + 3] * B.l[B_L + 3]);
+        aux_l[3] = (l[A_L + 2] & B.l[B_L + 1]) | (l[A_L + 3] & B.l[B_L + 3]);
         found_1 = found_1 | aux_l[3];
 
         if(found_1) {
@@ -640,7 +639,7 @@ class k2tree_bp_sdsl {
         C.m = m;
         C.msize = msize;
         C.rmsize = rmsize;
-        return C;
+        return;
       }
 
  
@@ -712,10 +711,17 @@ class k2tree_bp_sdsl {
       //  C_0 | C_1
       //  ---------
       //  C_2 | C_3
-      auto C_0 = mul(A_0, B, B_0, curr_h - 1) | mul(A_1, B, B_2, curr_h - 1);
-      auto C_1 = mul(A_0, B, B_1, curr_h - 1) | mul(A_1, B, B_3, curr_h - 1);
-      auto C_2 = mul(A_2, B, B_0, curr_h - 1) | mul(A_3, B, B_2, curr_h - 1);
-      auto C_3 = mul(A_2, B, B_1, curr_h - 1) | mul(A_3, B, B_3, curr_h - 1);
+      k2tree_bp_sdsl<k> C_0, C_1, C_2, C_3;
+      k2tree_bp_sdsl<k> C_0_0, C_1_2, C_0_1, C_1_3, C_2_0, C_3_2, C_2_1, C_3_3;
+
+      mul(A_0, B, B_0, C_0_0, curr_h - 1); mul(A_1, B, B_2, C_1_2, curr_h - 1);
+      C_0_0.binsum(C_1_2, C_0);
+      mul(A_0, B, B_1, C_0_1, curr_h - 1); mul(A_1, B, B_3, C_1_3, curr_h - 1);
+      C_0_1.binsum(C_1_3, C_1);
+      mul(A_2, B, B_0, C_2_0, curr_h - 1); mul(A_3, B, B_2, C_3_2, curr_h - 1);
+      C_2_0.binsum(C_3_2, C_2);
+      mul(A_2, B, B_1, C_2_1, curr_h - 1); mul(A_3, B, B_3, C_3_3, curr_h - 1);
+      C_2_1.binsum(C_3_3, C_3);
 
       if(C_0.tree.size() == 2 &&
          C_1.tree.size() == 2 &&
@@ -727,7 +733,7 @@ class k2tree_bp_sdsl {
         C.m = m;
         C.msize = msize;
         C.rmsize = rmsize;
-        return C;
+        return;
       }
 
       // merge results
@@ -765,8 +771,7 @@ class k2tree_bp_sdsl {
       C.msize = msize;
       C.rmsize = rmsize;
 
-
-      return C;
+      return;
     }
 
     void write(ofstream& out) {

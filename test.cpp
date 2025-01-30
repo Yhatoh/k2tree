@@ -29,7 +29,7 @@ class Randomer {
 };
 
 Randomer pow2matrix(2, 10, 49);
-Randomer genmatrix(256, 256, 49);
+Randomer genmatrix(128, 128, 49);
 Randomer zerone(0, 10, 49);
 
 vector< pair< uint64_t, uint64_t > > gen_ones_matrix(uint64_t n, uint64_t m) {
@@ -128,7 +128,7 @@ bool test_union_algorithm(uint64_t n, uint64_t m) {
   vector< pair< uint64_t, uint64_t > > ones_union;
   for(auto p : union_) ones_union.push_back(p);
 
-  auto C = A | B;
+  k2tree_bp_sdsl<2> C; A.binsum(B, C);
 
   auto check = C.get_pos_ones();
 
@@ -181,7 +181,8 @@ bool test_multi_algorithm(uint64_t n, uint64_t m) {
   k2tree_bp_sdsl<2> B(ones2);
 
   cout << "C = A * B" << endl;
-  auto C = A * B;
+  k2tree_bp_sdsl<2> C;
+  A.mul(B, C);
 
   auto check = C.get_pos_ones();
 
@@ -227,7 +228,8 @@ bool test_union_algorithm_tree_comp(uint64_t n, uint64_t m) {
   for(auto p : union_) ones_union.push_back(p);
 
   cout << "A | B" << endl;
-  auto C = A_idem | B_idem;
+  k2tree_bp_sdsl<2> C;
+  A_idem.binsum(B_idem, C);
   cout << "Compressing C" << endl;
   k2tree_bp_sdsl_idems<2,
     sd_vector<>, rank_support_sd<1>,
@@ -294,8 +296,8 @@ bool test_multi_algorithm_tree_comp(uint64_t n, uint64_t m) {
     select_support_sd<1>, select_support_sd<0>> B_idem(A);
 
   cout << "C = A * B" << endl;
-  auto C = A * B;
-  cout << C << endl;
+  k2tree_bp_sdsl<2> C;
+  A.mul(B, C);
   cout << "Compressing C" << endl;
   k2tree_bp_sdsl_idems<2,
     sd_vector<>, rank_support_sd<1>,
@@ -410,18 +412,18 @@ int main() {
 //    test_multi_algorithm(genmatrix(), genmatrix());
 //    cout << "Passed!" << endl;
 //  }
-//
-//  cout << "Testing Multiply Algorithm tree compression" << endl;
-//  for(uint64_t t = 0; t < 50; t++) {
-//    cout << "Test " << t + 1 << endl;
-//    test_multi_algorithm_tree_comp(genmatrix(), genmatrix());
-//    cout << "Passed!" << endl;
-//  }
-  cout << "Testing writing and load" << endl;
+
+  cout << "Testing Multiply Algorithm tree compression" << endl;
   for(uint64_t t = 0; t < 50; t++) {
     cout << "Test " << t + 1 << endl;
-    test_write_load(genmatrix(), genmatrix());
+    test_multi_algorithm_tree_comp(genmatrix(), genmatrix());
     cout << "Passed!" << endl;
   }
+//  cout << "Testing writing and load" << endl;
+//  for(uint64_t t = 0; t < 50; t++) {
+//    cout << "Test " << t + 1 << endl;
+//    test_write_load(genmatrix(), genmatrix());
+//    cout << "Passed!" << endl;
+//  }
   return 0;
 }

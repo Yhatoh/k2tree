@@ -466,13 +466,11 @@ class k2tree_bp_sdsl_idems {
       return ret;
     }
 
-    k2tree_bp_sdsl<k> operator|(const k2tree_bp_sdsl_idems< k, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B) {
+    void binsum(const k2tree_bp_sdsl_idems< k, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, k2tree_bp_sdsl<k> &C) {
       uint64_t pa, pb;
       uint64_t pLa, pLb;
 
       pa = pb = pLa = pLb = 0;
-
-      k2tree_bp_sdsl<k> C;
 
       if(B.tree.size() == 2 && tree.size() == 2) {
         C.tree = bit_vector(2, 0);
@@ -481,6 +479,7 @@ class k2tree_bp_sdsl_idems {
         C.msize = msize;
         C.rmsize = rmsize;
         C.m = m;
+        return;
       }
 
       if(B.tree.size() == 2) {
@@ -491,7 +490,7 @@ class k2tree_bp_sdsl_idems {
         C.msize = msize;
         C.rmsize = rmsize;
         C.m = m;
-        return C;
+        return;
       }
 
       if(tree.size() == 2) {
@@ -502,7 +501,7 @@ class k2tree_bp_sdsl_idems {
         C.msize = B.msize;
         C.rmsize = B.rmsize;
         C.m = B.m;
-        return C;
+        return;
       }
 
       uint64_t curr_bit_tree = 0;
@@ -733,7 +732,7 @@ class k2tree_bp_sdsl_idems {
       C.leaves = sd_vector<>(aux_leaves);
       util::init_support(C.rank_leaves, &C.leaves);     
       
-      return C;
+      return;
     }
 
     void prefix_sum_skipped_values(vector< uint64_t > &pre_skips) {
@@ -836,27 +835,27 @@ class k2tree_bp_sdsl_idems {
       }
     }
 
-    k2tree_bp_sdsl<k> operator*(k2tree_bp_sdsl_idems< k, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B) {
+    void mul(k2tree_bp_sdsl_idems< k, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, k2tree_bp_sdsl<k> &C) {
       vector< uint64_t > pre_skips_A(rank1_PoL(PoL.size()), 0);
       prefix_sum_skipped_values(pre_skips_A);
 
       vector< uint64_t > pre_skips_B(B.rank1_PoL(B.PoL.size()), 0);
       B.prefix_sum_skipped_values(pre_skips_B);
 
-      return mul(0, pre_skips_A, 0, B, 0, pre_skips_B, 0, height_tree);
-    }   
+      mul(0, pre_skips_A, 0, B, 0, pre_skips_B, 0, C, height_tree);
+    }
 
-    k2tree_bp_sdsl<k> mul(uint64_t A_tree,
-                          vector< uint64_t > &pre_skips_A, uint64_t A_lvs_sk,
-                          const k2tree_bp_sdsl_idems< k, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B,
-                          uint64_t B_tree, vector< uint64_t > &pre_skips_B, uint64_t B_lvs_sk,
-                          uint64_t curr_h) {
+    void mul(uint64_t A_tree,
+             vector< uint64_t > &pre_skips_A, uint64_t A_lvs_sk,
+             const k2tree_bp_sdsl_idems< k, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B,
+             uint64_t B_tree, vector< uint64_t > &pre_skips_B, uint64_t B_lvs_sk,
+             k2tree_bp_sdsl<k> &C,
+             uint64_t curr_h) {
 #ifdef DEBUG
       cout << "Current Height: " << curr_h << endl;
       cout << "Start Matrix A: " << A_tree << endl;
       cout << "Start Matrix B: " << B_tree << endl;
 #endif
-      k2tree_bp_sdsl<k> C;
       // submatrix A or B full of 0's
       if((tree[A_tree] && !tree[A_tree + 1]) ||
          (B.tree[B_tree] && !B.tree[B_tree + 1])) { 
@@ -870,7 +869,7 @@ class k2tree_bp_sdsl_idems {
         C.msize = msize;
         C.rmsize = rmsize;
         C.tree_support = bp_support_sada<>(&C.tree);
-        return C;
+        return;
       }
 
       // base case, leaf
@@ -916,7 +915,7 @@ class k2tree_bp_sdsl_idems {
         C.m = m;
         C.msize = msize;
         C.rmsize = rmsize;
-        return C;
+        return;
       }
 
       // see if there is a pointer A
@@ -1012,14 +1011,21 @@ class k2tree_bp_sdsl_idems {
       //  ---------
       //  C_2 | C_3
 
-      auto C_0 = mul(A_0, pre_skips_A, A_lvs_sk, B, B_0, pre_skips_B, B_lvs_sk, curr_h - 1) | 
-                 mul(A_1, pre_skips_A, A_lvs_sk, B, B_2, pre_skips_B, B_lvs_sk, curr_h - 1);
-      auto C_1 = mul(A_0, pre_skips_A, A_lvs_sk, B, B_1, pre_skips_B, B_lvs_sk, curr_h - 1) | 
-                 mul(A_1, pre_skips_A, A_lvs_sk, B, B_3, pre_skips_B, B_lvs_sk, curr_h - 1);
-      auto C_2 = mul(A_2, pre_skips_A, A_lvs_sk, B, B_0, pre_skips_B, B_lvs_sk, curr_h - 1) | 
-                 mul(A_3, pre_skips_A, A_lvs_sk, B, B_2, pre_skips_B, B_lvs_sk, curr_h - 1);
-      auto C_3 = mul(A_2, pre_skips_A, A_lvs_sk, B, B_1, pre_skips_B, B_lvs_sk, curr_h - 1) | 
-                 mul(A_3, pre_skips_A, A_lvs_sk, B, B_3, pre_skips_B, B_lvs_sk, curr_h - 1);
+      k2tree_bp_sdsl<k> C_0, C_1, C_2, C_3;
+      k2tree_bp_sdsl<k> C_0_0, C_1_2, C_0_1, C_1_3, C_2_0, C_3_2, C_2_1, C_3_3;
+      mul(A_0, pre_skips_A, A_lvs_sk, B, B_0, pre_skips_B, B_lvs_sk, C_0_0, curr_h - 1);
+      mul(A_1, pre_skips_A, A_lvs_sk, B, B_2, pre_skips_B, B_lvs_sk, C_1_2, curr_h - 1);
+      C_0_0.binsum(C_1_2, C_0);
+      mul(A_0, pre_skips_A, A_lvs_sk, B, B_1, pre_skips_B, B_lvs_sk, C_0_1, curr_h - 1);
+      mul(A_1, pre_skips_A, A_lvs_sk, B, B_3, pre_skips_B, B_lvs_sk, C_1_3, curr_h - 1);
+      C_0_1.binsum(C_1_3, C_1);
+      mul(A_2, pre_skips_A, A_lvs_sk, B, B_0, pre_skips_B, B_lvs_sk, C_2_0, curr_h - 1);
+      mul(A_3, pre_skips_A, A_lvs_sk, B, B_2, pre_skips_B, B_lvs_sk, C_3_2, curr_h - 1);
+      C_2_0.binsum(C_3_2, C_2);
+      mul(A_2, pre_skips_A, A_lvs_sk, B, B_1, pre_skips_B, B_lvs_sk, C_2_1, curr_h - 1);
+      mul(A_3, pre_skips_A, A_lvs_sk, B, B_3, pre_skips_B, B_lvs_sk, C_3_3, curr_h - 1);
+      C_2_1.binsum(C_3_3, C_3);
+
 
       if(C_0.tree.size() == 2 &&
          C_1.tree.size() == 2 &&
@@ -1032,7 +1038,7 @@ class k2tree_bp_sdsl_idems {
         C.m = m;
         C.msize = msize;
         C.rmsize = rmsize;
-        return C;
+        return;
       }
 
       // merge results
@@ -1084,7 +1090,7 @@ class k2tree_bp_sdsl_idems {
       C.msize = msize;
       C.rmsize = rmsize;
 
-      return C;
+      return;
     }
 
     void write(ofstream& out) {
