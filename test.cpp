@@ -1,7 +1,5 @@
 #include "k2tree_bp_sdsl.hpp"
 #include "k2tree_bp_sdsl_idems.hpp"
-//#include "k2tree_bp.hpp"
-
 
 #include <algorithm>
 #include <fstream>
@@ -29,14 +27,14 @@ class Randomer {
 };
 
 Randomer pow2matrix(2, 10, 49);
-Randomer genmatrix(128, 128, 49);
-Randomer zerone(0, 10, 49);
+Randomer genmatrix(1024, 1024, 49);
+Randomer zerone(0, 1000, 49);
 
 vector< pair< uint64_t, uint64_t > > gen_ones_matrix(uint64_t n, uint64_t m) {
     vector< pair< uint64_t, uint64_t > > ones;
     for (uint64_t i = 0; i < n; ++i) {
         for (uint64_t j = 0; j < m; ++j) {
-            if(zerone() > 8) {
+            if(zerone() > 990) {
               ones.push_back({i, j});
             }
         }
@@ -128,7 +126,8 @@ bool test_union_algorithm(uint64_t n, uint64_t m) {
   vector< pair< uint64_t, uint64_t > > ones_union;
   for(auto p : union_) ones_union.push_back(p);
 
-  k2tree_bp_sdsl<2> C; A.binsum(B, C);
+  plain_tree aux_C; A.binsum(B, aux_C);
+  k2tree_bp_sdsl<2> C(aux_C);
 
   auto check = C.get_pos_ones();
 
@@ -181,8 +180,9 @@ bool test_multi_algorithm(uint64_t n, uint64_t m) {
   k2tree_bp_sdsl<2> B(ones2);
 
   cout << "C = A * B" << endl;
-  k2tree_bp_sdsl<2> C;
-  A.mul(B, C);
+  plain_tree aux_C;
+  A.mul(B, aux_C);
+  k2tree_bp_sdsl<2> C(aux_C);
 
   auto check = C.get_pos_ones();
 
@@ -228,8 +228,9 @@ bool test_union_algorithm_tree_comp(uint64_t n, uint64_t m) {
   for(auto p : union_) ones_union.push_back(p);
 
   cout << "A | B" << endl;
-  k2tree_bp_sdsl<2> C;
-  A_idem.binsum(B_idem, C);
+  plain_tree aux_C;
+  A_idem.binsum(B_idem, aux_C);
+  k2tree_bp_sdsl<2> C(aux_C);
   cout << "Compressing C" << endl;
   k2tree_bp_sdsl_idems<2,
     sd_vector<>, rank_support_sd<1>,
@@ -296,8 +297,9 @@ bool test_multi_algorithm_tree_comp(uint64_t n, uint64_t m) {
     select_support_sd<1>, select_support_sd<0>> B_idem(A);
 
   cout << "C = A * B" << endl;
-  k2tree_bp_sdsl<2> C;
-  A.mul(B, C);
+  plain_tree aux_C;
+  A.mul(B, aux_C);
+  k2tree_bp_sdsl<2> C(aux_C);
   cout << "Compressing C" << endl;
   k2tree_bp_sdsl_idems<2,
     sd_vector<>, rank_support_sd<1>,
