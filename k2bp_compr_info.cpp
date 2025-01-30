@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  for(uint64_t i = 1; i < argc; i += 3) {
+  for(uint64_t i = 1; i < argc; i++) {
     std::string k2_path = argv[i];
 
     ifstream k2_file;
@@ -36,8 +36,8 @@ int main(int argc, char** argv) {
     cout << " Amount of idem subtrees: " << k2tree.size_comp_subtrees() << " Amount of Max. subtrees: " << k2tree.size_maximal_subtrees() << endl;
     uint64_t bits = k2tree.size_in_bits();
     cout << " Bits    : " << bits << endl;
-    cout << " Bits/1's: " << bits / k2tree.size() << endl;
-    cout << " Bits/n  : " << bits / k2tree.nodes() << endl;
+    cout << " Bits/1's: " << (double) bits / k2tree.size() << endl;
+    cout << " Bits/n  : " << (double) bits / k2tree.nodes() << endl;
 
   }
   return 0;

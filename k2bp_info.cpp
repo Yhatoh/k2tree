@@ -33,8 +33,8 @@ int main(int argc, char** argv) {
     cout << " Amount of nodes: " << k2tree.nodes() << endl;
     uint64_t bits = k2tree.size_in_bits();
     cout << " Bits    : " << bits << endl;
-    cout << " Bits/1's: " << bits / k2tree.size() << endl;
-    cout << " Bits/n  : " << bits / k2tree.nodes() << endl;
+    cout << " Bits/1's: " << (double) bits / k2tree.size() << endl;
+    cout << " Bits/n  : " << (double) bits / k2tree.nodes() << endl;
 
   }
   return 0;

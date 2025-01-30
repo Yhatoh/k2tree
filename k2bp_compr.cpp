@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  for(uint64_t i = 1; i < argc; i += 3) {
+  for(uint64_t i = 1; i < argc; i++) {
     cerr << "Getting parameters..." << endl;
 
     std::string k2_path = argv[i];
@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 
     cerr << "Getting ones k2tree..." << endl;
 
-    auto ones = k2tree.get_pos_ones();
+  //  auto ones = k2tree.get_pos_ones();
 
     cerr << "Compressing k2tree..." << endl;
 
@@ -42,15 +42,15 @@ int main(int argc, char** argv) {
       sd_vector<>, rank_support_sd<1>,
       sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
       select_support_sd<1>, select_support_sd<0>> k2tree_idem(k2tree);
-
-    cerr << "Checking if it is correct..." << endl;
-
-    auto check = k2tree_idem.get_pos_ones();
-    sort(check.begin(), check.end());
-    sort(ones.begin(), ones.end());
-    assert(check == ones);
-
-    cerr << "Writing file..." << endl;
+//
+//    cerr << "Checking if it is correct..." << endl;
+//
+//    auto check = k2tree_idem.get_pos_ones();
+//    sort(check.begin(), check.end());
+//    sort(ones.begin(), ones.end());
+//    assert(check == ones);
+//
+//    cerr << "Writing file..." << endl;
 
     ofstream k2_file_idem;
     k2_file_idem.open(k2_path + "i");

@@ -221,8 +221,8 @@ class bp_sdsl_idems {
           uint64_t repre = idems_tree.find_set(bit);
 
           // if has an identical tree and is big enough
-          //if(repre != bit && tree_support.find_close(repre) - repre + 1 > 21 + 2 + 12) {
-          if(repre != bit && tree_support.find_close(repre) - repre + 1 > log2_w + 2 && idems_tree.size(repre) >= 100) {
+          if(repre != bit && tree_support.find_close(repre) - repre + 1 > log2_w) {
+          //if(repre != bit && tree_support.find_close(repre) - repre + 1 > log2_w + 2 && idems_tree.size(repre) >= 100) {
             inside_idem_bv.push_back(bit);
             pointers_pos.push_back(ref_bit - 1);
             //new_tree_bv.push_back(ref_bit++);
@@ -364,6 +364,12 @@ class bp_sdsl_idems {
 //        }
 //        file_stat.close();
 //      }
+
+      ofstream file_andrea; file_andrea.open("seq_andrea.bin", ios::binary);
+      for(auto x : aux) {
+        file_andrea.write((char*) &x, sizeof(uint32_t));
+      }
+      file_andrea.close();
 
       //P = dac_vector_dp<rrr_vector<127>>(aux);
       P.encode(aux, 1024);

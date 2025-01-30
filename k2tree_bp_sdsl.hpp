@@ -582,11 +582,11 @@ class k2tree_bp_sdsl {
     }
 
     k2tree_bp_sdsl<k> operator*(const k2tree_bp_sdsl<k>& B) {
-      return mul(0, 0, B, 0, 0, height_tree);
+      return mul(0, B, 0, height_tree);
     }   
 
-    k2tree_bp_sdsl<k> mul(uint64_t A_tree, uint64_t A_L,
-                          const k2tree_bp_sdsl<k> &B, uint64_t B_tree, uint64_t B_L,
+    k2tree_bp_sdsl<k> mul(uint64_t A_tree,
+                          const k2tree_bp_sdsl<k> &B, uint64_t B_tree,
                           uint64_t curr_h) {
 #ifdef DEBUG
       cout << "Current Height: " << curr_h << endl;
@@ -614,6 +614,8 @@ class k2tree_bp_sdsl {
 #ifdef DEBUG
         cout << "Leaf!" << endl;
 #endif
+        uint64_t A_L = rank_leaves(A_tree) * 4;
+        uint64_t B_L = B.rank_leaves(B_tree) * 4;
         auto aux_l = bit_vector(4, 0);
         bool found_1 = 0;
         aux_l[0] = (l[A_L] & B.l[B_L]) | (l[A_L + 1] * B.l[B_L + 2]);
@@ -647,28 +649,28 @@ class k2tree_bp_sdsl {
       //  ---------
       //  A_2 | A_3
       uint64_t A_0 = A_tree + 1;
-      uint64_t A_L_0 = rank_leaves(A_0) * 4;
+      //uint64_t A_L_0 = rank_leaves(A_0) * 4;
 #ifdef DEBUG
       cout << "A_0" << endl;
       cout << "  " << A_0 << endl;
       cout << "  " << A_L_0 << endl;
 #endif
       uint64_t A_1 = tree_support.find_close(A_0) + 1;
-      uint64_t A_L_1 = rank_leaves(A_1) * 4;
+      //uint64_t A_L_1 = rank_leaves(A_1) * 4;
 #ifdef DEBUG
       cout << "A_1" << endl;
       cout << "  " << A_1 << endl;
       cout << "  " << A_L_1 << endl;
 #endif
       uint64_t A_2 = tree_support.find_close(A_1) + 1;
-      uint64_t A_L_2 = rank_leaves(A_2) * 4;
+      //uint64_t A_L_2 = rank_leaves(A_2) * 4;
 #ifdef DEBUG
       cout << "A_2" << endl;
       cout << "  " << A_2 << endl;
       cout << "  " << A_L_2 << endl;
 #endif
       uint64_t A_3 = tree_support.find_close(A_2) + 1;
-      uint64_t A_L_3 = rank_leaves(A_3) * 4;
+      //uint64_t A_L_3 = rank_leaves(A_3) * 4;
 #ifdef DEBUG
       cout << "A_3" << endl;
       cout << "  " << A_3 << endl;
@@ -679,28 +681,28 @@ class k2tree_bp_sdsl {
       //  ---------
       //  B_2 | B_3
       uint64_t B_0 = B_tree + 1;
-      uint64_t B_L_0 = B.rank_leaves(B_0) * 4;
+      //uint64_t B_L_0 = B.rank_leaves(B_0) * 4;
 #ifdef DEBUG
       cout << "B_0" << endl;
       cout << "  " << B_0 << endl;
       cout << "  " << B_L_0 << endl;
 #endif
       uint64_t B_1 = B.tree_support.find_close(B_0) + 1;
-      uint64_t B_L_1 = B.rank_leaves(B_1) * 4;
+      //uint64_t B_L_1 = B.rank_leaves(B_1) * 4;
 #ifdef DEBUG
       cout << "B_1" << endl;
       cout << "  " << B_1 << endl;
       cout << "  " << B_L_1 << endl;
 #endif
       uint64_t B_2 = B.tree_support.find_close(B_1) + 1;
-      uint64_t B_L_2 = B.rank_leaves(B_2) * 4;
+      //uint64_t B_L_2 = B.rank_leaves(B_2) * 4;
 #ifdef DEBUG
       cout << "B_2" << endl;
       cout << "  " << B_2 << endl;
       cout << "  " << B_L_2 << endl;
 #endif
       uint64_t B_3 = B.tree_support.find_close(B_2) + 1;
-      uint64_t B_L_3 = B.rank_leaves(B_3) * 4;
+      //uint64_t B_L_3 = B.rank_leaves(B_3) * 4;
 #ifdef DEBUG
       cout << "B_3" << endl;
       cout << "  " << B_3 << endl;
@@ -710,10 +712,10 @@ class k2tree_bp_sdsl {
       //  C_0 | C_1
       //  ---------
       //  C_2 | C_3
-      auto C_0 = mul(A_0, A_L_0, B, B_0, B_L_0, curr_h - 1) | mul(A_1, A_L_1, B, B_2, B_L_2, curr_h - 1);
-      auto C_1 = mul(A_0, A_L_0, B, B_1, B_L_1, curr_h - 1) | mul(A_1, A_L_1, B, B_3, B_L_3, curr_h - 1);
-      auto C_2 = mul(A_2, A_L_2, B, B_0, B_L_0, curr_h - 1) | mul(A_3, A_L_3, B, B_2, B_L_2, curr_h - 1);
-      auto C_3 = mul(A_2, A_L_2, B, B_1, B_L_1, curr_h - 1) | mul(A_3, A_L_3, B, B_3, B_L_3, curr_h - 1);
+      auto C_0 = mul(A_0, B, B_0, curr_h - 1) | mul(A_1, B, B_2, curr_h - 1);
+      auto C_1 = mul(A_0, B, B_1, curr_h - 1) | mul(A_1, B, B_3, curr_h - 1);
+      auto C_2 = mul(A_2, B, B_0, curr_h - 1) | mul(A_3, B, B_2, curr_h - 1);
+      auto C_3 = mul(A_2, B, B_1, curr_h - 1) | mul(A_3, B, B_3, curr_h - 1);
 
       if(C_0.tree.size() == 2 &&
          C_1.tree.size() == 2 &&

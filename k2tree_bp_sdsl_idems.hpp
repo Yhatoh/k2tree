@@ -102,6 +102,8 @@ class k2tree_bp_sdsl_idems {
     uint64_t size_maximal_subtrees() { return maximal_subtrees; }
     uint64_t nodes() { return (tree_support.find_close(0) + 1) / 2; }
 
+    k2tree_bp_sdsl_idems() {}
+
     k2tree_bp_sdsl_idems(k2tree_bp_sdsl<k> &k2tree) { 
       k2tree.tree_support = bp_support_sada<>(&k2tree.tree);
       msize = k2tree.msize;
@@ -195,8 +197,9 @@ class k2tree_bp_sdsl_idems {
       free(lcp);
 
       //cout << "Finding maximum head..." << endl;
-      uint64_t maxi_repre = 0;
+      set< uint64_t > maxi_repre;
       vector< uint64_t > prefix_help(k2tree.tree.size(), 0);
+
 
       for(uint64_t bit = 0; bit < k2tree.tree.size(); bit++) {
         if(k2tree.tree[bit]) {
@@ -205,7 +208,8 @@ class k2tree_bp_sdsl_idems {
 
           // if has an identical tree and is big enough
           if(repre != bit) {
-            maxi_repre = (repre - prefix_help[repre - 1]);
+            //maxi_repre = (repre - prefix_help[repre - 1]);
+            maxi_repre.insert(repre - prefix_help[repre - 1]);
 
             uint64_t next_bit = k2tree.tree_support.find_close(bit);
             for(uint64_t pfh = bit; pfh <= next_bit; pfh++) {
@@ -231,7 +235,7 @@ class k2tree_bp_sdsl_idems {
       uint64_t ref_bit = 0;
 
       uint64_t amount_of_bits_removed = 0;
-      uint64_t log2_w = ceil_log2(maxi_repre);
+      uint64_t log2_w = ceil_log2(maxi_repre.size() - 1);
 
       //cout << "Replacing identical subtrees..." << endl;
       prefix_help.resize(k2tree.tree.size(), 0);
@@ -243,7 +247,7 @@ class k2tree_bp_sdsl_idems {
           uint64_t repre = idems_tree.find_set(bit);
 
           // if has an identical tree and is big enough
-          if(repre != bit && k2tree.tree_support.find_close(repre) - repre + 1 > log2_w) {
+          if(repre != bit && k2tree.tree_support.find_close(repre) - repre + 1 > log2_w + 4) {
             new_tree_bv.push_back(ref_bit++);
             pointer.push_back(repre - prefix_help[repre - 1]);
             ref_bit += 2;

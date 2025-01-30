@@ -7,33 +7,42 @@
 int main(int argc, char** argv) {
   if(argc <= 1 || argc > 3) {
     std::cerr << "Two arguments expected" << endl;
-    std::cerr << "  ./k2bp_build.x <path file matrix.k2bp> <times mult>" << endl;
+    std::cerr << "  ./k2bp_build.x <path file matrix1.k2bp> <path file matrix2.k2bp>" << endl;
     exit(1);
   }
 
-  std::string k2_path = argv[1];
-  uint64_t times = std::atoi(argv[2]);
+  std::string k2_1_path = argv[1];
+  std::string k2_2_path = argv[2];
 
-  std::ifstream k2_file;
-  k2_file.open(k2_path);
+  std::ifstream k2_1_file;
+  k2_1_file.open(k2_1_path);
 
-  if(!k2_file.is_open()) {
+  if(!k2_1_file.is_open()) {
     cerr << "Error opening file. Check if the file exists or the path is writed correctly" << endl;
     exit(1);
   }
 
-  k2tree_bp_sdsl<2> k2tree;
-  k2tree.load(k2_file);
-  k2_file.close();
+  k2tree_bp_sdsl<2> m1;
+  m1.load(k2_1_file);
+  k2_1_file.close();
 
-  k2tree_bp_sdsl<2> result;
-  result = k2tree * k2tree;
-  for(uint64_t i = 1; i < times; i++) {
-    result = result * k2tree;
+  std::ifstream k2_2_file;
+  k2_2_file.open(k2_2_path);
+
+  if(!k2_2_file.is_open()) {
+    cerr << "Error opening file. Check if the file exists or the path is writed correctly" << endl;
+    exit(2);
   }
 
+  k2tree_bp_sdsl<2> m2;
+  m2.load(k2_2_file);
+  k2_2_file.close();
+
+  k2tree_bp_sdsl<2> result;
+  result = m1 * m2;
+
   std::stringstream name_file;
-  name_file << k2_path << ".mul" << times;
+  name_file << k2_1_path << ".mul";
 
   std::ofstream result_file;
   result_file.open(name_file.str());
