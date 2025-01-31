@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  k2tree_bp_sdsl<2> m1;
+  k2tree_bp_sdsl<2, bit_vector> m1;
   m1.load(k2_1_file);
   k2_1_file.close();
 
@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     exit(2);
   }
 
-  k2tree_bp_sdsl<2> m2;
+  k2tree_bp_sdsl<2, bit_vector> m2;
   m2.load(k2_2_file);
   k2_2_file.close();
 

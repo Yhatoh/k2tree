@@ -21,7 +21,6 @@
 #include <sdsl/rank_support_v5.hpp>
 #include <sdsl/int_vector.hpp>
 #include <sdsl/sd_vector.hpp>
-#include <sdsl/rle_vector.hpp>
 #include <sdsl/bp_support_sada.hpp>
 #include <sdsl/util.hpp>
 #include <sdsl/vectors.hpp>
@@ -51,6 +50,7 @@ struct union_find {
 // parameters:
 //   * k * k: amount of children per node
 template< uint64_t k = 2, 
+          class bv_leaves = bit_vector,
           class bit_vector_1 = bit_vector, class rank1_1 = rank_support_v5<>,
           class bit_vector_2 = bit_vector, class rank1_2 = rank_support_v5<>, class rank0_2 = rank_support_v5<0>,
                                            class select1_2 = select_support_mcl<>, class select0_2 = select_support_mcl<0> >
@@ -79,7 +79,7 @@ class k2tree_bp_sdsl_idems {
     bit_vector tree; // k2tree
     uint64_t last_bit_t; // universe
 
-    rrr_vector<127> l; // real values
+    bv_leaves l; // real values
     uint64_t last_bit_l; // universe
 
     uint64_t msize;
@@ -105,7 +105,7 @@ class k2tree_bp_sdsl_idems {
 
     k2tree_bp_sdsl_idems() {}
 
-    k2tree_bp_sdsl_idems(k2tree_bp_sdsl<k> &k2tree) { 
+    k2tree_bp_sdsl_idems(k2tree_bp_sdsl<k, bv_leaves> &k2tree) { 
       k2tree.tree_support = bp_support_sada<>(&k2tree.tree);
       msize = k2tree.msize;
       rmsize = k2tree.rmsize;
@@ -113,7 +113,7 @@ class k2tree_bp_sdsl_idems {
 
       height_tree = k2tree.height_tree;
 
-      l = rrr_vector<127>(k2tree.l);
+      l = k2tree.l;
 
       //cout << "Building suffix array..." << endl;
       string bp = "";
@@ -467,7 +467,7 @@ class k2tree_bp_sdsl_idems {
       return ret;
     }
 
-    void binsum(const k2tree_bp_sdsl_idems< k, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, plain_tree &C) {
+    void binsum(const k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, plain_tree &C) {
       uint64_t pa, pb;
       uint64_t pLa, pLb;
 
@@ -821,7 +821,7 @@ class k2tree_bp_sdsl_idems {
       }
     }
 
-    void mul(k2tree_bp_sdsl_idems< k, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, k2tree_bp_sdsl<k> &C) {
+    void mul(const k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, k2tree_bp_sdsl<k> &C) {
       vector< uint64_t > pre_skips_A(rank1_PoL(PoL.size()), 0);
       prefix_sum_skipped_values(pre_skips_A);
 
@@ -833,7 +833,7 @@ class k2tree_bp_sdsl_idems {
 
     void mul(uint64_t A_tree,
              vector< uint64_t > &pre_skips_A, uint64_t A_lvs_sk,
-             const k2tree_bp_sdsl_idems< k, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B,
+             const k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B,
              uint64_t B_tree, vector< uint64_t > &pre_skips_B, uint64_t B_lvs_sk,
              plain_tree &C,
              uint64_t curr_h) {
@@ -1116,17 +1116,7 @@ class k2tree_bp_sdsl_idems {
     }
 
     uint64_t size_in_bits() {
-#ifdef INFO_SPACE
-      cout << "BITS" << endl;
-      cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << endl;
-      cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << endl;
-      cout << "  L           : " << (size_in_bytes(l)) * 8 << endl;
-      cout << "  P           : " << (size_in_bytes(P)) * 8 << endl;
-      cout << "  Real P      : " << (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 << endl;
-      cout << "  occ_PoL     : " << (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 << endl;
-      cout << "  PoL         : " << (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 << endl;
-#endif
-      return sizeof(uint64_t) * 4 +
+      uint64_t total = sizeof(uint64_t) * 4 +
              size_in_bytes(tree) * 8 +
              size_in_bytes(tree_support) * 8 +
              size_in_bytes(l) * 8 + 
@@ -1135,9 +1125,20 @@ class k2tree_bp_sdsl_idems {
              size_in_bytes(occ_PoL) * 8 + size_in_bytes(rank1_occ_PoL) * 8 +
              size_in_bytes(PoL) * 8 + size_in_bytes(rank1_PoL) * 8 + size_in_bytes(rank0_PoL) * 8 +
              size_in_bytes(select1_PoL) * 8 + size_in_bytes(select0_PoL) * 8;
+#ifdef INFO_SPACE
+      cout << "BITS" << endl;
+      cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << " " << (double) (size_in_bytes(tree)) * 8 / total << endl;
+      cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << " " << (double) (size_in_bytes(tree_support)) * 8 / total  << endl;
+      cout << "  L           : " << (size_in_bytes(l)) * 8 << " " << (double) (size_in_bytes(l)) * 8 / total << endl;
+      cout << "  P           : " << (size_in_bytes(P)) * 8 << " " << (double) (size_in_bytes(P)) * 8 / total << endl;
+      cout << "  Real P      : " << (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 << " " << (double) (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 / total << endl;
+      cout << "  occ_PoL     : " << (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 << " " << (double) (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 / total << endl;
+      cout << "  PoL         : " << (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 << " " << (double) (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 / total << endl;
+#endif
+      return total;
     } 
 
-    friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl_idems< k, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 > &k2tree) {
+    friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 > &k2tree) {
       cout << "Height Tree: " << k2tree.height_tree << endl;
       cout << "Tree       : ";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {

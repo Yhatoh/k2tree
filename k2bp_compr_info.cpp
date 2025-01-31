@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
       exit(1);
     }
 
-    k2tree_bp_sdsl_idems<2,
+    k2tree_bp_sdsl_idems<2, bit_vector,
       sd_vector<>, rank_support_sd<1>,
       sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
       select_support_sd<1>, select_support_sd<0>> k2tree;

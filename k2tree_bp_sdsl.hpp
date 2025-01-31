@@ -32,7 +32,7 @@ using namespace sdsl;
 // k2-tree
 // parameters:
 //   * k * k: amount of children per node
-template< uint64_t k = 2 >
+template< uint64_t k = 2, class bv_leaves = bit_vector >
 class k2tree_bp_sdsl {
   public:
     uint64_t height_tree;
@@ -41,7 +41,7 @@ class k2tree_bp_sdsl {
     bit_vector tree; // k2tree
     uint64_t last_bit_t; // universe
 
-    bit_vector l; // real values
+    bv_leaves l; // real values
     uint64_t last_bit_l; // universe
 
     sd_vector<> leaves;
@@ -284,7 +284,7 @@ class k2tree_bp_sdsl {
 #endif // DEBUG
       auto aux_l = bit_vector(pos_to_add_l, 0);
       for(const auto& bit : bv_l) aux_l[bit] = 1;
-      l = bit_vector(aux_l);
+      l = bv_leaves(aux_l);
 
 #ifdef DEBUG
       cout << "Init Tree support..." << endl;
@@ -410,7 +410,7 @@ class k2tree_bp_sdsl {
       }
     }
 
-    void binsum(const k2tree_bp_sdsl<k>& B, plain_tree &C) {
+    void binsum(const k2tree_bp_sdsl<k, bv_leaves>& B, plain_tree &C) {
       uint64_t pa, pb;
       uint64_t pLa, pLb;
 
@@ -591,12 +591,12 @@ class k2tree_bp_sdsl {
       return;
     }
 
-    void mul(const k2tree_bp_sdsl<k> &B, plain_tree &C) {
+    void mul(const k2tree_bp_sdsl<k, bv_leaves> &B, plain_tree &C) {
       mul(0, B, 0, C, height_tree);
     }
 
     void mul(uint64_t A_tree,
-             const k2tree_bp_sdsl<k> &B, uint64_t B_tree,
+             const k2tree_bp_sdsl<k, bv_leaves> &B, uint64_t B_tree,
              plain_tree &C,
              uint64_t curr_h) {
 #ifdef DEBUG
@@ -814,18 +814,19 @@ class k2tree_bp_sdsl {
     }
 
     uint64_t size_in_bits() {
-#ifdef INFO_SPACE
-      cout << "BITS" << endl;
-      cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << endl;
-      cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << endl;
-      cout << "  L           : " << (size_in_bytes(l)) * 8 << endl;
-      cout << "  leaves      : " << (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 << endl;
-#endif
-      return sizeof(uint64_t) * 5 +
+      uint64_t total = sizeof(uint64_t) * 5 +
              size_in_bytes(tree) * 8 +
              size_in_bytes(tree_support) * 8 +
              size_in_bytes(l) * 8 +
              size_in_bytes(leaves) * 8 + size_in_bytes(rank_leaves) * 8;
+#ifdef INFO_SPACE
+      cout << "BITS" << endl;
+      cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << " " << (double) (size_in_bytes(tree)) * 8 / total<< endl;
+      cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << " " << (double) (size_in_bytes(tree_support)) * 8 / total << endl;
+      cout << "  L           : " << (size_in_bytes(l)) * 8 << " " << (double) (size_in_bytes(l)) * 8 / total << endl;
+      cout << "  leaves      : " << (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8  << " " << (double) (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 / total<< endl;
+#endif
+      return total;
     }
 
     friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl<k> &k2tree) {
