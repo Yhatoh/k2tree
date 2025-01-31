@@ -38,15 +38,17 @@ int main(int argc, char** argv) {
   m2.load(k2_2_file);
   k2_2_file.close();
 
-  k2tree_bp_sdsl<2> result;
-  result = m1 * m2;
+  plain_tree result;
+  m1.mul(m2, result);
+  k2tree_bp_sdsl<2> m3;
+  
 
   std::stringstream name_file;
   name_file << k2_1_path << ".mul";
 
   std::ofstream result_file;
   result_file.open(name_file.str());
-  result.write(result_file);
+  m3.write(result_file);
   result_file.close();
 
   return 0;

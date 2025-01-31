@@ -408,19 +408,19 @@ int main() {
 //    cout << "Passed!" << endl;
 //  }
 
-//  cout << "Testing Multiply Algorithm" << endl;
-//  for(uint64_t t = 0; t < 50; t++) {
-//    cout << "Test " << t + 1 << endl;
-//    test_multi_algorithm(genmatrix(), genmatrix());
-//    cout << "Passed!" << endl;
-//  }
-
-  cout << "Testing Multiply Algorithm tree compression" << endl;
-  for(uint64_t t = 0; t < 50; t++) {
+  cout << "Testing Multiply Algorithm" << endl;
+  for(uint64_t t = 0; t < 1; t++) {
     cout << "Test " << t + 1 << endl;
-    test_multi_algorithm_tree_comp(genmatrix(), genmatrix());
+    test_multi_algorithm(genmatrix(), genmatrix());
     cout << "Passed!" << endl;
   }
+
+//  cout << "Testing Multiply Algorithm tree compression" << endl;
+//  for(uint64_t t = 0; t < 50; t++) {
+//    cout << "Test " << t + 1 << endl;
+//    test_multi_algorithm_tree_comp(genmatrix(), genmatrix());
+//    cout << "Passed!" << endl;
+//  }
 //  cout << "Testing writing and load" << endl;
 //  for(uint64_t t = 0; t < 50; t++) {
 //    cout << "Test " << t + 1 << endl;
