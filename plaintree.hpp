@@ -29,10 +29,10 @@ struct plain_tree {
   }
 
   void binsum(plain_tree &B, plain_tree &C) {
-    uint64_t pa, pb;
-    uint64_t pLa, pLb;
+    uint64_t A_tree, B_tree;
+    uint64_t A_L, B_L;
 
-    pa = pb = pLa = pLb = 0;
+    A_tree = B_tree = A_L = B_L = 0;
 
     if(B.tree.size() == 2 && tree.size() == 2) {
       C.tree = bit_vector(2, 0);
@@ -74,62 +74,62 @@ struct plain_tree {
 #endif
 
     int64_t curr_depth = 0;
-    while(pa < tree.size() && pb < B.tree.size()) {
-      if(tree[pa] && B.tree[pb] && curr_depth < height_tree) {
+    while(A_tree < tree.size() && B_tree < B.tree.size()) {
+      if(tree[A_tree] && B.tree[B_tree] && curr_depth < height_tree) {
 #ifdef DEBUG
         cout << "Entering a subtree in both cases" << endl;
         cout << " curr depth: " << curr_depth << endl;
-        cout << " pos tree A: " << pa << endl;
-        cout << " pos L    A: " << pLa << endl;
-        cout << " pos tree B: " << pb << endl;
-        cout << " pos L    B: " << pLb << endl;
+        cout << " pos tree A: " << A_tree << endl;
+        cout << " pos L    A: " << A_L << endl;
+        cout << " pos tree B: " << B_tree << endl;
+        cout << " pos L    B: " << B_L << endl;
 #endif
-        pa++; pb++; curr_depth++;
+        A_tree++; B_tree++; curr_depth++;
         add_one(bits_tree, curr_bit_tree);
-      } else if(tree[pa] && B.tree[pb]) {
+      } else if(tree[A_tree] && B.tree[B_tree]) {
 #ifdef DEBUG
         cout << "Entering a subtree in both cases and last level" << endl;
         cout << " curr depth: " << curr_depth << endl;
-        cout << " pos tree A: " << pa << endl;
-        cout << " pos L    A: " << pLa << endl;
-        cout << " pos tree B: " << pb << endl;
-        cout << " pos L    B: " << pLb << endl;
+        cout << " pos tree A: " << A_tree << endl;
+        cout << " pos L    A: " << A_L << endl;
+        cout << " pos tree B: " << B_tree << endl;
+        cout << " pos L    B: " << B_L << endl;
 #endif
         add_one(bits_tree, curr_bit_tree);
         for(uint64_t i = 0; i < 4; i++) {
-          if((pLa < l.size() && l[pLa]) || 
-              (pLb < B.l.size() && B.l[pLb])) {
+          if((A_L < l.size() && l[A_L]) || 
+              (B_L < B.l.size() && B.l[B_L])) {
             add_one(bits_L, curr_bit_L);
           } else {
             add_zero(bits_L, curr_bit_L);
           }
-          pLa++; pLb++;
+          A_L++; B_L++;
         }
-        pa++;
-        pb++;
+        A_tree++;
+        B_tree++;
         curr_depth++;
-      } else if(tree[pa] && !B.tree[pb]) {
+      } else if(tree[A_tree] && !B.tree[B_tree]) {
 #ifdef DEBUG
         cout << "Copying subtree A" << endl;
         cout << " curr depth: " << curr_depth << endl;
-        cout << " pos tree A: " << pa << endl;
-        cout << " pos L    A: " << pLa << endl;
-        cout << " pos tree B: " << pb << endl;
-        cout << " pos L    B: " << pLb << endl;
+        cout << " pos tree A: " << A_tree << endl;
+        cout << " pos L    A: " << A_L << endl;
+        cout << " pos tree B: " << B_tree << endl;
+        cout << " pos L    B: " << B_L << endl;
 #endif
         // end tree A
         uint64_t counter = 1;
         while(counter > 0) {
-          if(tree[pa] && curr_depth < height_tree) {
+          if(tree[A_tree] && curr_depth < height_tree) {
             add_one(bits_tree, curr_bit_tree);
             counter++;
             curr_depth++;
-          } else if(tree[pa]) {
+          } else if(tree[A_tree]) {
             add_one(bits_tree, curr_bit_tree);
             for(uint64_t i = 0; i < 4; i++) {
-              if(l[pLa]) add_one(bits_L, curr_bit_L);
+              if(l[A_L]) add_one(bits_L, curr_bit_L);
               else add_zero(bits_L, curr_bit_L);
-              pLa++;
+              A_L++;
             }
             counter++;
             curr_depth++;
@@ -138,37 +138,45 @@ struct plain_tree {
             counter--;
             curr_depth--;
           }
-          pa++;
+          A_tree++;
         }
 
         // end tree B
-        pb++;
-      } else if(!tree[pa] && B.tree[pb]) {
+        B_tree++;
+      } else if(!tree[A_tree] && B.tree[B_tree]) {
 #ifdef DEBUG
         cout << "Copying subtree B" << endl;
         cout << " curr depth: " << curr_depth << endl;
-        cout << " pos tree A: " << pa << endl;
-        cout << " pos L    A: " << pLa << endl;
-        cout << " pos tree B: " << pb << endl;
-        cout << " pos L    B: " << pLb << endl;
+        cout << " pos tree A: " << A_tree << endl;
+        cout << " pos L    A: " << A_L << endl;
+        cout << " pos tree B: " << B_tree << endl;
+        cout << " pos L    B: " << B_L << endl;
 #endif
         // end tree A
-        pa++;
+        A_tree++;
 
         // end tree B
         uint64_t counter = 1;
         while(counter > 0) {
-          if(B.tree[pb] && curr_depth < height_tree) {
+          if(B.tree[B_tree] && curr_depth < height_tree) {
             add_one(bits_tree, curr_bit_tree);
             counter++;
             curr_depth++;
-          } else if(B.tree[pb]) {
+          } else if(B.tree[B_tree]) {
             add_one(bits_tree, curr_bit_tree);
-            for(uint64_t i = 0; i < 4; i++) {
-              if(B.l[pLb]) add_one(bits_L, curr_bit_L);
-              else add_zero(bits_L, curr_bit_L);
-              pLb++;
-            }
+            if(B.l[B_L]) add_one(bits_L, curr_bit_L);
+            else add_zero(bits_L, curr_bit_L);
+
+            if(B.l[B_L + 1]) add_one(bits_L, curr_bit_L);
+            else add_zero(bits_L, curr_bit_L);
+
+            if(B.l[B_L + 2]) add_one(bits_L, curr_bit_L);
+            else add_zero(bits_L, curr_bit_L);
+
+            if(B.l[B_L + 3]) add_one(bits_L, curr_bit_L);
+            else add_zero(bits_L, curr_bit_L);
+
+            B_L += 4;
             counter++;
             curr_depth++;
           } else {
@@ -176,19 +184,19 @@ struct plain_tree {
             counter--;
             curr_depth--;
           }
-          pb++;
+          B_tree++;
         }
       } else {
 #ifdef DEBUG
         cout << "Both submatrices 0" << endl;
         cout << " curr depth: " << curr_depth << endl;
-        cout << " pos tree A: " << pa << endl;
-        cout << " pos L    A: " << pLa << endl;
-        cout << " pos tree B: " << pb << endl;
-        cout << " pos L    B: " << pLb << endl;
+        cout << " pos tree A: " << A_tree << endl;
+        cout << " pos L    A: " << A_L << endl;
+        cout << " pos tree B: " << B_tree << endl;
+        cout << " pos L    B: " << B_L << endl;
 #endif
         add_zero(bits_tree, curr_bit_tree);
-        pa++; pb++;
+        A_tree++; B_tree++;
         curr_depth--;
       }
     }

@@ -41,7 +41,7 @@ class k2tree_bp_sdsl {
     bit_vector tree; // k2tree
     uint64_t last_bit_t; // universe
 
-    rrr_vector<127> l; // real values
+    bit_vector l; // real values
     uint64_t last_bit_l; // universe
 
     sd_vector<> leaves;
@@ -284,7 +284,7 @@ class k2tree_bp_sdsl {
 #endif // DEBUG
       auto aux_l = bit_vector(pos_to_add_l, 0);
       for(const auto& bit : bv_l) aux_l[bit] = 1;
-      l = rrr_vector<127>(aux_l);
+      l = bit_vector(aux_l);
 
 #ifdef DEBUG
       cout << "Init Tree support..." << endl;
@@ -658,29 +658,26 @@ class k2tree_bp_sdsl {
       //  A_0 | A_1
       //  ---------
       //  A_2 | A_3
-      uint64_t A_0 = A_tree + 1;
-      //uint64_t A_L_0 = rank_leaves(A_0) * 4;
+      uint64_t A_0, A_1, A_2, A_3;
+      A_0 = A_tree + 1;
 #ifdef DEBUG
       cout << "A_0" << endl;
       cout << "  " << A_0 << endl;
       cout << "  " << A_L_0 << endl;
 #endif
-      uint64_t A_1 = tree_support.find_close(A_0) + 1;
-      //uint64_t A_L_1 = rank_leaves(A_1) * 4;
+      A_1 = tree_support.find_close(A_0) + 1;
 #ifdef DEBUG
       cout << "A_1" << endl;
       cout << "  " << A_1 << endl;
       cout << "  " << A_L_1 << endl;
 #endif
-      uint64_t A_2 = tree_support.find_close(A_1) + 1;
-      //uint64_t A_L_2 = rank_leaves(A_2) * 4;
+      A_2 = tree_support.find_close(A_1) + 1;
 #ifdef DEBUG
       cout << "A_2" << endl;
       cout << "  " << A_2 << endl;
       cout << "  " << A_L_2 << endl;
 #endif
-      uint64_t A_3 = tree_support.find_close(A_2) + 1;
-      //uint64_t A_L_3 = rank_leaves(A_3) * 4;
+      A_3 = tree_support.find_close(A_2) + 1;
 #ifdef DEBUG
       cout << "A_3" << endl;
       cout << "  " << A_3 << endl;
@@ -690,29 +687,26 @@ class k2tree_bp_sdsl {
       //  B_0 | B_1
       //  ---------
       //  B_2 | B_3
-      uint64_t B_0 = B_tree + 1;
-      //uint64_t B_L_0 = B.rank_leaves(B_0) * 4;
+      uint64_t B_0, B_1, B_2, B_3;
+      B_0 = B_tree + 1;
 #ifdef DEBUG
       cout << "B_0" << endl;
       cout << "  " << B_0 << endl;
       cout << "  " << B_L_0 << endl;
 #endif
-      uint64_t B_1 = B.tree_support.find_close(B_0) + 1;
-      //uint64_t B_L_1 = B.rank_leaves(B_1) * 4;
+      B_1 = B.tree_support.find_close(B_0) + 1;
 #ifdef DEBUG
       cout << "B_1" << endl;
       cout << "  " << B_1 << endl;
       cout << "  " << B_L_1 << endl;
 #endif
-      uint64_t B_2 = B.tree_support.find_close(B_1) + 1;
-      //uint64_t B_L_2 = B.rank_leaves(B_2) * 4;
+      B_2 = B.tree_support.find_close(B_1) + 1;
 #ifdef DEBUG
       cout << "B_2" << endl;
       cout << "  " << B_2 << endl;
       cout << "  " << B_L_2 << endl;
 #endif
-      uint64_t B_3 = B.tree_support.find_close(B_2) + 1;
-      //uint64_t B_L_3 = B.rank_leaves(B_3) * 4;
+      B_3 = B.tree_support.find_close(B_2) + 1;
 #ifdef DEBUG
       cout << "B_3" << endl;
       cout << "  " << B_3 << endl;
