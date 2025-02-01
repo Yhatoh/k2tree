@@ -38,9 +38,10 @@ int main(int argc, char** argv) {
   m2.load(k2_2_file);
   k2_2_file.close();
 
+  cout << "Multiplying" << endl;
   plain_tree result;
   m1.mul(m2, result);
-  k2tree_bp_sdsl<2> m3;
+  k2tree_bp_sdsl<2, bit_vector> m3(result);
   
 
   std::stringstream name_file;

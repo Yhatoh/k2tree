@@ -27,7 +27,7 @@ class Randomer {
 };
 
 Randomer pow2matrix(2, 10, 49);
-Randomer genmatrix(2048, 2048, 49);
+Randomer genmatrix(5096, 5096, 49);
 Randomer zerone(0, 1000, 49);
 
 vector< pair< uint64_t, uint64_t > > gen_ones_matrix(uint64_t n, uint64_t m) {

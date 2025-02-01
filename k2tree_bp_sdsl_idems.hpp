@@ -837,6 +837,7 @@ class k2tree_bp_sdsl_idems {
              uint64_t B_tree, vector< uint64_t > &pre_skips_B, uint64_t B_lvs_sk,
              plain_tree &C,
              uint64_t curr_h) {
+      cout << "ENTERING " <<  curr_h << endl;
 #ifdef DEBUG
       cout << "Current Height: " << curr_h << endl;
       cout << "Start Matrix A: " << A_tree << endl;
@@ -1054,6 +1055,7 @@ class k2tree_bp_sdsl_idems {
       C.msize = msize;
       C.rmsize = rmsize;
 
+      cout << "ENTERING " <<  curr_h << endl;
       return;
     }
 
@@ -1127,13 +1129,13 @@ class k2tree_bp_sdsl_idems {
              size_in_bytes(select1_PoL) * 8 + size_in_bytes(select0_PoL) * 8;
 #ifdef INFO_SPACE
       cout << "BITS" << endl;
-      cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << " " << (double) (size_in_bytes(tree)) * 8 / total << endl;
-      cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << " " << (double) (size_in_bytes(tree_support)) * 8 / total  << endl;
-      cout << "  L           : " << (size_in_bytes(l)) * 8 << " " << (double) (size_in_bytes(l)) * 8 / total << endl;
-      cout << "  P           : " << (size_in_bytes(P)) * 8 << " " << (double) (size_in_bytes(P)) * 8 / total << endl;
-      cout << "  Real P      : " << (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 << " " << (double) (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 / total << endl;
-      cout << "  occ_PoL     : " << (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 << " " << (double) (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 / total << endl;
-      cout << "  PoL         : " << (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 << " " << (double) (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 / total << endl;
+      cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << " " << (double) 100 *  (size_in_bytes(tree)) * 8 / total << endl;
+      cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << " " << (double) 100 *  (size_in_bytes(tree_support)) * 8 / total  << endl;
+      cout << "  L           : " << (size_in_bytes(l)) * 8 << " " << (double) 100 *  (size_in_bytes(l)) * 8 / total << endl;
+      cout << "  P           : " << (size_in_bytes(P)) * 8 << " " << (double) 100 *  (size_in_bytes(P)) * 8 / total << endl;
+      cout << "  Real P      : " << (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 << " " << (double) 100 *  (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 / total << endl;
+      cout << "  occ_PoL     : " << (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 << " " << (double) 100 *  (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 / total << endl;
+      cout << "  PoL         : " << (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 << " " << (double) 100 *  (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 / total << endl;
 #endif
       return total;
     } 
