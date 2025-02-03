@@ -609,8 +609,8 @@ class k2tree_bp_sdsl {
       cout << "Start Matrix B: " << B_tree << endl;
 #endif
       // submatrix A or B full of 0's
-      bool A_f0 = (tree[A_tree] && !tree[A_tree + 1]);
-      bool B_f0 = (B.tree[B_tree] && !B.tree[B_tree + 1]);
+      bool A_f0 = (!tree[A_tree + 1]);
+      bool B_f0 = (!B.tree[B_tree + 1]);
       if(A_f0 && B_f0) { 
 #ifdef DEBUG
         cout << "Full of 0's" << endl;
@@ -844,71 +844,6 @@ class k2tree_bp_sdsl {
       C_0_1.binsum(C_1_3, C_1);
       C_2_0.binsum(C_3_2, C_2);
       C_2_1.binsum(C_3_3, C_3);
-      
-//      //  A_0 | A_1
-//      //  ---------
-//      //  A_2 | A_3
-//      uint64_t A_0, A_1, A_2, A_3;
-//      A_0 = A_tree + 1;
-//#ifdef DEBUG
-//      cout << "A_0" << endl;
-//      cout << "  " << A_0 << endl;
-//#endif
-//      A_1 = tree_support.find_close(A_0) + 1;
-//#ifdef DEBUG
-//      cout << "A_1" << endl;
-//      cout << "  " << A_1 << endl;
-//#endif
-//      A_2 = tree_support.find_close(A_1) + 1;
-//#ifdef DEBUG
-//      cout << "A_2" << endl;
-//      cout << "  " << A_2 << endl;
-//#endif
-//      A_3 = tree_support.find_close(A_2) + 1;
-//#ifdef DEBUG
-//      cout << "A_3" << endl;
-//      cout << "  " << A_3 << endl;
-//#endif
-//
-//      //  B_0 | B_1
-//      //  ---------
-//      //  B_2 | B_3
-//      uint64_t B_0, B_1, B_2, B_3;
-//      B_0 = B_tree + 1;
-//#ifdef DEBUG
-//      cout << "B_0" << endl;
-//      cout << "  " << B_0 << endl;
-//#endif
-//      B_1 = B.tree_support.find_close(B_0) + 1;
-//#ifdef DEBUG
-//      cout << "B_1" << endl;
-//      cout << "  " << B_1 << endl;
-//#endif
-//      B_2 = B.tree_support.find_close(B_1) + 1;
-//#ifdef DEBUG
-//      cout << "B_2" << endl;
-//      cout << "  " << B_2 << endl;
-//#endif
-//      B_3 = B.tree_support.find_close(B_2) + 1;
-//#ifdef DEBUG
-//      cout << "B_3" << endl;
-//      cout << "  " << B_3 << endl;
-//#endif
-//
-//      //  C_0 | C_1
-//      //  ---------
-//      //  C_2 | C_3
-//      plain_tree C_0, C_1, C_2, C_3;
-//      plain_tree C_0_0, C_1_2, C_0_1, C_1_3, C_2_0, C_3_2, C_2_1, C_3_3;
-//
-//      mul(A_0, B, B_0, C_0_0, curr_h - 1); mul(A_1, B, B_2, C_1_2, curr_h - 1);
-//      C_0_0.binsum(C_1_2, C_0);
-//      mul(A_0, B, B_1, C_0_1, curr_h - 1); mul(A_1, B, B_3, C_1_3, curr_h - 1);
-//      C_0_1.binsum(C_1_3, C_1);
-//      mul(A_2, B, B_0, C_2_0, curr_h - 1); mul(A_3, B, B_2, C_3_2, curr_h - 1);
-//      C_2_0.binsum(C_3_2, C_2);
-//      mul(A_2, B, B_1, C_2_1, curr_h - 1); mul(A_3, B, B_3, C_3_3, curr_h - 1);
-//      C_2_1.binsum(C_3_3, C_3);
 
       A_tree++;
       B_tree++;

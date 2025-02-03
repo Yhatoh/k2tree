@@ -75,7 +75,9 @@ struct plain_tree {
 
     int64_t curr_depth = 0;
     while(A_tree < tree.size() && B_tree < B.tree.size()) {
-      if(tree[A_tree] && B.tree[B_tree] && curr_depth < height_tree) {
+      bool A_p = tree[A_tree];
+      bool B_p = tree[B_tree];
+      if(A_p && B_p && curr_depth < height_tree) {
 #ifdef DEBUG
         cout << "Entering a subtree in both cases" << endl;
         cout << " curr depth: " << curr_depth << endl;
@@ -86,7 +88,7 @@ struct plain_tree {
 #endif
         A_tree++; B_tree++; curr_depth++;
         add_one(bits_tree, curr_bit_tree);
-      } else if(tree[A_tree] && B.tree[B_tree]) {
+      } else if(A_p && B_p) {
 #ifdef DEBUG
         cout << "Entering a subtree in both cases and last level" << endl;
         cout << " curr depth: " << curr_depth << endl;
@@ -108,7 +110,7 @@ struct plain_tree {
         A_tree++;
         B_tree++;
         curr_depth++;
-      } else if(tree[A_tree] && !B.tree[B_tree]) {
+      } else if(A_p && !B_p) {
 #ifdef DEBUG
         cout << "Copying subtree A" << endl;
         cout << " curr depth: " << curr_depth << endl;
@@ -143,7 +145,7 @@ struct plain_tree {
 
         // end tree B
         B_tree++;
-      } else if(!tree[A_tree] && B.tree[B_tree]) {
+      } else if(!A_p && B_p) {
 #ifdef DEBUG
         cout << "Copying subtree B" << endl;
         cout << " curr depth: " << curr_depth << endl;
