@@ -467,6 +467,7 @@ class k2tree_bp_sdsl_idems {
       return ret;
     }
 
+    /*
     void binsum(const k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, plain_tree &C) {
       uint64_t pa, pb;
       uint64_t pLa, pLb;
@@ -720,6 +721,7 @@ class k2tree_bp_sdsl_idems {
 
       return;
     }
+*/
 
     void prefix_sum_skipped_values(vector< uint64_t > &pre_skips) {
       uint64_t leaves = 0;
