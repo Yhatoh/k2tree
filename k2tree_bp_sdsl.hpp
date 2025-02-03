@@ -709,13 +709,6 @@ class k2tree_bp_sdsl {
       B_tree++;
       B_0 = B_tree;
       B_0_L = B_L;
-#ifdef DEBUG
-      cout << "MUL A_0 * B_0" << endl;
-      cout << "  A_tree " << A_tree << endl;
-      cout << "  A_0    " << A_0 << endl;
-      cout << "  B_tree " << B_tree << endl;
-      cout << "  B_0    " << B_0 << endl;
-#endif
       // A_0 * B_0
       mul(A_tree, A_L, B, B_tree, B_L, C_0_0, curr_h - 1);
       
@@ -726,31 +719,12 @@ class k2tree_bp_sdsl {
       B_tree++;
       B_1 = B_tree;
       B_1_L = B_L;
-#ifdef DEBUG
-      cout << "MUL A_0 * B_1" << endl;
-      cout << "  A_tree " << A_tree << endl;
-      cout << "  A_0    " << A_0 << endl;
-      cout << "  A_1    " << A_1 << endl;
-      cout << "  B_tree " << B_tree << endl;
-      cout << "  B_0    " << B_0 << endl;
-      cout << "  B_1    " << B_1 << endl;
-#endif
       // A_0 * B_1
       mul(A_0, A_0_L, B, B_tree, B_L, C_0_1, curr_h - 1);
 
       B_tree++;
       B_2 = B_tree;
       B_2_L = B_L;
-#ifdef DEBUG
-      cout << "MUL A_1 * B_2" << endl;
-      cout << "  A_tree " << A_tree << endl;
-      cout << "  A_0    " << A_0 << endl;
-      cout << "  A_1    " << A_1 << endl;
-      cout << "  B_tree " << B_tree << endl;
-      cout << "  B_0    " << B_0 << endl;
-      cout << "  B_1    " << B_1 << endl;
-      cout << "  B_2    " << B_2 << endl;
-#endif
       // A_1 * B_2
       mul(A_tree, A_L, B, B_tree, B_L, C_1_2, curr_h - 1);
 
@@ -761,82 +735,22 @@ class k2tree_bp_sdsl {
       B_tree++;
       B_3 = B_tree;
       B_3_L = B_L;
-#ifdef DEBUG
-      cout << "MUL A_2 * B_0" << endl;
-      cout << "  A_tree " << A_tree << endl;
-      cout << "  A_0    " << A_0 << endl;
-      cout << "  A_1    " << A_1 << endl;
-      cout << "  A_2    " << A_2 << endl;
-      cout << "  B_tree " << B_tree << endl;
-      cout << "  B_0    " << B_0 << endl;
-      cout << "  B_1    " << B_1 << endl;
-      cout << "  B_2    " << B_2 << endl;
-      cout << "  B_3    " << B_3 << endl;
-#endif
+
+      // A_1 * B_3
+      mul(A_1, A_1_L, B, B_tree, B_L, C_1_3, curr_h - 1);
+
       // A_2 * B_0
       mul(A_tree, A_L, B, B_0, B_0_L, C_2_0, curr_h - 1);
 
       A_tree++;
       A_3 = A_tree;
       A_3_L = A_L;
-#ifdef DEBUG
-      cout << "MUL A_2 * B_1" << endl;
-      cout << "  A_tree " << A_tree << endl;
-      cout << "  A_0    " << A_0 << endl;
-      cout << "  A_1    " << A_1 << endl;
-      cout << "  A_2    " << A_2 << endl;
-      cout << "  A_3    " << A_3 << endl;
-      cout << "  B_tree " << B_tree << endl;
-      cout << "  B_0    " << B_0 << endl;
-      cout << "  B_1    " << B_1 << endl;
-      cout << "  B_2    " << B_2 << endl;
-      cout << "  B_3    " << B_3 << endl;
-#endif
+
       // A_2 * B_1
       mul(A_2, A_2_L, B, B_1, B_1_L, C_2_1, curr_h - 1);
-#ifdef DEBUG
-      cout << "MUL A_1 * B_3" << endl;
-      cout << "  A_tree " << A_tree << endl;
-      cout << "  A_0    " << A_0 << endl;
-      cout << "  A_1    " << A_1 << endl;
-      cout << "  A_2    " << A_2 << endl;
-      cout << "  A_3    " << A_3 << endl;
-      cout << "  B_tree " << B_tree << endl;
-      cout << "  B_0    " << B_0 << endl;
-      cout << "  B_1    " << B_1 << endl;
-      cout << "  B_2    " << B_2 << endl;
-      cout << "  B_3    " << B_3 << endl;
-#endif
-      // A_1 * B_3
-      mul(A_1, A_1_L, B, B_tree, B_L, C_1_3, curr_h - 1);
-#ifdef DEBUG
-      cout << "MUL A_3 * B_2" << endl;
-      cout << "  A_tree " << A_tree << endl;
-      cout << "  A_0    " << A_0 << endl;
-      cout << "  A_1    " << A_1 << endl;
-      cout << "  A_2    " << A_2 << endl;
-      cout << "  A_3    " << A_3 << endl;
-      cout << "  B_tree " << B_tree << endl;
-      cout << "  B_0    " << B_0 << endl;
-      cout << "  B_1    " << B_1 << endl;
-      cout << "  B_2    " << B_2 << endl;
-      cout << "  B_3    " << B_3 << endl;
-#endif
+
       // A_3 * B_2
       mul(A_tree, A_L, B, B_2, B_2_L, C_3_2, curr_h - 1);
-#ifdef DEBUG
-      cout << "MUL A_3 * B_3" << endl;
-      cout << "  A_tree " << A_tree << endl;
-      cout << "  A_0    " << A_0 << endl;
-      cout << "  A_1    " << A_1 << endl;
-      cout << "  A_2    " << A_2 << endl;
-      cout << "  A_3    " << A_3 << endl;
-      cout << "  B_tree " << B_tree << endl;
-      cout << "  B_0    " << B_0 << endl;
-      cout << "  B_1    " << B_1 << endl;
-      cout << "  B_2    " << B_2 << endl;
-      cout << "  B_3    " << B_3 << endl;
-#endif
       // A_3 * B_3
       mul(A_3, A_3_L, B, B_3, B_3_L, C_3_3, curr_h - 1);
 
