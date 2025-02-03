@@ -11,7 +11,7 @@ using namespace sdsl;
 using namespace std;
 
 struct plain_tree {
-  sdsl::bit_vector tree;
+  vector< uint8_t > tree;
   vector< uint8_t > l;
 
   uint64_t height_tree;
@@ -35,8 +35,8 @@ struct plain_tree {
     A_tree = B_tree = A_L = B_L = 0;
 
     if(B.tree.size() == 2 && tree.size() == 2) {
-      C.tree = bit_vector(2, 0);
-      C.tree[0] = 1;
+      C.tree.push_back(1);
+      C.tree.push_back(0);
       C.height_tree = height_tree;
       C.msize = msize;
       C.rmsize = rmsize;
@@ -84,7 +84,7 @@ struct plain_tree {
         cout << " pos L    B: " << B_L << endl;
 #endif
         A_tree++; B_tree++; curr_depth++;
-        add_one(bits_tree, curr_bit_tree);
+        C.tree.push_back(1);
       } else if(A_p && B_p) {
 #ifdef DEBUG
         cout << "Entering a subtree in both cases and last level" << endl;
@@ -94,7 +94,7 @@ struct plain_tree {
         cout << " pos tree B: " << B_tree << endl;
         cout << " pos L    B: " << B_L << endl;
 #endif
-        add_one(bits_tree, curr_bit_tree);
+        C.tree.push_back(1);
         C.l.push_back(l[A_L] | B.l[B_L]);
         A_L++;
         B_L++;
@@ -114,17 +114,17 @@ struct plain_tree {
         uint64_t counter = 1;
         while(counter > 0) {
           if(tree[A_tree] && curr_depth < height_tree) {
-            add_one(bits_tree, curr_bit_tree);
+            C.tree.push_back(1);
             counter++;
             curr_depth++;
           } else if(tree[A_tree]) {
-            add_one(bits_tree, curr_bit_tree);
+            C.tree.push_back(1);
             C.l.push_back(l[A_L]);
             A_L++;
             counter++;
             curr_depth++;
           } else {
-            add_zero(bits_tree, curr_bit_tree);
+            C.tree.push_back(0);
             counter--;
             curr_depth--;
           }
@@ -149,17 +149,17 @@ struct plain_tree {
         uint64_t counter = 1;
         while(counter > 0) {
           if(B.tree[B_tree] && curr_depth < height_tree) {
-            add_one(bits_tree, curr_bit_tree);
+            C.tree.push_back(1);
             counter++;
             curr_depth++;
           } else if(B.tree[B_tree]) {
-            add_one(bits_tree, curr_bit_tree);
             C.l.push_back(B.l[B_L]);
+            C.tree.push_back(1);
             B_L++;
             counter++;
             curr_depth++;
           } else {
-            add_zero(bits_tree, curr_bit_tree);
+            C.tree.push_back(0);
             counter--;
             curr_depth--;
           }
@@ -174,15 +174,11 @@ struct plain_tree {
         cout << " pos tree B: " << B_tree << endl;
         cout << " pos L    B: " << B_L << endl;
 #endif
-        add_zero(bits_tree, curr_bit_tree);
+        C.tree.push_back(0);
         A_tree++; B_tree++;
         curr_depth--;
       }
     }
-
-
-    C.tree = bit_vector(curr_bit_tree, 0);
-    for(auto bit : bits_tree) C.tree[bit] = 1;
 
     C.height_tree = height_tree;
     C.msize = msize;
