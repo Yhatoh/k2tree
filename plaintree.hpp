@@ -20,15 +20,15 @@ struct plain_tree {
   uint64_t m;
 
 
-  void add_one(vector< uint64_t > &bv, uint64_t &pos_to_add) {
+  inline void add_one(vector< uint64_t > &bv, uint64_t &pos_to_add) {
     bv.push_back(pos_to_add++);
   }
 
-  void add_zero(vector< uint64_t > &bv, uint64_t &pos_to_add) {
+  inline void add_zero(vector< uint64_t > &bv, uint64_t &pos_to_add) {
     pos_to_add++;
   }
 
-  void binsum(plain_tree &B, plain_tree &C) {
+  inline void binsum(plain_tree &B, plain_tree &C) {
     uint64_t A_tree, B_tree;
     uint64_t A_L, B_L;
 
