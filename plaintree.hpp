@@ -12,7 +12,7 @@ using namespace std;
 
 struct plain_tree {
   sdsl::bit_vector tree;
-  sdsl::bit_vector l;
+  vector< uint8_t > l;
 
   uint64_t height_tree;
   uint64_t msize;
@@ -66,9 +66,6 @@ struct plain_tree {
     uint64_t curr_bit_tree = 0;
     vector< uint64_t > bits_tree;
 
-    uint64_t curr_bit_L = 0;
-    vector< uint64_t > bits_L;
-
 #ifdef DEBUG
     cout << "Starting algorithm" << endl;
 #endif
@@ -98,15 +95,9 @@ struct plain_tree {
         cout << " pos L    B: " << B_L << endl;
 #endif
         add_one(bits_tree, curr_bit_tree);
-        for(uint64_t i = 0; i < 4; i++) {
-          if((A_L < l.size() && l[A_L]) || 
-              (B_L < B.l.size() && B.l[B_L])) {
-            add_one(bits_L, curr_bit_L);
-          } else {
-            add_zero(bits_L, curr_bit_L);
-          }
-          A_L++; B_L++;
-        }
+        C.l.push_back(l[A_L] | B.l[B_L]);
+        A_L++;
+        B_L++;
         A_tree++;
         B_tree++;
         curr_depth++;
@@ -128,11 +119,8 @@ struct plain_tree {
             curr_depth++;
           } else if(tree[A_tree]) {
             add_one(bits_tree, curr_bit_tree);
-            for(uint64_t i = 0; i < 4; i++) {
-              if(l[A_L]) add_one(bits_L, curr_bit_L);
-              else add_zero(bits_L, curr_bit_L);
-              A_L++;
-            }
+            C.l.push_back(l[A_L]);
+            A_L++;
             counter++;
             curr_depth++;
           } else {
@@ -166,19 +154,8 @@ struct plain_tree {
             curr_depth++;
           } else if(B.tree[B_tree]) {
             add_one(bits_tree, curr_bit_tree);
-            if(B.l[B_L]) add_one(bits_L, curr_bit_L);
-            else add_zero(bits_L, curr_bit_L);
-
-            if(B.l[B_L + 1]) add_one(bits_L, curr_bit_L);
-            else add_zero(bits_L, curr_bit_L);
-
-            if(B.l[B_L + 2]) add_one(bits_L, curr_bit_L);
-            else add_zero(bits_L, curr_bit_L);
-
-            if(B.l[B_L + 3]) add_one(bits_L, curr_bit_L);
-            else add_zero(bits_L, curr_bit_L);
-
-            B_L += 4;
+            C.l.push_back(B.l[B_L]);
+            B_L++;
             counter++;
             curr_depth++;
           } else {
@@ -206,9 +183,6 @@ struct plain_tree {
 
     C.tree = bit_vector(curr_bit_tree, 0);
     for(auto bit : bits_tree) C.tree[bit] = 1;
-
-    C.l = bit_vector(curr_bit_L, 0);
-    for(auto bit : bits_L) C.l[bit] = 1;
 
     C.height_tree = height_tree;
     C.msize = msize;
