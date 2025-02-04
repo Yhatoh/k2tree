@@ -623,8 +623,10 @@ class k2tree_bp_sdsl {
              uint64_t curr_h) {
 #ifdef DEBUG
       cout << "Current Height: " << curr_h << endl;
-      cout << "Start Matrix A: " << A_tree << endl;
-      cout << "Start Matrix B: " << B_tree << endl;
+      cout << "  Start Matrix A: " << A_tree << endl;
+      cout << "  Pos in L     A: " << A_L << endl;
+      cout << "  Start Matrix B: " << B_tree << endl;
+      cout << "  Pos in L     B: " << B_L << endl;
 #endif
       // submatrix A or B full of 0's
       bool A_f0 = (!tree[A_tree + 1]);
@@ -651,6 +653,7 @@ class k2tree_bp_sdsl {
         C.rmsize = rmsize;
         A_tree++;
         B_tree = B.tree_support.find_close(B_tree);
+        B_L = B.rank_leaves(B_tree) * 4;
         return;
       } else if(B_f0) {
         C.tree.push_back(1);
@@ -661,6 +664,7 @@ class k2tree_bp_sdsl {
         C.rmsize = rmsize;
         B_tree++;
         A_tree = tree_support.find_close(A_tree);
+        A_L = rank_leaves(A_tree) * 4;
         return;
       }
 
@@ -675,7 +679,7 @@ class k2tree_bp_sdsl {
         aux_l |= ((l[A_L + 2] & B.l[B_L]) | (l[A_L + 3] & B.l[B_L + 2])) << 2;
         aux_l |= ((l[A_L + 2] & B.l[B_L + 1]) | (l[A_L + 3] & B.l[B_L + 3])) << 3;
 
-        if(aux_l) {
+        if(aux_l > 0) {
           C.tree.push_back(1);
           C.tree.push_back(1);
           C.tree.push_back(0);
@@ -724,7 +728,7 @@ class k2tree_bp_sdsl {
       B_0 = B_tree;
       B_0_L = B_L;
       // A_0 * B_0
-      mul(A_tree, A_L, B, B_tree, B_L, C_0_0, curr_h - 1);
+      mul(A_tree, A_L, B, B_tree, B_L, C_0_0, curr_h - 1); // A_tree == A_1 && B_tree == B_1
       
       A_tree++;
       A_1 = A_tree;
@@ -734,7 +738,7 @@ class k2tree_bp_sdsl {
       B_1 = B_tree;
       B_1_L = B_L;
       // A_0 * B_1
-      mul(A_0, A_0_L, B, B_tree, B_L, C_0_1, curr_h - 1);
+      mul(A_0, A_0_L, B, B_tree, B_L, C_0_1, curr_h - 1); // A_tree == A_1 && B_tree == B_2
 
       B_tree++;
       B_2 = B_tree;
@@ -791,10 +795,10 @@ class k2tree_bp_sdsl {
       // merge results
 #ifdef DEBUG
       cout << "MERGE" << endl;
-//      cout << C_0 << endl;
-//      cout << C_1 << endl;
-//      cout << C_2 << endl;
-//      cout << C_3 << endl;
+      cout << C_0 << endl;
+      cout << C_1 << endl;
+      cout << C_2 << endl;
+      cout << C_3 << endl;
 #endif
 
       C.tree.push_back(1);

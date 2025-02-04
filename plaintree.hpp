@@ -14,7 +14,7 @@ struct plain_tree {
   vector< uint8_t > tree;
   vector< uint8_t > l;
 
-  uint64_t height_tree;
+  uint8_t height_tree;
   uint64_t msize;
   uint64_t rmsize;
   uint64_t m;
@@ -63,132 +63,204 @@ struct plain_tree {
       C.m = B.m;
       return;
     }
-    uint64_t curr_bit_tree = 0;
-    vector< uint64_t > bits_tree;
 
 #ifdef DEBUG
     cout << "Starting algorithm" << endl;
 #endif
 
-    int64_t curr_depth = 0;
-    while(A_tree < tree.size() && B_tree < B.tree.size()) {
-      bool A_p = tree[A_tree];
-      bool B_p = tree[B_tree];
-      if(A_p && B_p && curr_depth < height_tree) {
-#ifdef DEBUG
-        cout << "Entering a subtree in both cases" << endl;
-        cout << " curr depth: " << curr_depth << endl;
-        cout << " pos tree A: " << A_tree << endl;
-        cout << " pos L    A: " << A_L << endl;
-        cout << " pos tree B: " << B_tree << endl;
-        cout << " pos L    B: " << B_L << endl;
-#endif
-        A_tree++; B_tree++; curr_depth++;
-        C.tree.push_back(1);
-      } else if(A_p && B_p) {
-#ifdef DEBUG
-        cout << "Entering a subtree in both cases and last level" << endl;
-        cout << " curr depth: " << curr_depth << endl;
-        cout << " pos tree A: " << A_tree << endl;
-        cout << " pos L    A: " << A_L << endl;
-        cout << " pos tree B: " << B_tree << endl;
-        cout << " pos L    B: " << B_L << endl;
-#endif
-        C.tree.push_back(1);
-        C.l.push_back(l[A_L] | B.l[B_L]);
-        A_L++;
-        B_L++;
-        A_tree++;
-        B_tree++;
-        curr_depth++;
-      } else if(A_p && !B_p) {
-#ifdef DEBUG
-        cout << "Copying subtree A" << endl;
-        cout << " curr depth: " << curr_depth << endl;
-        cout << " pos tree A: " << A_tree << endl;
-        cout << " pos L    A: " << A_L << endl;
-        cout << " pos tree B: " << B_tree << endl;
-        cout << " pos L    B: " << B_L << endl;
-#endif
-        // end tree A
-        uint64_t counter = 1;
-        A_tree++;
-        C.tree.push_back(1);
-        while(counter > 0) {
-          if(tree[A_tree] && curr_depth < height_tree) {
-            C.tree.push_back(1);
-            counter++;
-            curr_depth++;
-          } else if(tree[A_tree]) {
-            C.tree.push_back(1);
-            C.l.push_back(l[A_L]);
-            A_L++;
-            counter++;
-            curr_depth++;
-          } else {
-            C.tree.push_back(0);
-            counter--;
-            curr_depth--;
-          }
-          A_tree++;
+    uint8_t curr_depth = 0;
+    for(; A_tree < tree.size() && B_tree < B.tree.size(); A_tree++, B_tree++) {
+      uint32_t A_pos = A_tree;
+      uint32_t B_pos = B_tree;
+      uint32_t leaves = 0;
+      for(; A_pos < tree.size() && B_pos < B.tree.size(); A_pos++, B_pos++) {
+        if(tree[A_pos] != B.tree[B_pos]) break;
+        curr_depth += (tree[A_pos] ? 1 : -1);
+        leaves += (curr_depth == height_tree + 1);
+      }
+
+      // copy identical part and leaves
+      C.tree.insert(C.tree.end(), tree.begin() + A_tree, tree.begin() + A_pos);
+      for(uint32_t B_x = 0; B_x < leaves; B_x++) {
+        l[A_L + B_x] |= B.l[B_L + B_x];
+      }
+      C.l.insert(C.l.end(), l.begin() + A_L, l.begin() + A_L + leaves);
+
+      A_tree = A_pos;
+      B_tree = B_pos;
+      A_L += leaves;
+      B_L += leaves;
+
+      // copy B
+      if(A_tree < tree.size() && !tree[A_tree]) {
+        B_pos = B_tree;
+        uint8_t counter = curr_depth + 1;
+        leaves = 0;
+        B_pos++;
+        leaves += (counter == height_tree + 1);
+        for(; B_pos < B.tree.size() && counter >= curr_depth; B_pos++) {
+          counter += (B.tree[B_pos] ? 1 : -1);
+          leaves += (counter == height_tree + 1);
         }
 
-        // end tree B
-        B_tree++;
-      } else if(!A_p && B_p) {
-#ifdef DEBUG
-        cout << "Copying subtree B" << endl;
-        cout << " curr depth: " << curr_depth << endl;
-        cout << " pos tree A: " << A_tree << endl;
-        cout << " pos L    A: " << A_L << endl;
-        cout << " pos tree B: " << B_tree << endl;
-        cout << " pos L    B: " << B_L << endl;
-#endif
-        // end tree A
-        A_tree++;
+        C.tree.insert(C.tree.end(), B.tree.begin() + B_tree, B.tree.begin() + B_pos);
+        C.l.insert(C.l.end(), B.l.begin() + B_L, B.l.begin() + B_L + leaves);
 
-        // end tree B
-        uint64_t counter = 1;
-        B_tree++;
-        C.tree.push_back(1);
-        while(counter > 0) {
-          if(B.tree[B_tree] && curr_depth < height_tree) {
-            C.tree.push_back(1);
-            counter++;
-            curr_depth++;
-          } else if(B.tree[B_tree]) {
-            C.l.push_back(B.l[B_L]);
-            C.tree.push_back(1);
-            B_L++;
-            counter++;
-            curr_depth++;
-          } else {
-            C.tree.push_back(0);
-            counter--;
-            curr_depth--;
-          }
-          B_tree++;
+        B_tree = B_pos - 1;
+        B_L += leaves;
+        curr_depth--;
+      }
+      // copy A
+      else if(B_tree < B.tree.size() && !B.tree[B_tree]) {
+        A_pos = A_tree;
+        uint8_t counter = curr_depth + 1;
+        leaves = 0;
+        A_pos++;
+        leaves += (counter == height_tree + 1);
+        for(; A_pos < tree.size() && counter >= curr_depth; A_pos++) {
+          counter += (tree[A_pos] ? 1 : -1);
+          leaves += (counter == height_tree + 1);
         }
-      } else {
-#ifdef DEBUG
-        cout << "Both submatrices 0" << endl;
-        cout << " curr depth: " << curr_depth << endl;
-        cout << " pos tree A: " << A_tree << endl;
-        cout << " pos L    A: " << A_L << endl;
-        cout << " pos tree B: " << B_tree << endl;
-        cout << " pos L    B: " << B_L << endl;
-#endif
-        C.tree.push_back(0);
-        A_tree++; B_tree++;
+
+        C.tree.insert(C.tree.end(), tree.begin() + A_tree, tree.begin() + A_pos);
+        C.l.insert(C.l.end(), l.begin() + A_L, l.begin() + A_L + leaves);
+
+        A_tree = A_pos - 1;
+        A_L += leaves;
         curr_depth--;
       }
     }
+//    while(A_tree < tree.size() && B_tree < B.tree.size()) {
+//      bool A_p = tree[A_tree];
+//      bool B_p = tree[B_tree];
+//      if(A_p && B_p && curr_depth < height_tree) {
+//#ifdef DEBUG
+//        cout << "Entering a subtree in both cases" << endl;
+//        cout << " curr depth: " << curr_depth << endl;
+//        cout << " pos tree A: " << A_tree << endl;
+//        cout << " pos L    A: " << A_L << endl;
+//        cout << " pos tree B: " << B_tree << endl;
+//        cout << " pos L    B: " << B_L << endl;
+//#endif
+//        A_tree++; B_tree++; curr_depth++;
+//        C.tree.push_back(1);
+//      } else if(A_p && B_p) {
+//#ifdef DEBUG
+//        cout << "Entering a subtree in both cases and last level" << endl;
+//        cout << " curr depth: " << curr_depth << endl;
+//        cout << " pos tree A: " << A_tree << endl;
+//        cout << " pos L    A: " << A_L << endl;
+//        cout << " pos tree B: " << B_tree << endl;
+//        cout << " pos L    B: " << B_L << endl;
+//#endif
+//        C.tree.push_back(1);
+//        C.l.push_back(l[A_L] | B.l[B_L]);
+//        A_L++;
+//        B_L++;
+//        A_tree++;
+//        B_tree++;
+//        curr_depth++;
+//      } else if(A_p && !B_p) {
+//#ifdef DEBUG
+//        cout << "Copying subtree A" << endl;
+//        cout << " curr depth: " << curr_depth << endl;
+//        cout << " pos tree A: " << A_tree << endl;
+//        cout << " pos L    A: " << A_L << endl;
+//        cout << " pos tree B: " << B_tree << endl;
+//        cout << " pos L    B: " << B_L << endl;
+//#endif
+//        // end tree A
+//        uint64_t counter = 1;
+//        A_tree++;
+//        C.tree.push_back(1);
+//        while(counter > 0) {
+//          if(tree[A_tree] && curr_depth < height_tree) {
+//            C.tree.push_back(1);
+//            counter++;
+//            curr_depth++;
+//          } else if(tree[A_tree]) {
+//            C.tree.push_back(1);
+//            C.l.push_back(l[A_L]);
+//            A_L++;
+//            counter++;
+//            curr_depth++;
+//          } else {
+//            C.tree.push_back(0);
+//            counter--;
+//            curr_depth--;
+//          }
+//          A_tree++;
+//        }
+//
+//        // end tree B
+//        B_tree++;
+//      } else if(!A_p && B_p) {
+//#ifdef DEBUG
+//        cout << "Copying subtree B" << endl;
+//        cout << " curr depth: " << curr_depth << endl;
+//        cout << " pos tree A: " << A_tree << endl;
+//        cout << " pos L    A: " << A_L << endl;
+//        cout << " pos tree B: " << B_tree << endl;
+//        cout << " pos L    B: " << B_L << endl;
+//#endif
+//        // end tree A
+//        A_tree++;
+//
+//        // end tree B
+//        uint64_t counter = 1;
+//        B_tree++;
+//        C.tree.push_back(1);
+//        while(counter > 0) {
+//          if(B.tree[B_tree] && curr_depth < height_tree) {
+//            C.tree.push_back(1);
+//            counter++;
+//            curr_depth++;
+//          } else if(B.tree[B_tree]) {
+//            C.l.push_back(B.l[B_L]);
+//            C.tree.push_back(1);
+//            B_L++;
+//            counter++;
+//            curr_depth++;
+//          } else {
+//            C.tree.push_back(0);
+//            counter--;
+//            curr_depth--;
+//          }
+//          B_tree++;
+//        }
+//      } else {
+//#ifdef DEBUG
+//        cout << "Both submatrices 0" << endl;
+//        cout << " curr depth: " << curr_depth << endl;
+//        cout << " pos tree A: " << A_tree << endl;
+//        cout << " pos L    A: " << A_L << endl;
+//        cout << " pos tree B: " << B_tree << endl;
+//        cout << " pos L    B: " << B_L << endl;
+//#endif
+//        C.tree.push_back(0);
+//        A_tree++; B_tree++;
+//        curr_depth--;
+//      }
+//    }
 
     C.height_tree = height_tree;
     C.msize = msize;
     C.rmsize = rmsize;
     C.m = m;
     return;
+  }
+  friend ostream& operator<<(ostream& os, const plain_tree &pt) {
+    cout << "HT  : " << (uint64_t) pt.height_tree << endl;
+    cout << "Tree: ";
+    for(uint64_t i = 0; i < pt.tree.size(); i++) {
+      cout << (pt.tree[i] ? "(" : ")");
+    }
+    cout << endl;
+    cout << "L   : ";
+    for(uint64_t i = 0; i < pt.l.size(); i++) {
+      cout << (uint32_t) pt.l[i] << " ";
+    }
+    return os;
   }
 };
 
