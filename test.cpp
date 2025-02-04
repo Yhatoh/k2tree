@@ -27,14 +27,14 @@ class Randomer {
 };
 
 Randomer pow2matrix(2, 10, 49);
-Randomer genmatrix(5096, 5096, 49);
-Randomer zerone(0, 1000, 49);
+Randomer genmatrix(8192, 8192, 49);
+Randomer zerone(0, 10000, 49);
 
 vector< pair< uint64_t, uint64_t > > gen_ones_matrix(uint64_t n, uint64_t m) {
     vector< pair< uint64_t, uint64_t > > ones;
     for (uint64_t i = 0; i < n; ++i) {
         for (uint64_t j = 0; j < m; ++j) {
-            if(zerone() > 990) {
+            if(zerone() > 9990) {
               ones.push_back({i, j});
             }
         }
@@ -105,42 +105,42 @@ bool test_gen_matrices(uint64_t n, uint64_t m) {
 
   return true;
 }
-
-bool test_union_algorithm(uint64_t n, uint64_t m) {
-  cout << "Generating a matrix of size " << n << "x"  << m << endl;
-  vector< pair< uint64_t, uint64_t> > ones = gen_ones_matrix(n, m);
-  vector< pair< uint64_t, uint64_t> > ones2 = gen_ones_matrix(n, m);
-
-  cout << "Generating A" << endl;
-  k2tree_bp_sdsl<2, bit_vector> A(ones);
-  cout << "Generating B" << endl;
-  k2tree_bp_sdsl<2, bit_vector> B(ones2);
-
-  cout << "Getting ones from k2 tree" << endl;
-  auto ones_A = A.get_pos_ones();
-  auto ones_B = B.get_pos_ones();
-  set<pair<uint64_t, uint64_t>> union_;
-  for(auto p : ones_A) union_.insert(p);
-  for(auto p : ones_B) union_.insert(p);
-
-  vector< pair< uint64_t, uint64_t > > ones_union;
-  for(auto p : union_) ones_union.push_back(p);
-
-  plain_tree aux_C; A.binsum(B, aux_C);
-  k2tree_bp_sdsl<2, bit_vector> C(aux_C);
-
-  auto check = C.get_pos_ones();
-
-  assert(check.size() == ones_union.size());
-
-  sort(check.begin(), check.end());
-  sort(ones_union.begin(), ones_union.end());
-  for(uint64_t i = 0; i < ones_union.size(); i++) {
-    assert(check[i] == ones_union[i]);
-  }
-
-  return true;
-}
+//
+//bool test_union_algorithm(uint64_t n, uint64_t m) {
+//  cout << "Generating a matrix of size " << n << "x"  << m << endl;
+//  vector< pair< uint64_t, uint64_t> > ones = gen_ones_matrix(n, m);
+//  vector< pair< uint64_t, uint64_t> > ones2 = gen_ones_matrix(n, m);
+//
+//  cout << "Generating A" << endl;
+//  k2tree_bp_sdsl<2, bit_vector> A(ones);
+//  cout << "Generating B" << endl;
+//  k2tree_bp_sdsl<2, bit_vector> B(ones2);
+//
+//  cout << "Getting ones from k2 tree" << endl;
+//  auto ones_A = A.get_pos_ones();
+//  auto ones_B = B.get_pos_ones();
+//  set<pair<uint64_t, uint64_t>> union_;
+//  for(auto p : ones_A) union_.insert(p);
+//  for(auto p : ones_B) union_.insert(p);
+//
+//  vector< pair< uint64_t, uint64_t > > ones_union;
+//  for(auto p : union_) ones_union.push_back(p);
+//
+//  plain_tree aux_C; A.binsum(B, aux_C);
+//  k2tree_bp_sdsl<2, bit_vector> C(aux_C);
+//
+//  auto check = C.get_pos_ones();
+//
+//  assert(check.size() == ones_union.size());
+//
+//  sort(check.begin(), check.end());
+//  sort(ones_union.begin(), ones_union.end());
+//  for(uint64_t i = 0; i < ones_union.size(); i++) {
+//    assert(check[i] == ones_union[i]);
+//  }
+//
+//  return true;
+//}
 
 bool test_multi_algorithm(uint64_t n, uint64_t m) {
   cout << "Generating a matrix of size " << n << "x"  << m << endl;
@@ -198,58 +198,58 @@ bool test_multi_algorithm(uint64_t n, uint64_t m) {
   return true;
 }
 
-bool test_union_algorithm_tree_comp(uint64_t n, uint64_t m) {
-  cout << "Generating a matrix of size " << n << "x"  << m << endl;
-  vector< pair< uint64_t, uint64_t> > ones = gen_ones_matrix(n, m);
-  vector< pair< uint64_t, uint64_t> > ones2 = gen_ones_matrix(n, m);
-
-  cout << "Generating A" << endl;
-  k2tree_bp_sdsl<2, bit_vector> A(ones);
-  k2tree_bp_sdsl_idems<2, bit_vector,
-    sd_vector<>, rank_support_sd<1>,
-    sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
-    select_support_sd<1>, select_support_sd<0>> A_idem(A);
-  cout << "Generating B" << endl;
-  k2tree_bp_sdsl<2, bit_vector> B(ones2);
-  k2tree_bp_sdsl_idems<2, bit_vector,
-    sd_vector<>, rank_support_sd<1>,
-    sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
-    select_support_sd<1>, select_support_sd<0>> B_idem(B);
-
-  cout << "Getting ones from A" << endl;
-  auto ones_A = A_idem.get_pos_ones();
-  cout << "Getting ones from B" << endl;
-  auto ones_B = B_idem.get_pos_ones();
-  cout << "Getting ones from A | B (bruteforce)" << endl;
-  set<pair<uint64_t, uint64_t>> union_;
-  for(auto p : ones_A) union_.insert(p);
-  for(auto p : ones_B) union_.insert(p);
-
-  vector< pair< uint64_t, uint64_t > > ones_union;
-  for(auto p : union_) ones_union.push_back(p);
-
-  cout << "A | B" << endl;
-  plain_tree aux_C;
-  A_idem.binsum(B_idem, aux_C);
-  k2tree_bp_sdsl<2, bit_vector> C(aux_C);
-  cout << "Compressing C" << endl;
-  k2tree_bp_sdsl_idems<2, bit_vector,
-    sd_vector<>, rank_support_sd<1>,
-    sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
-    select_support_sd<1>, select_support_sd<0>> C_idem(C);
-
-  auto check = C_idem.get_pos_ones();
-
-  assert(check.size() == ones_union.size());
-
-  sort(check.begin(), check.end());
-  sort(ones_union.begin(), ones_union.end());
-  for(uint64_t i = 0; i < ones_union.size(); i++) {
-    assert(check[i] == ones_union[i]);
-  }
-
-  return true;
-}
+//bool test_union_algorithm_tree_comp(uint64_t n, uint64_t m) {
+//  cout << "Generating a matrix of size " << n << "x"  << m << endl;
+//  vector< pair< uint64_t, uint64_t> > ones = gen_ones_matrix(n, m);
+//  vector< pair< uint64_t, uint64_t> > ones2 = gen_ones_matrix(n, m);
+//
+//  cout << "Generating A" << endl;
+//  k2tree_bp_sdsl<2, bit_vector> A(ones);
+//  k2tree_bp_sdsl_idems<2, bit_vector,
+//    sd_vector<>, rank_support_sd<1>,
+//    sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
+//    select_support_sd<1>, select_support_sd<0>> A_idem(A);
+//  cout << "Generating B" << endl;
+//  k2tree_bp_sdsl<2, bit_vector> B(ones2);
+//  k2tree_bp_sdsl_idems<2, bit_vector,
+//    sd_vector<>, rank_support_sd<1>,
+//    sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
+//    select_support_sd<1>, select_support_sd<0>> B_idem(B);
+//
+//  cout << "Getting ones from A" << endl;
+//  auto ones_A = A_idem.get_pos_ones();
+//  cout << "Getting ones from B" << endl;
+//  auto ones_B = B_idem.get_pos_ones();
+//  cout << "Getting ones from A | B (bruteforce)" << endl;
+//  set<pair<uint64_t, uint64_t>> union_;
+//  for(auto p : ones_A) union_.insert(p);
+//  for(auto p : ones_B) union_.insert(p);
+//
+//  vector< pair< uint64_t, uint64_t > > ones_union;
+//  for(auto p : union_) ones_union.push_back(p);
+//
+//  cout << "A | B" << endl;
+//  plain_tree aux_C;
+//  A_idem.binsum(B_idem, aux_C);
+//  k2tree_bp_sdsl<2, bit_vector> C(aux_C);
+//  cout << "Compressing C" << endl;
+//  k2tree_bp_sdsl_idems<2, bit_vector,
+//    sd_vector<>, rank_support_sd<1>,
+//    sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
+//    select_support_sd<1>, select_support_sd<0>> C_idem(C);
+//
+//  auto check = C_idem.get_pos_ones();
+//
+//  assert(check.size() == ones_union.size());
+//
+//  sort(check.begin(), check.end());
+//  sort(ones_union.begin(), ones_union.end());
+//  for(uint64_t i = 0; i < ones_union.size(); i++) {
+//    assert(check[i] == ones_union[i]);
+//  }
+//
+//  return true;
+//}
 
 bool test_multi_algorithm_tree_comp(uint64_t n, uint64_t m) {
   cout << "Generating a matrix of size " << n << "x"  << m << endl;

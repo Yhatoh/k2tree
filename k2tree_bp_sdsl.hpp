@@ -610,17 +610,17 @@ class k2tree_bp_sdsl {
 */
 
     void mul(const k2tree_bp_sdsl<k, bv_leaves> &B, plain_tree &C) {
-      uint64_t A_tree, B_tree;
+      uint32_t A_tree, B_tree;
       A_tree = B_tree = 0;
-      uint64_t A_L, B_L;
+      uint32_t A_L, B_L;
       A_L = B_L = 0;
-      mul(A_tree, A_L, B, B_L, B_tree, C, height_tree);
+      mul(A_tree, A_L, 0, B, B_tree, B_L, 0, C, height_tree);
     }
 
-    void mul(uint64_t &A_tree, uint64_t &A_L,
-             const k2tree_bp_sdsl<k, bv_leaves> &B, uint64_t &B_tree, uint64_t &B_L,
+    void mul(uint32_t &A_tree, uint32_t &A_L, bool A_flag,
+             const k2tree_bp_sdsl<k, bv_leaves> &B, uint32_t &B_tree, uint32_t &B_L, bool B_flag,
              plain_tree &C,
-             uint64_t curr_h) {
+             uint8_t curr_h) {
 #ifdef DEBUG
       cout << "Current Height: " << curr_h << endl;
       cout << "  Start Matrix A: " << A_tree << endl;
@@ -652,6 +652,7 @@ class k2tree_bp_sdsl {
         C.msize = msize;
         C.rmsize = rmsize;
         A_tree++;
+        if(B_flag) return;
         B_tree = B.tree_support.find_close(B_tree);
         B_L = B.rank_leaves(B_tree) * 4;
         return;
@@ -663,6 +664,8 @@ class k2tree_bp_sdsl {
         C.msize = msize;
         C.rmsize = rmsize;
         B_tree++;
+        if(A_flag) return;
+
         A_tree = tree_support.find_close(A_tree);
         A_L = rank_leaves(A_tree) * 4;
         return;
@@ -705,14 +708,14 @@ class k2tree_bp_sdsl {
       //  A_0 | A_1
       //  ---------
       //  A_2 | A_3
-      uint64_t A_0, A_1, A_2, A_3;
-      uint64_t A_0_L, A_1_L, A_2_L, A_3_L;
+      uint32_t A_0, A_1, A_2, A_3;
+      uint32_t A_0_L, A_1_L, A_2_L, A_3_L;
 
       //  B_0 | B_1
       //  ---------
       //  B_2 | B_3
-      uint64_t B_0, B_1, B_2, B_3;
-      uint64_t B_0_L, B_1_L, B_2_L, B_3_L;
+      uint32_t B_0, B_1, B_2, B_3;
+      uint32_t B_0_L, B_1_L, B_2_L, B_3_L;
  
       //  C_0 | C_1
       //  ---------
@@ -728,7 +731,7 @@ class k2tree_bp_sdsl {
       B_0 = B_tree;
       B_0_L = B_L;
       // A_0 * B_0
-      mul(A_tree, A_L, B, B_tree, B_L, C_0_0, curr_h - 1); // A_tree == A_1 && B_tree == B_1
+      mul(A_tree, A_L, 0, B, B_tree, B_L, 0, C_0_0, curr_h - 1); // A_tree == A_1 && B_tree == B_1
       
       A_tree++;
       A_1 = A_tree;
@@ -738,13 +741,13 @@ class k2tree_bp_sdsl {
       B_1 = B_tree;
       B_1_L = B_L;
       // A_0 * B_1
-      mul(A_0, A_0_L, B, B_tree, B_L, C_0_1, curr_h - 1); // A_tree == A_1 && B_tree == B_2
+      mul(A_0, A_0_L, 1, B, B_tree, B_L, 0, C_0_1, curr_h - 1); // A_tree == A_1 && B_tree == B_2
 
       B_tree++;
       B_2 = B_tree;
       B_2_L = B_L;
       // A_1 * B_2
-      mul(A_tree, A_L, B, B_tree, B_L, C_1_2, curr_h - 1);
+      mul(A_tree, A_L, 0, B, B_tree, B_L, 0, C_1_2, curr_h - 1);
 
       A_tree++;
       A_2 = A_tree;
@@ -755,22 +758,22 @@ class k2tree_bp_sdsl {
       B_3_L = B_L;
 
       // A_1 * B_3
-      mul(A_1, A_1_L, B, B_tree, B_L, C_1_3, curr_h - 1);
+      mul(A_1, A_1_L, 1, B, B_tree, B_L, 0, C_1_3, curr_h - 1);
 
       // A_2 * B_0
-      mul(A_tree, A_L, B, B_0, B_0_L, C_2_0, curr_h - 1);
+      mul(A_tree, A_L, 0, B, B_0, B_0_L, 1, C_2_0, curr_h - 1);
 
       A_tree++;
       A_3 = A_tree;
       A_3_L = A_L;
 
       // A_2 * B_1
-      mul(A_2, A_2_L, B, B_1, B_1_L, C_2_1, curr_h - 1);
+      mul(A_2, A_2_L, 1, B, B_1, B_1_L, 1, C_2_1, curr_h - 1);
 
       // A_3 * B_2
-      mul(A_tree, A_L, B, B_2, B_2_L, C_3_2, curr_h - 1);
+      mul(A_tree, A_L, 0, B, B_2, B_2_L, 1, C_3_2, curr_h - 1);
       // A_3 * B_3
-      mul(A_3, A_3_L, B, B_3, B_3_L, C_3_3, curr_h - 1);
+      mul(A_3, A_3_L, 1, B, B_3, B_3_L, 1, C_3_3, curr_h - 1);
 
       C_0_0.binsum(C_1_2, C_0);
       C_0_1.binsum(C_1_3, C_1);
@@ -863,6 +866,7 @@ class k2tree_bp_sdsl {
              size_in_bytes(l) * 8 +
              size_in_bytes(leaves) * 8 + size_in_bytes(rank_leaves) * 8;
 #ifdef INFO_SPACE
+      cout << "Leaves:" << rank_leaves(leaves.size()) << endl;
       cout << "BITS" << endl;
       cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << " " << (double) (size_in_bytes(tree)) * 8 / total<< endl;
       cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << " " << (double) (size_in_bytes(tree_support)) * 8 / total << endl;
