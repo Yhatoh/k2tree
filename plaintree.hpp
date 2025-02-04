@@ -112,6 +112,7 @@ struct plain_tree {
 #endif
         // end tree A
         uint64_t counter = 1;
+        A_tree++;
         while(counter > 0) {
           if(tree[A_tree] && curr_depth < height_tree) {
             C.tree.push_back(1);
@@ -147,6 +148,7 @@ struct plain_tree {
 
         // end tree B
         uint64_t counter = 1;
+        B_tree++;
         while(counter > 0) {
           if(B.tree[B_tree] && curr_depth < height_tree) {
             C.tree.push_back(1);
