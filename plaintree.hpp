@@ -46,7 +46,7 @@ struct plain_tree {
 
     if(B.tree.size() == 2) {
       C.tree = tree;
-      C.l = l;
+      swap(C.l, l);
       C.height_tree = height_tree;
       C.msize = msize;
       C.rmsize = rmsize;
@@ -56,7 +56,7 @@ struct plain_tree {
 
     if(tree.size() == 2) {
       C.tree = B.tree;
-      C.l = B.l;
+      swap(C.l, B.l);
       C.height_tree = B.height_tree;
       C.msize = B.msize;
       C.rmsize = B.rmsize;

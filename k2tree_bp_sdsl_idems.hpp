@@ -851,8 +851,8 @@ class k2tree_bp_sdsl_idems {
 #ifdef DEBUG
         cout << "Full of 0's" << endl;
 #endif
-        C.tree = bit_vector(2, 0);
-        C.tree[0] = 1;
+        C.tree.push_back(1);
+        C.tree.push_back(0);
         C.height_tree = curr_h;
         C.m = m;
         C.msize = msize;
@@ -873,27 +873,24 @@ class k2tree_bp_sdsl_idems {
         pointer = B.rank1_PoL(rank_p_B);
         uint64_t B_L = B_lvs_sk + B.rank0_PoL(rank_p_B) * 4 + (pointer > 0 ? pre_skips_B[pointer - 1] : 0);
 
-        auto aux_l = bit_vector(4, 0);
-        bool found_1 = 0;
-        aux_l[0] = (l[A_L] & B.l[B_L]) | (l[A_L + 1] * B.l[B_L + 2]);
-        found_1 = found_1 | aux_l[0];
-        aux_l[1] = (l[A_L] & B.l[B_L + 1]) | (l[A_L + 1] * B.l[B_L + 3]);
-        found_1 = found_1 | aux_l[1];
-        aux_l[2] = (l[A_L + 2] & B.l[B_L]) | (l[A_L + 3] * B.l[B_L + 2]);
-        found_1 = found_1 | aux_l[2];
-        aux_l[3] = (l[A_L + 2] & B.l[B_L + 1]) | (l[A_L + 3] * B.l[B_L + 3]);
-        found_1 = found_1 | aux_l[3];
+        uint8_t aux_l = 0;
+        aux_l |= (l[A_L] & B.l[B_L]) | (l[A_L + 1] & B.l[B_L + 2]);
+        aux_l |= ((l[A_L] & B.l[B_L + 1]) | (l[A_L + 1] & B.l[B_L + 3])) << 1;
+        aux_l |= ((l[A_L + 2] & B.l[B_L]) | (l[A_L + 3] & B.l[B_L + 2])) << 2;
+        aux_l |= ((l[A_L + 2] & B.l[B_L + 1]) | (l[A_L + 3] & B.l[B_L + 3])) << 3;
 
-        if(found_1) {
-          C.tree = bit_vector(4, 0);
-          C.tree[0] = 1;
-          C.tree[1] = 1;
-
-          C.l = aux_l;
+        if(aux_l) {
+          C.tree.push_back(1);
+          C.tree.push_back(1);
+          C.tree.push_back(0);
+          C.tree.push_back(0);
+          C.l.push_back(aux_l);
         } else {
-          C.tree = bit_vector(2, 0);
+          C.tree.push_back(1);
+          C.tree.push_back(0);
           C.tree[0] = 1;
         }
+
         C.height_tree = curr_h;
         C.m = m;
         C.msize = msize;
@@ -1014,8 +1011,8 @@ class k2tree_bp_sdsl_idems {
          C_1.tree.size() == 2 &&
          C_2.tree.size() == 2 &&
          C_3.tree.size() == 2) {
-        C.tree = bit_vector(2, 0);
-        C.tree[0] = 1;
+        C.tree.push_back(1);
+        C.tree.push_back(0);
         C.height_tree = curr_h;
         C.m = m;
         C.msize = msize;
@@ -1031,26 +1028,15 @@ class k2tree_bp_sdsl_idems {
       cout << C_2 << endl;
       cout << C_3 << endl;
 #endif
-      C.tree = bit_vector(C_0.tree.size() + C_1.tree.size() + C_2.tree.size() + C_3.tree.size() + 2, 0);
-      C.tree[0] = 1;
-      for(uint64_t i = 0; i < C_0.tree.size(); i++)
-        C.tree[1 + i] = C_0.tree[i];
-      for(uint64_t i = 0; i < C_1.tree.size(); i++)
-        C.tree[1 + C_0.tree.size() + i] = C_1.tree[i];
-      for(uint64_t i = 0; i < C_2.tree.size(); i++)
-        C.tree[1 + C_0.tree.size() + C_1.tree.size() + i] = C_2.tree[i];
-      for(uint64_t i = 0; i < C_3.tree.size(); i++)
-        C.tree[1 + C_0.tree.size() + C_1.tree.size() + C_2.tree.size() + i] = C_3.tree[i];
+      C.tree.insert(C.tree.end(), C_0.tree.begin(), C_0.tree.end());
+      C.tree.insert(C.tree.end(), C_1.tree.begin(), C_1.tree.end());
+      C.tree.insert(C.tree.end(), C_2.tree.begin(), C_2.tree.end());
+      C.tree.insert(C.tree.end(), C_3.tree.begin(), C_3.tree.end());
 
-      C.l = bit_vector(C_0.l.size() + C_1.l.size() + C_2.l.size() + C_3.l.size(), 0);
-      for(uint64_t i = 0; i < C_0.l.size(); i++)
-        C.l[i] = C_0.l[i];
-      for(uint64_t i = 0; i < C_1.l.size(); i++)
-        C.l[C_0.l.size() + i] = C_1.l[i];
-      for(uint64_t i = 0; i < C_2.l.size(); i++)
-        C.l[C_0.l.size() + C_1.l.size() + i] = C_2.l[i];
-      for(uint64_t i = 0; i < C_3.l.size(); i++)
-        C.l[C_0.l.size() + C_1.l.size() + C_2.l.size() + i] = C_3.l[i];
+      C.l.insert(C.l.end(), C_0.l.begin(), C_0.l.end());
+      C.l.insert(C.l.end(), C_1.l.begin(), C_1.l.end());
+      C.l.insert(C.l.end(), C_2.l.begin(), C_2.l.end());
+      C.l.insert(C.l.end(), C_3.l.begin(), C_3.l.end());
 
       C.height_tree = curr_h;
       C.m = m;
