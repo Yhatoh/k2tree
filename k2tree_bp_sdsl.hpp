@@ -104,12 +104,13 @@ class k2tree_bp_sdsl {
       tree_support = bp_support_sada<>(&tree);
 
       //l = pd.l;
-      l = bit_vector(pd.l.size() * 4, 0);
+      bit_vector aux_l = bit_vector(pd.l.size() * 4, 0);
       for(uint64_t i = 0; i < pd.l.size(); i++) {
         for(uint64_t j = 0; j < 4; j++) {
-          if(pd.l[i] & (1 << j)) l[i * 4 + j] = 1;
+          if(pd.l[i] & (1 << j)) aux_l[i * 4 + j] = 1;
         }
       }
+      l = bv_leaves(aux_l);
       last_bit_l = l.size();
 
       height_tree = pd.height_tree;

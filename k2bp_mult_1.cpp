@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  k2tree_bp_sdsl<2, bit_vector> m1;
+  k2tree_bp_sdsl<2, rrr_vector<127>> m1;
   m1.load(k2_1_file);
   k2_1_file.close();
 
@@ -34,18 +34,18 @@ int main(int argc, char** argv) {
     exit(2);
   }
 
-  k2tree_bp_sdsl<2, bit_vector> m2;
+  k2tree_bp_sdsl<2, rrr_vector<127>> m2;
   m2.load(k2_2_file);
   k2_2_file.close();
 
   cout << "Multiplying" << endl;
   plain_tree result;
   m1.mul(m2, result);
-  k2tree_bp_sdsl<2, bit_vector> m3(result);
+  k2tree_bp_sdsl<2, rrr_vector<127>> m3(result);
   
 
   std::stringstream name_file;
-  name_file << k2_1_path << ".mul";
+  name_file << k2_1_path << ".mulrrr";
 
   std::ofstream result_file;
   result_file.open(name_file.str());

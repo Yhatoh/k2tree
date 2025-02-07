@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 
     cerr << "Building k2tree..." << endl;
 
-    k2tree_bp_sdsl<2, bit_vector> k2tree(ones, size);
+    k2tree_bp_sdsl<2, rrr_vector<127>> k2tree(ones, size);
 
     cerr << "Checking if it is correct..." << endl;
 
@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     cerr << "Writing file..." << endl;
 
     ofstream k2_file;
-    k2_file.open(matrix + ".k2bp");
+    k2_file.open(matrix + ".k2bprrr");
     k2tree.write(k2_file);
     k2_file.close();
 
