@@ -209,7 +209,6 @@ class k2tree_bp_sdsl_intL {
             t |= (1 << pos);
           }
 
-
           bv_l.push_back(t);
 #ifdef DEBUG
           balance_string += "(";

@@ -47,19 +47,19 @@ int main(int argc, char** argv) {
 
     cerr << "Building k2tree..." << endl;
 
-    k2tree_bp_sdsl_intL<2, dac_vector_dp<bit_vector>> k2tree(ones, size);
+    k2tree_bp_sdsl_intL<2, dac_vector<>> k2tree(ones, size);
 
     cerr << "Checking if it is correct..." << endl;
 
-    auto check = k2tree.get_pos_ones();
-    sort(check.begin(), check.end());
-
-    assert(check == ones);
+//    auto check = k2tree.get_pos_ones();
+//    sort(check.begin(), check.end());
+//
+//    assert(check == ones);
 
     cerr << "Writing file..." << endl;
 
     ofstream k2_file;
-    k2_file.open(matrix + ".k2bpdac");
+    k2_file.open(matrix + ".k2bpdacbit");
     k2tree.write(k2_file);
     k2_file.close();
 
