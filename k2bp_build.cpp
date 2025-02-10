@@ -2,7 +2,8 @@
 #include <iostream>
 
 // local includes
-#include "k2tree_bp_sdsl.hpp"
+//#include "k2tree_bp_sdsl.hpp"
+#include "k2tree_bp_sdsl_intL.hpp"
 
 int main(int argc, char** argv) {
   if(argc < 3) {
@@ -46,7 +47,7 @@ int main(int argc, char** argv) {
 
     cerr << "Building k2tree..." << endl;
 
-    k2tree_bp_sdsl<2, rrr_vector<127>> k2tree(ones, size);
+    k2tree_bp_sdsl_intL<2, dac_vector_dp<bit_vector>> k2tree(ones, size);
 
     cerr << "Checking if it is correct..." << endl;
 
@@ -58,7 +59,7 @@ int main(int argc, char** argv) {
     cerr << "Writing file..." << endl;
 
     ofstream k2_file;
-    k2_file.open(matrix + ".k2bprrr");
+    k2_file.open(matrix + ".k2bpdac");
     k2tree.write(k2_file);
     k2_file.close();
 
