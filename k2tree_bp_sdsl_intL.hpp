@@ -288,7 +288,7 @@ class k2tree_bp_sdsl_intL {
         if(i + 1 < bv_l.size()) num |= (bv_l[i + 1] << 4);
         mp[num]++;
       }
-      for(auto const &p : mp) cout << p.first << " " << p.second << "\n";
+      for(auto const &p : mp) cout << (uint64_t) p.first << " " << p.second << "\n";
       l = bv_leaves(bv_l);
 
 #ifdef DEBUG

@@ -202,7 +202,7 @@ class k2tree_bp_sdsl {
 
         
         if(subm_size == k) {
-          vector< int64_t > t(4, 0);
+          vector< int64_t > t(4, 1);
 
           for(size_t i = 0; i < n_ia; i++) {
 #ifdef DEBUG
@@ -213,7 +213,7 @@ class k2tree_bp_sdsl {
 #ifdef DEBUG
             cout << "pos = " << pos << endl;
 #endif
-            t[pos] = 1;
+            t[pos] = 0;
           }
 
           for(const auto& bit : t) {
