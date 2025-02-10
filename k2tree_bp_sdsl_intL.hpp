@@ -209,6 +209,7 @@ class k2tree_bp_sdsl_intL {
             t |= (1 << pos);
           }
 
+
           bv_l.push_back(t);
 #ifdef DEBUG
           balance_string += "(";
@@ -280,6 +281,14 @@ class k2tree_bp_sdsl_intL {
 #ifdef DEBUG
       cout << "Init L " << pos_to_add_l << "..." << endl;
 #endif // DEBUG
+      map< uint8_t, uint64_t > mp;
+      for(uint64_t i = 0; i < bv_l.size(); i += 2) {
+        uint8_t num = 0;
+        num |= bv_l[i];
+        if(i + 1 < bv_l.size()) num |= (bv_l[i + 1] << 4);
+        mp[num]++;
+      }
+      for(auto const &p : mp) cout << p.first << " " << p.second << "\n";
       l = bv_leaves(bv_l);
 
 #ifdef DEBUG
