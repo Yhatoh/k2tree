@@ -160,7 +160,12 @@ struct plain_tree {
     cout << endl;
     cout << "L   : ";
     for(uint64_t i = 0; i < pt.l.size(); i++) {
-      cout << (uint32_t) pt.l[i] << " ";
+      for(uint8_t j = 0; j < 2 * 2; j++) {
+        uint8_t x = pt.l[i];
+        if(x & (1 << j)) cout << 1;
+        else cout << 0;
+      }
+      cout << " ";
     }
     return os;
   }

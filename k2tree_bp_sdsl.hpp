@@ -202,7 +202,7 @@ class k2tree_bp_sdsl {
 
         
         if(subm_size == k) {
-          vector< int64_t > t(4, 1);
+          vector< int64_t > t(4, 0);
 
           for(size_t i = 0; i < n_ia; i++) {
 #ifdef DEBUG
@@ -213,7 +213,7 @@ class k2tree_bp_sdsl {
 #ifdef DEBUG
             cout << "pos = " << pos << endl;
 #endif
-            t[pos] = 0;
+            t[pos] = 1;
           }
 
           for(const auto& bit : t) {
@@ -687,7 +687,7 @@ class k2tree_bp_sdsl {
                                     (B_L_S[B_L >> 2] ? B_L_S[B_L >> 2] : B_L_S[B_L >> 2] = B.l.get_int(B_L, 4)));
 
         if(aux_l > 0) {
-          C.reserve(4, 0);
+          C.reserve(4, 1);
           C.tree.push_back(1);
           C.tree.push_back(1);
           C.tree.push_back(0);
@@ -802,6 +802,14 @@ class k2tree_bp_sdsl {
       C_2_1.destroy();
       C_3_3.destroy();
 
+      // merge results
+#ifdef DEBUG
+      cout << "MERGE" << endl;
+      cout << C_0 << endl;
+      cout << C_1 << endl;
+      cout << C_2 << endl;
+      cout << C_3 << endl;
+#endif
       A_tree++;
       B_tree++;
       if(C_0.tree.size() == 2 &&
@@ -816,15 +824,6 @@ class k2tree_bp_sdsl {
         C.rmsize = rmsize;
         return;
       }
-
-      // merge results
-#ifdef DEBUG
-      cout << "MERGE" << endl;
-      cout << C_0 << endl;
-      cout << C_1 << endl;
-      cout << C_2 << endl;
-      cout << C_3 << endl;
-#endif
 
       C.tree.reserve(2 + C_0.tree.size() + C_1.tree.size() + C_2.tree.size() + C_3.tree.size());
       C.tree.push_back(1);
@@ -901,19 +900,19 @@ class k2tree_bp_sdsl {
     }
 
     friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl<k, bv_leaves> &k2tree) {
-      cout << "Height Tree: " << k2tree.height_tree << endl;
-      cout << "Tree       : ";
+      cout << "HT  : " << k2tree.height_tree << endl;
+      cout << "Tree: ";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {
         cout << (k2tree.tree[i] ? "(" : ")");
       }
       cout << endl;
-      cout << "L          : ";
+      cout << "L   : ";
       for(uint64_t i = 0; i < k2tree.l.size(); i++) {
         if(i % 4 == 0 && !(i == 0)) cout << " ";
         cout << (k2tree.l[i] ? "1" : "0");
       }
       cout << endl;
-      cout << "Leaves     : ";
+      cout << "Lvs : ";
       for(uint64_t i = 0; i < k2tree.leaves.size(); i++) {
         cout << (k2tree.leaves[i] ? "1" : "0");
       }
