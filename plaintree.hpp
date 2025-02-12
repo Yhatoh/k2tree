@@ -2,6 +2,7 @@
 #define __PLAIN_TREE__
 
 // std includes
+#include <cstdlib>
 #include <vector>
 
 // sdsl includes
@@ -19,13 +20,20 @@ struct plain_tree {
   uint64_t rmsize;
   uint64_t m;
 
-
-  inline void add_one(vector< uint64_t > &bv, uint64_t &pos_to_add) {
-    bv.push_back(pos_to_add++);
+  plain_tree() {}
+  plain_tree(uint64_t n, uint64_t m) {
+    tree.reserve(n);
+    l.reserve(m);
   }
 
-  inline void add_zero(vector< uint64_t > &bv, uint64_t &pos_to_add) {
-    pos_to_add++;
+  void clear() {
+    tree.clear();
+    l.clear();
+  }
+
+  void reserve(uint64_t n, uint64_t m) {
+    tree.reserve(n);
+    l.reserve(m);
   }
 
   inline void binsum(plain_tree &B, plain_tree &C) {
@@ -137,6 +145,7 @@ struct plain_tree {
     C.m = m;
     return;
   }
+
   friend ostream& operator<<(ostream& os, const plain_tree &pt) {
     cout << "HT  : " << (uint64_t) pt.height_tree << endl;
     cout << "Tree: ";

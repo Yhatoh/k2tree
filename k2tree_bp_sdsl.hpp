@@ -51,6 +51,9 @@ class k2tree_bp_sdsl {
     uint64_t rmsize;
     uint64_t m;
 
+    plain_tree C_0, C_1, C_2, C_3;
+    plain_tree C_0_0, C_1_2, C_0_1, C_1_3, C_2_0, C_3_2, C_2_1, C_3_3;
+
     void add_one(vector< uint64_t > &bv, uint64_t &pos_to_add) {
       bv.push_back(pos_to_add++);
     }
@@ -618,6 +621,19 @@ class k2tree_bp_sdsl {
       vector< uint8_t > A_L_S(l.size() / 4, 0);
       vector< uint8_t > B_L_S(B.l.size() / 4, 0);
 
+      C_0.reserve(tree.size() + B.tree.size(), l.size() + B.l.size());
+      C_1.reserve(tree.size() + B.tree.size(), l.size() + B.l.size()); 
+      C_2.reserve(tree.size() + B.tree.size(), l.size() + B.l.size());
+      C_3.reserve(tree.size() + B.tree.size(), l.size() + B.l.size());
+      C_0_0.reserve(tree.size() + B.tree.size(), l.size() + B.l.size());
+      C_1_2.reserve(tree.size() + B.tree.size(), l.size() + B.l.size());
+      C_0_1.reserve(tree.size() + B.tree.size(), l.size() + B.l.size());
+      C_1_3.reserve(tree.size() + B.tree.size(), l.size() + B.l.size());
+      C_2_0.reserve(tree.size() + B.tree.size(), l.size() + B.l.size());
+      C_3_2.reserve(tree.size() + B.tree.size(), l.size() + B.l.size());
+      C_2_1.reserve(tree.size() + B.tree.size(), l.size() + B.l.size());
+      C_3_3.reserve(tree.size() + B.tree.size(), l.size() + B.l.size());
+
       mul(A_tree, A_L, 0, A_L_S, B, B_tree, B_L, 0, B_L_S, C, height_tree);
     }
 
@@ -725,8 +741,6 @@ class k2tree_bp_sdsl {
       //  C_0 | C_1
       //  ---------
       //  C_2 | C_3
-      plain_tree C_0, C_1, C_2, C_3;
-      plain_tree C_0_0, C_1_2, C_0_1, C_1_3, C_2_0, C_3_2, C_2_1, C_3_3;
 
       A_tree++;
       A_0 = A_tree;
