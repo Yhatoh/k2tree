@@ -639,6 +639,7 @@ class k2tree_bp_sdsl {
 #ifdef DEBUG
         cout << "Full of 0's" << endl;
 #endif
+        C.reserve(2, 0);
         C.tree.push_back(1);
         C.tree.push_back(0);
         C.height_tree = curr_h;
@@ -649,6 +650,7 @@ class k2tree_bp_sdsl {
         B_tree++;
         return;
       } else if(A_f0) {
+        C.reserve(2, 0);
         C.tree.push_back(1);
         C.tree.push_back(0);
         C.height_tree = curr_h;
@@ -661,6 +663,7 @@ class k2tree_bp_sdsl {
         B_L = B.rank_leaves(B_tree) * 4;
         return;
       } else if(B_f0) {
+        C.reserve(2, 0);
         C.tree.push_back(1);
         C.tree.push_back(0);
         C.height_tree = curr_h;
@@ -682,18 +685,16 @@ class k2tree_bp_sdsl {
 #endif
         uint8_t aux_l = minimat_mul((A_L_S[A_L >> 2] ? A_L_S[A_L >> 2] : A_L_S[A_L >> 2] = l.get_int(A_L, 4)),
                                     (B_L_S[B_L >> 2] ? B_L_S[B_L >> 2] : B_L_S[B_L >> 2] = B.l.get_int(B_L, 4)));
-//        aux_l |= (l[A_L] & B.l[B_L]) | (l[A_L + 1] & B.l[B_L + 2]);
-//        aux_l |= ((l[A_L] & B.l[B_L + 1]) | (l[A_L + 1] & B.l[B_L + 3])) << 1;
-//        aux_l |= ((l[A_L + 2] & B.l[B_L]) | (l[A_L + 3] & B.l[B_L + 2])) << 2;
-//        aux_l |= ((l[A_L + 2] & B.l[B_L + 1]) | (l[A_L + 3] & B.l[B_L + 3])) << 3;
 
         if(aux_l > 0) {
+          C.reserve(4, 0);
           C.tree.push_back(1);
           C.tree.push_back(1);
           C.tree.push_back(0);
           C.tree.push_back(0);
           C.l.push_back(aux_l);
         } else {
+          C.reserve(2, 0);
           C.tree.push_back(1);
           C.tree.push_back(0);
         }
@@ -780,9 +781,13 @@ class k2tree_bp_sdsl {
       // A_3 * B_3
       mul(A_3, A_3_L, 1, A_L_S, B, B_3, B_3_L, 1, B_L_S, C_3_3, curr_h - 1);
 
+      C_0.reserve(C_0_0.tree.size() + C_1_2.tree.size(), C_0_0.l.size() + C_1_2.l.size());
       C_0_0.binsum(C_1_2, C_0);
+      C_1.reserve(C_0_1.tree.size() + C_1_3.tree.size(), C_0_1.l.size() + C_1_3.l.size());
       C_0_1.binsum(C_1_3, C_1);
+      C_2.reserve(C_2_0.tree.size() + C_3_2.tree.size(), C_2_0.l.size() + C_3_2.l.size());
       C_2_0.binsum(C_3_2, C_2);
+      C_3.reserve(C_2_1.tree.size() + C_3_3.tree.size(), C_2_1.l.size() + C_3_3.l.size());
       C_2_1.binsum(C_3_3, C_3);
 
       A_tree++;
@@ -809,6 +814,7 @@ class k2tree_bp_sdsl {
       cout << C_3 << endl;
 #endif
 
+      C.tree.reserve(2 + C_0.tree.size() + C_1.tree.size() + C_2.tree.size() + C_3.tree.size());
       C.tree.push_back(1);
       C.tree.insert(C.tree.end(), C_0.tree.begin(), C_0.tree.end());
       C.tree.insert(C.tree.end(), C_1.tree.begin(), C_1.tree.end());
@@ -816,6 +822,7 @@ class k2tree_bp_sdsl {
       C.tree.insert(C.tree.end(), C_3.tree.begin(), C_3.tree.end());
       C.tree.push_back(0);
 
+      C.l.reserve(2 + C_0.l.size() + C_1.l.size() + C_2.l.size() + C_3.l.size());
       C.l.insert(C.l.end(), C_0.l.begin(), C_0.l.end());
       C.l.insert(C.l.end(), C_1.l.begin(), C_1.l.end());
       C.l.insert(C.l.end(), C_2.l.begin(), C_2.l.end());
