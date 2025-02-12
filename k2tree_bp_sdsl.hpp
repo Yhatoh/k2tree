@@ -755,6 +755,11 @@ class k2tree_bp_sdsl {
       // A_1 * B_2
       mul(A_tree, A_L, 0, A_L_S, B, B_tree, B_L, 0, B_L_S, C_1_2, curr_h - 1);
 
+      C_0.reserve(2 * max(C_0_0.tree.size(), C_1_2.tree.size()), 2 * max(C_0_0.l.size(), C_1_2.l.size()));
+      C_0_0.binsum(C_1_2, C_0);
+      C_0_0.destroy();
+      C_1_2.destroy();
+
       A_tree++;
       A_2 = A_tree;
       A_2_L = A_L;
@@ -765,6 +770,11 @@ class k2tree_bp_sdsl {
 
       // A_1 * B_3
       mul(A_1, A_1_L, 1, A_L_S, B, B_tree, B_L, 0, B_L_S, C_1_3, curr_h - 1);
+
+      C_1.reserve(2 * max(C_0_1.tree.size(), C_1_3.tree.size()), 2 * max(C_0_1.l.size(), C_1_3.l.size()));
+      C_0_1.binsum(C_1_3, C_1);
+      C_0_1.destroy();
+      C_1_3.destroy();
 
       // A_2 * B_0
       mul(A_tree, A_L, 0, A_L_S, B, B_0, B_0_L, 1, B_L_S, C_2_0, curr_h - 1);
@@ -778,17 +788,19 @@ class k2tree_bp_sdsl {
 
       // A_3 * B_2
       mul(A_tree, A_L, 0, A_L_S, B, B_2, B_2_L, 1, B_L_S, C_3_2, curr_h - 1);
+
+      C_2.reserve(2 * max(C_2_0.tree.size(), C_3_2.tree.size()), 2 * max(C_2_0.l.size(), C_3_2.l.size()));
+      C_2_0.binsum(C_3_2, C_2);
+      C_2_0.destroy();
+      C_3_2.destroy();
+
       // A_3 * B_3
       mul(A_3, A_3_L, 1, A_L_S, B, B_3, B_3_L, 1, B_L_S, C_3_3, curr_h - 1);
 
-      C_0.reserve(C_0_0.tree.size() + C_1_2.tree.size(), C_0_0.l.size() + C_1_2.l.size());
-      C_0_0.binsum(C_1_2, C_0);
-      C_1.reserve(C_0_1.tree.size() + C_1_3.tree.size(), C_0_1.l.size() + C_1_3.l.size());
-      C_0_1.binsum(C_1_3, C_1);
-      C_2.reserve(C_2_0.tree.size() + C_3_2.tree.size(), C_2_0.l.size() + C_3_2.l.size());
-      C_2_0.binsum(C_3_2, C_2);
-      C_3.reserve(C_2_1.tree.size() + C_3_3.tree.size(), C_2_1.l.size() + C_3_3.l.size());
+      C_3.reserve(2 * max(C_2_1.tree.size(), C_3_3.tree.size()), 2 * max(C_2_1.l.size(), C_3_3.l.size()));
       C_2_1.binsum(C_3_3, C_3);
+      C_2_1.destroy();
+      C_3_3.destroy();
 
       A_tree++;
       B_tree++;
@@ -822,7 +834,7 @@ class k2tree_bp_sdsl {
       C.tree.insert(C.tree.end(), C_3.tree.begin(), C_3.tree.end());
       C.tree.push_back(0);
 
-      C.l.reserve(2 + C_0.l.size() + C_1.l.size() + C_2.l.size() + C_3.l.size());
+      C.l.reserve(C_0.l.size() + C_1.l.size() + C_2.l.size() + C_3.l.size());
       C.l.insert(C.l.end(), C_0.l.begin(), C_0.l.end());
       C.l.insert(C.l.end(), C_1.l.begin(), C_1.l.end());
       C.l.insert(C.l.end(), C_2.l.begin(), C_2.l.end());

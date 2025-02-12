@@ -35,6 +35,11 @@ struct plain_tree {
     tree.reserve(n);
     l.reserve(m);
   }
+  
+  inline void destroy() {
+    vector< uint8_t >().swap(tree);
+    vector< uint8_t >().swap(l);
+  }
 
   inline void binsum(plain_tree &B, plain_tree &C) {
     uint64_t A_tree, B_tree;
