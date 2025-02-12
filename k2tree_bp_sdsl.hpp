@@ -677,11 +677,11 @@ class k2tree_bp_sdsl {
 #ifdef DEBUG
         cout << "Leaf!" << endl;
 #endif
-        uint8_t aux_l = 0;
-        aux_l |= (l[A_L] & B.l[B_L]) | (l[A_L + 1] & B.l[B_L + 2]);
-        aux_l |= ((l[A_L] & B.l[B_L + 1]) | (l[A_L + 1] & B.l[B_L + 3])) << 1;
-        aux_l |= ((l[A_L + 2] & B.l[B_L]) | (l[A_L + 3] & B.l[B_L + 2])) << 2;
-        aux_l |= ((l[A_L + 2] & B.l[B_L + 1]) | (l[A_L + 3] & B.l[B_L + 3])) << 3;
+        uint8_t aux_l = minimat_mul(l.get_int(A_L, 4), l.get_int(B_L, 4));
+//        aux_l |= (l[A_L] & B.l[B_L]) | (l[A_L + 1] & B.l[B_L + 2]);
+//        aux_l |= ((l[A_L] & B.l[B_L + 1]) | (l[A_L + 1] & B.l[B_L + 3])) << 1;
+//        aux_l |= ((l[A_L + 2] & B.l[B_L]) | (l[A_L + 3] & B.l[B_L + 2])) << 2;
+//        aux_l |= ((l[A_L + 2] & B.l[B_L + 1]) | (l[A_L + 3] & B.l[B_L + 3])) << 3;
 
         if(aux_l > 0) {
           C.tree.push_back(1);
@@ -877,7 +877,7 @@ class k2tree_bp_sdsl {
       return total;
     }
 
-    friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl<k> &k2tree) {
+    friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl<k, bv_leaves> &k2tree) {
       cout << "Height Tree: " << k2tree.height_tree << endl;
       cout << "Tree       : ";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {

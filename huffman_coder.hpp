@@ -22,8 +22,6 @@ constexpr uint32_t MAX_ULONG = 0xffffffff;
 constexpr uint32_t MAX_IT = 0x00ffffff;
 constexpr int32_t BUFF_BITS = sizeof(uint32_t) << 3; //# bits in a buffer element
 
-
-
 class huffman_coder {
 
 public:
@@ -47,7 +45,7 @@ public:
     uint32_t block_size;
     sdsl::enc_vector<> block_info_prefix_sum;
     sdsl::enc_vector<> block_info_starting_position;
-    
+
     void build_freq_table(std::vector<uint32_t> &seq);    
     void OUTPUT_ULONG(uint32_t n, char len);
     uint32_t output(uint32_t i, uint32_t mapping[], uint32_t cwlens[]);
