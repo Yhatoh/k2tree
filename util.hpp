@@ -74,6 +74,8 @@ static const uint8_t table_mul[16][16] = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 
 inline uint8_t minimat_mul(uint8_t a, uint8_t b) { return table_mul[a][b]; }
 
+static const uint8_t rev_table[16] = {0,8,4,12,2,10,6,14,1,9,5,13,3,11,7,15};
+
 inline uint8_t msb(uint64_t x){
   unsigned long ret = -1U;
   msb(x, ret);
