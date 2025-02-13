@@ -611,9 +611,9 @@ class k2tree_bp_sdsl {
 */
 
     void mul(const k2tree_bp_sdsl<k, bv_leaves> &B, plain_tree &C) {
-      uint32_t A_tree, B_tree;
+      uint64_t A_tree, B_tree;
       A_tree = B_tree = 0;
-      uint32_t A_L, B_L;
+      uint64_t A_L, B_L;
       A_L = B_L = 0;
       vector< uint8_t > A_L_S(l.size() / 4, 0);
       vector< uint8_t > B_L_S(B.l.size() / 4, 0);
@@ -621,8 +621,8 @@ class k2tree_bp_sdsl {
       mul(A_tree, A_L, 0, A_L_S, B, B_tree, B_L, 0, B_L_S, C, height_tree);
     }
 
-    void mul(uint32_t &A_tree, uint32_t &A_L, bool A_flag, vector< uint8_t > &A_L_S,
-             const k2tree_bp_sdsl<k, bv_leaves> &B, uint32_t &B_tree, uint32_t &B_L, bool B_flag, vector< uint8_t > &B_L_S,
+    void mul(uint64_t &A_tree, uint64_t &A_L, bool A_flag, vector< uint8_t > &A_L_S,
+             const k2tree_bp_sdsl<k, bv_leaves> &B, uint64_t &B_tree, uint64_t &B_L, bool B_flag, vector< uint8_t > &B_L_S,
              plain_tree &C,
              uint8_t curr_h) {
 #ifdef DEBUG
@@ -714,14 +714,14 @@ class k2tree_bp_sdsl {
       //  A_0 | A_1
       //  ---------
       //  A_2 | A_3
-      uint32_t A_0, A_1, A_2, A_3;
-      uint32_t A_0_L, A_1_L, A_2_L, A_3_L;
+      uint64_t A_0, A_1, A_2, A_3;
+      uint64_t A_0_L, A_1_L, A_2_L, A_3_L;
 
       //  B_0 | B_1
       //  ---------
       //  B_2 | B_3
-      uint32_t B_0, B_1, B_2, B_3;
-      uint32_t B_0_L, B_1_L, B_2_L, B_3_L;
+      uint64_t B_0, B_1, B_2, B_3;
+      uint64_t B_0_L, B_1_L, B_2_L, B_3_L;
  
       //  C_0 | C_1
       //  ---------

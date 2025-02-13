@@ -83,9 +83,9 @@ struct plain_tree {
 
     uint8_t curr_depth = 0;
     for(; A_tree < tree.size() && B_tree < B.tree.size(); A_tree++, B_tree++) {
-      uint32_t A_pos = A_tree;
-      uint32_t B_pos = B_tree;
-      uint32_t leaves = 0;
+      uint64_t A_pos = A_tree;
+      uint64_t B_pos = B_tree;
+      uint64_t leaves = 0;
       for(; A_pos < tree.size() && B_pos < B.tree.size(); A_pos++, B_pos++) {
         if(tree[A_pos] != B.tree[B_pos]) break;
         curr_depth += (tree[A_pos] ? 1 : -1);
