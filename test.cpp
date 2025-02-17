@@ -175,14 +175,14 @@ bool test_multi_algorithm(uint64_t n, uint64_t m) {
 //  }
 
   cout << "Generating A" << endl;
-  k2tree_bp_sdsl<2, bit_vector> A(ones);
+  k2tree_bp_sdsl<2, rrr_vector<127>> A(ones);
   cout << "Generating B" << endl;
-  k2tree_bp_sdsl<2, bit_vector> B(ones2);
+  k2tree_bp_sdsl<2, rrr_vector<127>> B(ones2);
 
   cout << "C = A * B" << endl;
   plain_tree aux_C;
   A.mul(B, aux_C);
-  k2tree_bp_sdsl<2, bit_vector> C(aux_C);
+  k2tree_bp_sdsl<2, rrr_vector<127>> C(aux_C);
 
   //auto check = C.get_pos_ones();
 

@@ -27,30 +27,30 @@ int main(int argc, char** argv) {
 
     cerr << "Reading k2tree..." << endl;
 
-    k2tree_bp_sdsl<2, bit_vector> k2tree;
+    k2tree_bp_sdsl<2, rrr_vector<127>> k2tree;
     k2tree.load(k2_file);
 
     k2_file.close();
 
     cerr << "Getting ones k2tree..." << endl;
 
-  //  auto ones = k2tree.get_pos_ones();
+    auto ones = k2tree.get_pos_ones();
 
     cerr << "Compressing k2tree..." << endl;
 
-    k2tree_bp_sdsl_idems<2, bit_vector,
+    k2tree_bp_sdsl_idems<2, rrr_vector<127>,
       sd_vector<>, rank_support_sd<1>,
       sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
       select_support_sd<1>, select_support_sd<0>> k2tree_idem(k2tree);
-//
-//    cerr << "Checking if it is correct..." << endl;
-//
-//    auto check = k2tree_idem.get_pos_ones();
-//    sort(check.begin(), check.end());
-//    sort(ones.begin(), ones.end());
-//    assert(check == ones);
-//
-//    cerr << "Writing file..." << endl;
+
+    cerr << "Checking if it is correct..." << endl;
+
+    auto check = k2tree_idem.get_pos_ones();
+    sort(check.begin(), check.end());
+    sort(ones.begin(), ones.end());
+    assert(check == ones);
+
+    cerr << "Writing file..." << endl;
 
     ofstream k2_file_idem;
     k2_file_idem.open(k2_path + "i");
