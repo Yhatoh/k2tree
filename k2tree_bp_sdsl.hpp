@@ -90,7 +90,12 @@ class k2tree_bp_sdsl {
     }
 
   public:
-    uint64_t size() { return m; }
+    uint64_t size() {
+      uint64_t m = 0;
+      sdsl::rank_support_rrr<1, 127> rank(&l);
+      return rank(l.size());
+    }
+
     uint64_t size_matrix() { return rmsize; }
     uint64_t nodes() { return (tree_support.find_close(0) + 1) / 2; }
 
