@@ -620,14 +620,16 @@ class k2tree_bp_sdsl {
       A_tree = B_tree = 0;
       uint64_t A_L, B_L;
       A_L = B_L = 0;
-      vector< uint8_t > A_L_S(l.size() / 4, 0);
-      vector< uint8_t > B_L_S(B.l.size() / 4, 0);
+      //vector< uint8_t > A_L_S(l.size() / 4, 0);
+      sdsl::int_vector<4> A_L_S(l.size() / 4, 0);
+      //vector< uint8_t > B_L_S(B.l.size() / 4, 0);
+      sdsl::int_vector<4> B_L_S(l.size() / 4, 0);
 
       mul(A_tree, A_L, 0, A_L_S, B, B_tree, B_L, 0, B_L_S, C, height_tree);
     }
 
-    void mul(uint64_t &A_tree, uint64_t &A_L, bool A_flag, vector< uint8_t > &A_L_S,
-             const k2tree_bp_sdsl<k, bv_leaves> &B, uint64_t &B_tree, uint64_t &B_L, bool B_flag, vector< uint8_t > &B_L_S,
+    void mul(uint64_t &A_tree, uint64_t &A_L, bool A_flag, sdsl::int_vector<4> &A_L_S,
+             const k2tree_bp_sdsl<k, bv_leaves> &B, uint64_t &B_tree, uint64_t &B_L, bool B_flag, sdsl::int_vector<4> &B_L_S,
              plain_tree &C,
              uint8_t curr_h) {
 #ifdef DEBUG

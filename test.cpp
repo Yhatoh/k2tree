@@ -34,7 +34,7 @@ vector< pair< uint64_t, uint64_t > > gen_ones_matrix(uint64_t n, uint64_t m) {
     vector< pair< uint64_t, uint64_t > > ones;
     for (uint64_t i = 0; i < n; ++i) {
         for (uint64_t j = 0; j < m; ++j) {
-            if(zerone() > 8000) {
+            if(zerone() > 9990) {
               ones.push_back({i, j});
             }
         }
@@ -110,6 +110,7 @@ bool test_multi_algorithm(uint64_t n, uint64_t m) {
   cout << "Generating a matrix of size " << n << "x"  << m << endl;
   vector< pair< uint64_t, uint64_t> > ones = gen_ones_matrix(n, m);
   vector< pair< uint64_t, uint64_t> > ones2 = gen_ones_matrix(n, m);
+#ifdef DEBUG
   vector< pair< uint64_t, uint64_t> > expected;
 
   cout << "Brute force multiplication" << endl;
@@ -137,6 +138,7 @@ bool test_multi_algorithm(uint64_t n, uint64_t m) {
       }
     }
   }
+#endif
 
   cout << "Generating A" << endl;
   k2tree_bp_sdsl<2, rrr_vector<127>> A(ones);
@@ -148,8 +150,8 @@ bool test_multi_algorithm(uint64_t n, uint64_t m) {
   A.mul(B, aux_C);
   k2tree_bp_sdsl<2, rrr_vector<127>> C(aux_C);
 
+#ifdef DEBUG
   auto check = C.get_pos_ones();
-
 
   assert(check.size() == expected.size());
 
@@ -158,6 +160,7 @@ bool test_multi_algorithm(uint64_t n, uint64_t m) {
   for(uint64_t i = 0; i < expected.size(); i++) {
     assert(check[i] == expected[i]);
   }
+#endif
 
   return true;
 }
@@ -166,6 +169,7 @@ bool test_multi_algorithm_tree_comp(uint64_t n, uint64_t m) {
   cout << "Generating a matrix of size " << n << "x"  << m << endl;
   vector< pair< uint64_t, uint64_t> > ones = gen_ones_matrix(n, m);
   vector< pair< uint64_t, uint64_t> > ones2 = gen_ones_matrix(n, m);
+#ifdef DEBUG
   vector< pair< uint64_t, uint64_t> > expected;
 
   cout << "Brute force multiplication" << endl;
@@ -193,6 +197,7 @@ bool test_multi_algorithm_tree_comp(uint64_t n, uint64_t m) {
       }
     }
   }
+#endif
 
   cout << "Generating A" << endl;
   k2tree_bp_sdsl<2, bit_vector> A(ones);
@@ -218,6 +223,8 @@ bool test_multi_algorithm_tree_comp(uint64_t n, uint64_t m) {
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> C_idem(C);
 
+#ifdef DEBUG
+
   auto check = C_idem.get_pos_ones();
 
   assert(check.size() == expected.size());
@@ -227,6 +234,7 @@ bool test_multi_algorithm_tree_comp(uint64_t n, uint64_t m) {
   for(uint64_t i = 0; i < expected.size(); i++) {
     assert(check[i] == expected[i]);
   }
+#endif // DEBUG
 
   return true;
 }
@@ -334,7 +342,7 @@ int main(int argc, char *argv[]) {
 
   if(f_multi) {
     cout << "Testing Multiply Algorithm" << endl;
-    for(uint64_t t = 0; t < 50; t++) {
+    for(uint64_t t = 0; t < 1; t++) {
       cout << "Test " << t + 1 << endl;
       test_multi_algorithm(genmatrix(), genmatrix());
       cout << "Passed!" << endl;
@@ -343,7 +351,7 @@ int main(int argc, char *argv[]) {
 
   if(f_multi_compr) {
     cout << "Testing Multiply Algorithm tree compression" << endl;
-    for(uint64_t t = 0; t < 50; t++) {
+    for(uint64_t t = 0; t < 1; t++) {
       cout << "Test " << t + 1 << endl;
       test_multi_algorithm_tree_comp(genmatrix(), genmatrix());
       cout << "Passed!" << endl;

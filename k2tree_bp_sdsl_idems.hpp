@@ -826,8 +826,10 @@ class k2tree_bp_sdsl_idems {
       vector< uint64_t > pre_skips_B(B.rank1_PoL(B.PoL.size()), 0);
       B.prefix_sum_skipped_values(pre_skips_B);
 
-      vector< uint8_t > A_L_S(l.size() / 4, 0);
-      vector< uint8_t > B_L_S(B.l.size() / 4, 0);
+      //vector< uint8_t > A_L_S(l.size() / 4, 0);
+      sdsl::int_vector<4> A_L_S(l.size() / 4, 0);
+      //vector< uint8_t > B_L_S(B.l.size() / 4, 0);
+      sdsl::int_vector<4> B_L_S(l.size() / 4, 0);
 
       uint64_t A_tree, B_tree;
       A_tree = B_tree = 0;
@@ -838,12 +840,12 @@ class k2tree_bp_sdsl_idems {
     }
 
     void mul(uint64_t &A_tree, 
-             uint64_t &A_L, vector< uint8_t > &A_L_S, 
+             uint64_t &A_L, sdsl::int_vector<4> &A_L_S, 
              vector< uint64_t > &pre_skips_A, uint64_t A_lvs_sk, bool A_flag,
              k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1,
                                          bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B,
              uint64_t &B_tree, 
-             uint64_t &B_L, vector< uint8_t > &B_L_S,
+             uint64_t &B_L, sdsl::int_vector<4> &B_L_S,
              vector< uint64_t > &pre_skips_B, uint64_t B_lvs_sk, bool B_flag,
              plain_tree &C,
              uint64_t curr_h) {
@@ -994,23 +996,23 @@ class k2tree_bp_sdsl_idems {
         }
       }
       if(A_save > A_tree && B_save > B_tree) {
-        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, 0,
-            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, 0,
+        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, A_flag,
+            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, B_flag,
             C, curr_h);
         A_tree = A_save + 3;
         B_tree = B_save + 3;
         return;
       }
       if(A_save > A_tree) {
-        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, 0,
-            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, 0,
+        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, A_flag,
+            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, B_flag,
             C, curr_h);
         A_tree = A_save + 3;
         return;
       }
       if(B_save > B_tree) {
-        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, 0,
-            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, 0,
+        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, A_flag,
+            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, B_flag,
             C, curr_h);
         B_tree = B_save + 3;
         return;
