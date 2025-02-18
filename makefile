@@ -1,6 +1,3 @@
-compile_test:
-	g++ -I ~/local-sdsl-lite/include -L ~/local-sdsl-lite/lib test_file.cpp libsais/liblibsais.a -lsdsl -ldivsufsort -ldivsufsort64 -o out
-
 k2bp_build:
 	g++ -I ~/local-sdsl-lite/include -L ~/local-sdsl-lite/lib k2bp_build.cpp libsais/liblibsais.a -lsdsl -ldivsufsort -ldivsufsort64 -DNDEBUG -o k2bp_build.x;
 
@@ -21,3 +18,8 @@ k2bp_mult_comp_1:
 
 k2bp_rand_test:
 	g++ -I ~/local-sdsl-lite/include -L ~/local-sdsl-lite/lib test.cpp libsais/liblibsais.a -lsdsl -ldivsufsort -ldivsufsort64 -m64 -O3 -DNDEBUG -o test.x;
+
+gen_rand_matrix:
+	g++ gen_rand_matrix.cpp -O3 -DNDEBUG -o gen_rand_matrix.x
+
+all: k2bp_build k2bp_comp_build k2bp_info k2bp_comp_info k2bp_mult_1 k2bp_mult_comp_1 k2bp_rand_test gen_rand_matrix

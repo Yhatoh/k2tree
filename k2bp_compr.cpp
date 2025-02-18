@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  for(uint64_t i = 1; i < argc; i++) {
+  for(uint64_t i = 1; i < argc; i+=3) {
     cerr << "Getting parameters..." << endl;
 
     std::string k2_path = argv[i];

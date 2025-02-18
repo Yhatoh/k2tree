@@ -3,8 +3,10 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 int main(int argv, char* argc[]) {
@@ -23,24 +25,21 @@ int main(int argv, char* argc[]) {
   uint64_t size = atoi(argc[1]);
   double p = std::stod(argc[2]);
   uint64_t amount = atoi(argc[3]);
-  uint64_t m = size * p;
+  uint64_t m = size * size * p;
   std::string path = argc[4];
   for(uint64_t i = 0; i < amount; i++) {
-    std::vector< uint8_t > matrix(size * size, 0);
-    std::fill(matrix.begin(), matrix.begin() + m, 1);
-    std::random_shuffle(matrix.begin(), matrix.end());
+    std::set< std::pair< int, int > > matrix;
+    while(matrix.size() < m) {
+      matrix.insert({std::rand() % size, std::rand() % size});
+    }
 
     std::stringstream path_save;
     path_save << path;
-    path_save << "/rand_matrix." << argc[2] << "." << i << ".txt";
+    path_save << "/rand_matrix-" << argc[2] << "-" << i << "-txt";
     std::ofstream save_matrix(path_save.str());
 
-    for(uint64_t i = 0; i < size; i++) {
-      for(uint64_t j = 0; j < size; j++) {
-        if(matrix[i * size + j])
-          save_matrix << i << " " << j << "\n";
-      }
-    }
+    for(auto const &one : matrix)
+      save_matrix << one.first << " " << one.second << "\n";
     save_matrix.close();
   }
 }
