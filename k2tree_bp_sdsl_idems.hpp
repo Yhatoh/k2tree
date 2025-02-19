@@ -826,10 +826,8 @@ class k2tree_bp_sdsl_idems {
       vector< uint64_t > pre_skips_B(B.rank1_PoL(B.PoL.size()), 0);
       B.prefix_sum_skipped_values(pre_skips_B);
 
-      //vector< uint8_t > A_L_S(l.size() / 4, 0);
       sdsl::int_vector<4> A_L_S(l.size() / 4, 0);
-      //vector< uint8_t > B_L_S(B.l.size() / 4, 0);
-      sdsl::int_vector<4> B_L_S(l.size() / 4, 0);
+      sdsl::int_vector<4> B_L_S(B.l.size() / 4, 0);
 
       uint64_t A_tree, B_tree;
       A_tree = B_tree = 0;
@@ -995,28 +993,28 @@ class k2tree_bp_sdsl_idems {
           B_tree = where_to_move;
         }
       }
-      if(A_save > A_tree && B_save > B_tree) {
-        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, A_flag,
-            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, B_flag,
-            C, curr_h);
-        A_tree = A_save + 3;
-        B_tree = B_save + 3;
-        return;
-      }
-      if(A_save > A_tree) {
-        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, A_flag,
-            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, B_flag,
-            C, curr_h);
-        A_tree = A_save + 3;
-        return;
-      }
-      if(B_save > B_tree) {
-        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, A_flag,
-            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, B_flag,
-            C, curr_h);
-        B_tree = B_save + 3;
-        return;
-      }
+//      if(A_save > A_tree && B_save > B_tree) {
+//        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, A_flag,
+//            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, B_flag,
+//            C, curr_h);
+//        A_tree = A_save + 3;
+//        B_tree = B_save + 3;
+//        return;
+//      }
+//      if(A_save > A_tree) {
+//        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, A_flag,
+//            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, B_flag,
+//            C, curr_h);
+//        A_tree = A_save + 3;
+//        return;
+//      }
+//      if(B_save > B_tree) {
+//        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, A_flag,
+//            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, B_flag,
+//            C, curr_h);
+//        B_tree = B_save + 3;
+//        return;
+//      }
      // check if you need to comeback A
       //  A_0 | A_1
       //  ---------
@@ -1167,6 +1165,9 @@ class k2tree_bp_sdsl_idems {
       C.m = m;
       C.msize = msize;
       C.rmsize = rmsize;
+      
+      if(A_save > A_tree) A_tree = A_save + 3;
+      if(B_save > B_tree) B_tree = B_save + 3;
 
       return;
     }
