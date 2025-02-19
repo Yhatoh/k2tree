@@ -31,7 +31,7 @@ using namespace sdsl;
 struct union_find {
   vector< int64_t > e;
   union_find(int64_t n) { e.assign(n, -1); }
-  int64_t find_set(int64_t x) { 
+  int64_t find_set(int64_t x) {
     return (e[x] < 0 ? x : e[x] = find_set(e[x]));
   }
   bool same_set (int64_t x, int64_t y) { return find_set(x) == find_set(y); }
@@ -49,7 +49,7 @@ struct union_find {
 // k2-tree
 // parameters:
 //   * k * k: amount of children per node
-template< uint64_t k = 2, 
+template< uint64_t k = 2,
           class bv_leaves = bit_vector,
           class bit_vector_1 = bit_vector, class rank1_1 = rank_support_v5<>,
           class bit_vector_2 = bit_vector, class rank1_2 = rank_support_v5<>, class rank0_2 = rank_support_v5<0>,
@@ -97,6 +97,7 @@ class k2tree_bp_sdsl_idems {
     }
 
   public:
+    uint64_t height() { return height_tree; }
     uint64_t size() { return m; }
     uint64_t size_matrix() { return rmsize; }
     uint64_t size_comp_subtrees() { return P.size(); }
@@ -105,7 +106,7 @@ class k2tree_bp_sdsl_idems {
 
     k2tree_bp_sdsl_idems() {}
 
-    k2tree_bp_sdsl_idems(k2tree_bp_sdsl<k, bv_leaves> &k2tree) { 
+    k2tree_bp_sdsl_idems(k2tree_bp_sdsl<k, bv_leaves> &k2tree) {
       k2tree.tree_support = bp_support_sada<>(&k2tree.tree);
       msize = k2tree.msize;
       rmsize = k2tree.rmsize;
@@ -142,7 +143,7 @@ class k2tree_bp_sdsl_idems {
       for(uint64_t pos_bp = 2; pos_bp < bp.size(); pos_bp++) {
         // only considering suffix starting with (
         if(k2tree.tree[csa[pos_bp]]) {
-          
+
           uint64_t curr_start_pos = csa[pos_bp];
           uint64_t curr_end_pos = k2tree.tree_support.find_close(curr_start_pos);
 
@@ -230,7 +231,7 @@ class k2tree_bp_sdsl_idems {
       cout << amount_idem_subtree << endl;
       cout << amount_of_groups << endl;
 #endif // DEBUG
-      
+
       vector< uint64_t > new_tree_bv;
       vector< uint64_t > pointer;
       uint64_t ref_bit = 0;
@@ -352,7 +353,7 @@ class k2tree_bp_sdsl_idems {
 
       // clean, is useless
       PoL_bv.clear();
-      
+
       tree_support = bp_support_sada<>(&tree);
 
     }
@@ -364,7 +365,7 @@ class k2tree_bp_sdsl_idems {
       uint64_t pos_last_one = select1_PoL(amount_ones);
 
       if(pos_last_one < i) return 0;
-      else return 1; 
+      else return 1;
     }
 
     vector< pair< uint64_t, uint64_t > > get_pos_ones() {
@@ -389,7 +390,7 @@ class k2tree_bp_sdsl_idems {
 #ifdef DEBUG
           cout << "Start of subtree" << endl;
 #endif // DEBUG
-          
+
           auto [vis, r_, c_] = child_visit.top();
 #ifdef DEBUG
           cout << "Previous tree: " << (uint64_t) vis << " " << r_ << " " << c_ << endl;
@@ -404,24 +405,24 @@ class k2tree_bp_sdsl_idems {
             cout << "Is a pointer or a leaf?" << endl;
             cout << "Current pos in PoL: " << read_PoL << endl;
             cout << "Size PoL: " << PoL.size() << endl;
-#endif // DEBUG 
+#endif // DEBUG
             if(read_PoL >= PoL.size() || access_PoL(read_PoL) == 0) continue;
 #ifdef DEBUG
             cout << "Is a pointer" << endl;
-#endif // DEBUG 
+#endif // DEBUG
 
             uint64_t read_P = rank1_PoL(read_PoL);
 
 #ifdef DEBUG
             cout << "To read from P: " << read_P << endl;
-#endif // DEBUG 
-            
+#endif // DEBUG
+
             uint64_t where_to_move = select_real_tree(P[read_P] + 1);
             recover_pos.push({i, tree_support.find_close(where_to_move)});
             i = where_to_move;
 #ifdef DEBUG
             cout << "Moving to pos: " << i << endl;
-#endif // DEBUG 
+#endif // DEBUG
           }
 #ifdef DEBUG
           cout << "Level " << child_visit.size() << endl;
@@ -536,7 +537,7 @@ class k2tree_bp_sdsl_idems {
             uint64_t read_PoL = (pb >= B.occ_PoL.size() ? B.PoL.size() : B.rank1_occ_PoL(pb));
             if(!(read_PoL >= B.PoL.size() || B.PoL[read_PoL] == 0)) {
               uint64_t read_P = B.rank1_PoL(read_PoL);
-             
+
               uint64_t where_to_move = B.select_real_tree(B.P[read_P] + 1);
               recover_pos_B.push({pb, B.tree_support.find_close(where_to_move)});
               pb = where_to_move;
@@ -577,7 +578,7 @@ class k2tree_bp_sdsl_idems {
 #endif
           add_one(bits_tree, curr_bit_tree);
           for(uint64_t i = 0; i < 4; i++) {
-            if((pLa < l.size() && l[pLa]) || 
+            if((pLa < l.size() && l[pLa]) ||
                (pLb < B.l.size() && B.l[pLb]))
               add_one(bits_L, curr_bit_L);
             else
@@ -637,7 +638,7 @@ class k2tree_bp_sdsl_idems {
             }
             pa++;
           }
-          
+
           // end tree B
           pb++;
         } else if(!tree[pa] && B.tree[pb]) {
@@ -651,7 +652,7 @@ class k2tree_bp_sdsl_idems {
 #endif
           // end tree A
           pa++;
-          
+
           // end tree B
           uint64_t counter = 1;
           while(counter > 0) {
@@ -729,6 +730,7 @@ class k2tree_bp_sdsl_idems {
 
       stack< uint8_t > child_visit;
       stack< tuple< uint64_t, uint64_t, uint64_t, uint64_t > > recover_pos;
+      vector< uint8_t > flags(pre_skips.size(), 0);
 
       child_visit.push(0);
 
@@ -736,13 +738,15 @@ class k2tree_bp_sdsl_idems {
 #ifdef DEBUG
         cout << "-------------------" << endl;
         cout << "Total bits " << tree.size() << endl;
+        cout << "Current Level " << child_visit.size() << endl;
+        cout << "Pointers? " << recover_pos.size() << endl;
         cout << "Reading " << i << " bit" << endl;
 #endif // DEBUG
         if(tree[i]) {
 #ifdef DEBUG
           cout << "Start of subtree" << endl;
 #endif // DEBUG
-          
+
           child_visit.push(0);
 
           if(P.size() > 0 && i < tree.size() - 4 && tree[i + 1] && !tree[i + 2] && !tree[i + 3]) {
@@ -751,24 +755,24 @@ class k2tree_bp_sdsl_idems {
             cout << "Is a pointer or a leaf?" << endl;
             cout << "Current pos in PoL: " << read_PoL << endl;
             cout << "Size PoL: " << PoL.size() << endl;
-#endif // DEBUG 
+#endif // DEBUG
             if(read_PoL >= PoL.size() || access_PoL(read_PoL) == 0) continue;
 #ifdef DEBUG
             cout << "Is a pointer" << endl;
-#endif // DEBUG 
+#endif // DEBUG
 
             uint64_t read_P = rank1_PoL(read_PoL);
 
 #ifdef DEBUG
             cout << "To read from P: " << read_P << endl;
-#endif // DEBUG 
-            
+#endif // DEBUG
+
             uint64_t where_to_move = select_real_tree(P[read_P] + 1);
-            recover_pos.push({i, tree_support.find_close(where_to_move), id++, 0});
+            recover_pos.push({i, tree_support.find_close(where_to_move), read_P, 0});
             i = where_to_move;
 #ifdef DEBUG
             cout << "Moving to pos: " << i << endl;
-#endif // DEBUG 
+#endif // DEBUG
           }
 #ifdef DEBUG
           cout << "Level " << child_visit.size() << endl;
@@ -781,7 +785,7 @@ class k2tree_bp_sdsl_idems {
 #ifdef DEBUG
             cout << "Last level sum" << endl;
 #endif // DEBUG
-            if(recover_pos.size() > 0) {
+            if(!recover_pos.empty()) {
               auto [index, end, _id, leaves] = recover_pos.top();
               leaves += 4;
               recover_pos.pop();
@@ -793,7 +797,10 @@ class k2tree_bp_sdsl_idems {
           }
           if(!recover_pos.empty() && get<1>(recover_pos.top()) <= i) {
             auto [index, end, _id, leaves] = recover_pos.top();
-            pre_skips[_id] = leaves;
+            if(flags[_id] == 0) {
+              pre_skips[_id] = leaves;
+              flags[_id] = 1;
+            }
             i = index + 3;
 
             recover_pos.pop();
@@ -837,12 +844,12 @@ class k2tree_bp_sdsl_idems {
           B_tree, B_L, B_L_S, pre_skips_B, 0, 0, C, height_tree);
     }
 
-    void mul(uint64_t &A_tree, 
-             uint64_t &A_L, sdsl::int_vector<4> &A_L_S, 
+    void mul(uint64_t &A_tree,
+             uint64_t &A_L, sdsl::int_vector<4> &A_L_S,
              vector< uint64_t > &pre_skips_A, uint64_t A_lvs_sk, bool A_flag,
              k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1,
                                          bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B,
-             uint64_t &B_tree, 
+             uint64_t &B_tree,
              uint64_t &B_L, sdsl::int_vector<4> &B_L_S,
              vector< uint64_t > &pre_skips_B, uint64_t B_lvs_sk, bool B_flag,
              plain_tree &C,
@@ -857,7 +864,7 @@ class k2tree_bp_sdsl_idems {
       // submatrix A or B full of 0's
       bool A_f0 = (!tree[A_tree + 1]);
       bool B_f0 = (!B.tree[B_tree + 1]);
-      if(A_f0 && B_f0) { 
+      if(A_f0 && B_f0) {
 #ifdef DEBUG
         cout << "Full of 0's" << endl;
 #endif
@@ -911,7 +918,7 @@ class k2tree_bp_sdsl_idems {
       }
 
       // base case, leaf
-      if(curr_h == 1) { 
+      if(curr_h == 1) {
 #ifdef DEBUG
         cout << "Leaf!" << endl;
 #endif
@@ -993,28 +1000,6 @@ class k2tree_bp_sdsl_idems {
           B_tree = where_to_move;
         }
       }
-//      if(A_save > A_tree && B_save > B_tree) {
-//        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, A_flag,
-//            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, B_flag,
-//            C, curr_h);
-//        A_tree = A_save + 3;
-//        B_tree = B_save + 3;
-//        return;
-//      }
-//      if(A_save > A_tree) {
-//        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, A_flag,
-//            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, B_flag,
-//            C, curr_h);
-//        A_tree = A_save + 3;
-//        return;
-//      }
-//      if(B_save > B_tree) {
-//        mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, A_flag,
-//            B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, B_flag,
-//            C, curr_h);
-//        B_tree = B_save + 3;
-//        return;
-//      }
      // check if you need to comeback A
       //  A_0 | A_1
       //  ---------
@@ -1027,7 +1012,7 @@ class k2tree_bp_sdsl_idems {
       //  B_2 | B_3
       uint64_t B_0, B_1, B_2, B_3;
       uint64_t B_0_L, B_1_L, B_2_L, B_3_L;
- 
+
       //  C_0 | C_1
       //  ---------
       //  C_2 | C_3
@@ -1045,7 +1030,7 @@ class k2tree_bp_sdsl_idems {
       mul(A_tree, A_L, A_L_S, pre_skips_A, A_lvs_sk, 0,
           B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, 0,
           C_0_0, curr_h - 1);
-      
+
       A_tree++;
       A_1 = A_tree;
       A_1_L = A_L;
@@ -1056,7 +1041,7 @@ class k2tree_bp_sdsl_idems {
       // A_0 * B_1
       mul(A_0, A_0_L, A_L_S, pre_skips_A, A_lvs_sk, 1,
           B, B_tree, B_L, B_L_S, pre_skips_B, B_lvs_sk, 0,
-          C_0_1, curr_h - 1); 
+          C_0_1, curr_h - 1);
 
       B_tree++;
       B_2 = B_tree;
@@ -1134,7 +1119,8 @@ class k2tree_bp_sdsl_idems {
       A_tree++;
       B_tree++;
 
-
+      if(A_save > A_tree) A_tree = A_save + 3;
+      if(B_save > B_tree) B_tree = B_save + 3;
       if(C_0.tree.size() == 2 &&
          C_1.tree.size() == 2 &&
          C_2.tree.size() == 2 &&
@@ -1165,9 +1151,7 @@ class k2tree_bp_sdsl_idems {
       C.m = m;
       C.msize = msize;
       C.rmsize = rmsize;
-      
-      if(A_save > A_tree) A_tree = A_save + 3;
-      if(B_save > B_tree) B_tree = B_save + 3;
+
 
       return;
     }
@@ -1234,7 +1218,7 @@ class k2tree_bp_sdsl_idems {
       uint64_t total = sizeof(uint64_t) * 4 +
              size_in_bytes(tree) * 8 +
              size_in_bytes(tree_support) * 8 +
-             size_in_bytes(l) * 8 + 
+             size_in_bytes(l) * 8 +
              size_in_bytes(P) * 8 +
              (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 +
              size_in_bytes(occ_PoL) * 8 + size_in_bytes(rank1_occ_PoL) * 8 +
@@ -1251,7 +1235,7 @@ class k2tree_bp_sdsl_idems {
       cout << "  PoL         : " << (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 << " " << (double) 100 *  (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 / total << endl;
 #endif
       return total;
-    } 
+    }
 
     friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 > &k2tree) {
       cout << "HT  : " << k2tree.height_tree << endl;
