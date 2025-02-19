@@ -97,6 +97,7 @@ class k2tree_bp_sdsl_idems {
     }
 
   public:
+    uint64_t height() { return height_tree; } 
     uint64_t size() { return m; }
     uint64_t size_matrix() { return rmsize; }
     uint64_t size_comp_subtrees() { return P.size(); }
@@ -729,6 +730,7 @@ class k2tree_bp_sdsl_idems {
 
       stack< uint8_t > child_visit;
       stack< tuple< uint64_t, uint64_t, uint64_t, uint64_t > > recover_pos;
+      vector< uint8_t > flags(pre_skips.size(), 0);
 
       child_visit.push(0);
 
@@ -736,6 +738,8 @@ class k2tree_bp_sdsl_idems {
 #ifdef DEBUG
         cout << "-------------------" << endl;
         cout << "Total bits " << tree.size() << endl;
+        cout << "Current Level " << child_visit.size() << endl;
+        cout << "Pointers? " << recover_pos.size() << endl;
         cout << "Reading " << i << " bit" << endl;
 #endif // DEBUG
         if(tree[i]) {
@@ -764,7 +768,7 @@ class k2tree_bp_sdsl_idems {
 #endif // DEBUG 
             
             uint64_t where_to_move = select_real_tree(P[read_P] + 1);
-            recover_pos.push({i, tree_support.find_close(where_to_move), id++, 0});
+            recover_pos.push({i, tree_support.find_close(where_to_move), read_P, 0});
             i = where_to_move;
 #ifdef DEBUG
             cout << "Moving to pos: " << i << endl;
@@ -781,7 +785,7 @@ class k2tree_bp_sdsl_idems {
 #ifdef DEBUG
             cout << "Last level sum" << endl;
 #endif // DEBUG
-            if(recover_pos.size() > 0) {
+            if(!recover_pos.empty()) {
               auto [index, end, _id, leaves] = recover_pos.top();
               leaves += 4;
               recover_pos.pop();
@@ -793,7 +797,10 @@ class k2tree_bp_sdsl_idems {
           }
           if(!recover_pos.empty() && get<1>(recover_pos.top()) <= i) {
             auto [index, end, _id, leaves] = recover_pos.top();
-            pre_skips[_id] = leaves;
+            if(flags[_id] == 0) {
+              pre_skips[_id] = leaves;
+              flags[_id] = 1;
+            }
             i = index + 3;
 
             recover_pos.pop();

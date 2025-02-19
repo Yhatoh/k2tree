@@ -31,6 +31,7 @@ int main(int argc, char** argv) {
 
 
     cout << "Information k2tree " << k2_path << endl;
+    cout << " Height Tree: " << k2tree.height() << endl;
     cout << " Size Matrix: " << k2tree.size_matrix() << " Amount of 1's: " << k2tree.size() << endl;
     cout << " Amount of nodes: " << k2tree.nodes() << endl;
     cout << " Amount of idem subtrees: " << k2tree.size_comp_subtrees() << " Amount of Max. subtrees: " << k2tree.size_comp_subtrees() << endl;
