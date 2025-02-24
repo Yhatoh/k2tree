@@ -29,7 +29,6 @@ class Randomer {
 Randomer pow2matrix(2, 10, 49);
 Randomer genmatrix(8024, 8024, 49);
 Randomer zerone(0, 10000, 49);
-
 vector< pair< uint64_t, uint64_t > > gen_ones_matrix(uint64_t n, uint64_t m) {
     vector< pair< uint64_t, uint64_t > > ones;
     for (uint64_t i = 0; i < n; ++i) {
@@ -59,7 +58,6 @@ bool test_pow_2_matrices(uint64_t p) {
   for(uint64_t i = 0; i < ones.size(); i++) {
     assert(check[i] == ones[i]);
   }
-  //cout << k2tree << endl;
 
   k2tree_bp_sdsl_idems<2, bit_vector,
     sd_vector<>, rank_support_sd<1>,

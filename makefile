@@ -1,7 +1,6 @@
 SDSL_DIR ?= ~/sdsl-lite
 FLAGS ?=
 
-# If the target "release" is among the goals, set release flags.
 ifneq ($(findstring release,$(MAKECMDGOALS)),)
 FLAGS := -O3 -m64 -DNDEBUG
 endif
@@ -33,4 +32,3 @@ gen_rand_matrix:
 all: k2bp_build k2bp_comp_build k2bp_info k2bp_comp_info k2bp_mult_1 k2bp_mult_comp_1 k2bp_rand_test gen_rand_matrix
 
 release: all
-
