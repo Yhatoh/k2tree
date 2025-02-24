@@ -7,10 +7,11 @@
 int main(int argc, char** argv) {
   if(argc <= 1) {
     std::cerr << "At least one argument:" << endl;
-    std::cerr << "  ./k2bp_info.x <path file k2tree bp>" << endl;
+    std::cerr << "  ./k2bp_info.x <path file CBP1> ... <path file CBPn>" << endl;
     exit(1);
   }
 
+  uint64_t total_bits = 0;
   for(uint64_t i = 1; i < argc; i++) {
     std::string k2_path = argv[i];
 
@@ -34,12 +35,11 @@ int main(int argc, char** argv) {
     cout << " Height Tree: " << k2tree.height() << endl;
     cout << " Size Matrix: " << k2tree.size_matrix() << " Amount of 1's: " << k2tree.size() << endl;
     cout << " Amount of nodes: " << k2tree.nodes() << endl;
-    cout << " Amount of idem subtrees: " << k2tree.size_comp_subtrees() << " Amount of Max. subtrees: " << k2tree.size_comp_subtrees() << endl;
+    cout << " Amount of idem subtrees: " << k2tree.size_comp_subtrees() << endl;
     uint64_t bits = k2tree.size_in_bits();
     cout << " Bits    : " << bits << endl;
     cout << " Bits/1's: " << (double) bits / k2tree.size() << endl;
     cout << " Bits/n  : " << (double) bits / k2tree.nodes() << endl;
-
   }
   return 0;
 }
