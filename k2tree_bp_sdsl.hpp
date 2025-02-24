@@ -97,7 +97,7 @@ class k2tree_bp_sdsl {
     }
 
     uint64_t size_matrix() { return rmsize; }
-    uint64_t nodes() { return (tree_support.find_close(0) + 1) / 2; }
+    uint64_t nodes() { return tree.size() / 2; }
 
     k2tree_bp_sdsl() {}
     

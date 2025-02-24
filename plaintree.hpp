@@ -12,7 +12,7 @@ using namespace sdsl;
 using namespace std;
 
 struct plain_tree {
-  vector< bool > tree;
+  vector< uint8_t > tree;
   vector< uint8_t > l;
 
   uint8_t height_tree;
@@ -37,7 +37,7 @@ struct plain_tree {
   }
   
   inline void destroy() {
-    vector< bool >().swap(tree);
+    vector< uint8_t >().swap(tree);
     vector< uint8_t >().swap(l);
   }
 

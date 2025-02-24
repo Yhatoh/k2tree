@@ -8,13 +8,14 @@
 int main(int argc, char** argv) {
   if(argc <= 1) {
     std::cerr << "At least one argument:" << endl;
-    std::cerr << "  ./k2bp_info.x <path file k2tree bp>" << endl;
+    std::cerr << "  ./k2bp_info.x <path K2-BP1> ... <path K2-BPn>" << endl;
     exit(1);
   }
 
-  for(uint64_t i = 1; i < argc; i += 3) {
+  for(uint64_t i = 1; i < argc; i += 1) {
     std::string k2_path = argv[i];
 
+    cout << k2_path << endl;
     ifstream k2_file;
     k2_file.open(k2_path);
 
@@ -36,7 +37,6 @@ int main(int argc, char** argv) {
     cout << " Bits    : " << bits << endl;
     cout << " Bits/1's: " << (double) bits / k2tree.size() << endl;
     cout << " Bits/n  : " << (double) bits / k2tree.nodes() << endl;
-
   }
   return 0;
 }

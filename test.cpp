@@ -38,6 +38,7 @@ vector< pair< uint64_t, uint64_t > > gen_ones_matrix(uint64_t n, uint64_t m) {
             }
         }
     }
+    cout << ones.size() << endl;
     return ones;
 }
 

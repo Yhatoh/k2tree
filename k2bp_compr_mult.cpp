@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
   
 
   std::stringstream name_file;
-  name_file << k2_1_path << ".mulrrri";
+  name_file << k2_1_path << ".mul";
 
   std::ofstream result_file;
   result_file.open(name_file.str());

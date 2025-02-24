@@ -26,7 +26,12 @@ int main(int argv, char* argc[]) {
   double p = std::stod(argc[2]);
   uint64_t amount = atoi(argc[3]);
   uint64_t m = size * size * p;
-  std::string path = argc[4];
+  std::string path;
+  if(argv <= 3) 
+    path = argc[4];
+  else
+    path = ".";
+
   for(uint64_t i = 0; i < amount; i++) {
     std::set< std::pair< int, int > > matrix;
     while(matrix.size() < m) {

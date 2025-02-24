@@ -1,9 +1,10 @@
 // std includes
 #include <iostream>
+#include <utility>
+#include <set>
 
 // local includes
 #include "k2tree_bp_sdsl.hpp"
-#include <sdsl/rle_vector.hpp>
 //#include "k2tree_bp_sdsl_intL.hpp"
 
 int main(int argc, char** argv) {
@@ -45,6 +46,7 @@ int main(int argc, char** argv) {
     sort(ones.begin(), ones.end());
 
     ones_txt.close();
+    cout << ones.size() << endl;
 
     cerr << "Building k2tree..." << endl;
 
@@ -52,15 +54,15 @@ int main(int argc, char** argv) {
 
     cerr << "Checking if it is correct..." << endl;
 
-//    auto check = k2tree.get_pos_ones();
-//    sort(check.begin(), check.end());
-//
-//    assert(check == ones);
+    auto check = k2tree.get_pos_ones();
+    sort(check.begin(), check.end());
+
+    assert(check == ones);
 
     cerr << "Writing file..." << endl;
 
     ofstream k2_file;
-    k2_file.open(matrix + ".k2bprrr");
+    k2_file.open(matrix + ".k2bp");
     k2tree.write(k2_file);
     k2_file.close();
 

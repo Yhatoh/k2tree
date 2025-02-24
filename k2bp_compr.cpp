@@ -8,11 +8,11 @@
 int main(int argc, char** argv) {
   if(argc <= 1) {
     std::cerr << "At least one arguments:" << endl;
-    std::cerr << "  ./k2bp_build.x <path file matrix> <size of squared matrix> <amount of ones>" << endl;
+    std::cerr << "  ./k2bp_build.x <path file matrix>" << endl;
     exit(1);
   }
 
-  for(uint64_t i = 1; i < argc; i+=3) {
+  for(uint64_t i = 1; i < argc; i+=1) {
     cerr << "Getting parameters..." << endl;
 
     std::string k2_path = argv[i];
