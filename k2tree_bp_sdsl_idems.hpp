@@ -1233,7 +1233,6 @@ class k2tree_bp_sdsl_idems {
       cout << "  Real P      : " << (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 << " " << (double) 100 *  (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 / total << endl;
       cout << "  PoL         : " << (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 << " " << (double) 100 *  (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 / total << endl;
       cout << "  occ_PoL     : " << (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 << " " << (double) 100 *  (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 / total << endl;
-      cout << "  occ_PoL (bs): " << (size_in_bytes(blocks)) * 8 << " " << (double) 100 * (size_in_bytes(blocks)) * 8 / total << endl;
 #endif
       return total;
     }
