@@ -347,14 +347,13 @@ class k2tree_bp_sdsl {
             cout << "L size " << l.size() << " ";
             cout << "Current bit " << to_read_l << endl;
 #endif // DEBUG
-            uint64_t value = l[to_read_l];
             for(uint64_t j = 0; j < k * k; j++) {
-              if(value & (1 << j)) {
+              if(l[to_read_l]) {
                 auto [vis, r_, c_] = child_visit.top();
                 ret.push_back({r_ + j / k, c_ + j % k});
               }
+              to_read_l++;
             }
-            to_read_l++;
 #ifdef DEBUG
             cout << "Finishing reading real values" << endl;
 #endif // DEBUG
@@ -914,11 +913,8 @@ class k2tree_bp_sdsl {
       cout << endl;
       cout << "L   : ";
       for(uint64_t i = 0; i < k2tree.l.size(); i++) {
-        uint64_t value = k2tree.l[i];
-        for(uint64_t j = 0; j < k * k; j++) {
-          cout << (value & (1 << j) ? 1 : 0); 
-        }
-        cout << " ";
+        if(i % 4 == 0 && !(i == 0)) cout << " ";
+        cout << (k2tree.l[i] ? "1" : "0");
       }
       cout << endl;
       cout << "Lvs : ";
