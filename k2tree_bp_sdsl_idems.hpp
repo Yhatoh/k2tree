@@ -88,6 +88,9 @@ class k2tree_bp_sdsl_idems {
 
     uint64_t maximal_subtrees; // just for information purposes
 
+    uint64_t b_size; // block_size, template later
+    int_vector<> blocks;
+
     void add_one(vector< uint64_t > &bv, uint64_t &pos_to_add) {
       bv.push_back(pos_to_add++);
     }
@@ -356,6 +359,25 @@ class k2tree_bp_sdsl_idems {
 
       tree_support = bp_support_sada<>(&tree);
 
+       // count (()) prefix sum
+      uint64_t sum = 0;
+      vector< uint64_t > prefix_sum;
+      for(uint64_t bit = 1; bit < tree.size() - 3; bit++) {
+        if(bit % b_size == 0) {
+          prefix_sum.push_back(sum);
+          sum = 0;
+        }
+        if(tree[bit] && tree[bit + 1] && !tree[bit + 2] && !tree[bit + 3]) {
+          sum += 1;
+        }
+      }
+
+      prefix_sum.push_back(sum);
+      blocks = int_vector<>(prefix_sum.size(), 0);
+      for(uint64_t block = 0; block < prefix_sum.size(); block++) {
+        blocks[block] = prefix_sum[block];
+      }
+      //util::bit_compress(blocks);
     }
 
     uint64_t access_PoL(uint64_t i) {
@@ -1269,6 +1291,11 @@ class k2tree_bp_sdsl_idems {
       cout << "OPoL: ";
       for(uint64_t i = 0; i < k2tree.occ_PoL.size(); i++) {
         cout << k2tree.occ_PoL[i];
+      }
+      cout << endl;
+      cout << "OPoL: ";
+      for(uint64_t i = 0; i < k2tree.blocks.size(); i++) {
+        cout << k2tree.blocks[i] << " ";
       }
       return os;
     }
