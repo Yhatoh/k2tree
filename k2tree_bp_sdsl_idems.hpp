@@ -53,7 +53,7 @@ template< uint64_t k = 2,
           class bv_leaves = bit_vector,
           class bit_vector_1 = bit_vector, class rank1_1 = rank_support_v5<>,
           class bit_vector_2 = bit_vector, class rank1_2 = rank_support_v5<>, class rank0_2 = rank_support_v5<0>,
-                                           class select1_2 = select_support_mcl<>, class select0_2 = select_support_mcl<0> >
+                                           class select1_2 = select_support_mcl<>, class select0_2 = select_support_mcl<0>, uint64_t b_size = 128 >
 class k2tree_bp_sdsl_idems {
   private:
     //int_vector<> P;
@@ -88,7 +88,6 @@ class k2tree_bp_sdsl_idems {
 
     uint64_t maximal_subtrees; // just for information purposes
 
-    uint64_t b_size; // block_size, template later
     int_vector<> blocks;
 
     void add_one(vector< uint64_t > &bv, uint64_t &pos_to_add) {
@@ -1260,7 +1259,7 @@ class k2tree_bp_sdsl_idems {
       return total;
     }
 
-    friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 > &k2tree) {
+    friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2, b_size > &k2tree) {
       cout << "HT  : " << k2tree.height_tree << endl;
       cout << "Tree: ";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {
