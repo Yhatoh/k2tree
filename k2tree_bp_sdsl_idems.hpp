@@ -376,7 +376,7 @@ class k2tree_bp_sdsl_idems {
       for(uint64_t block = 0; block < prefix_sum.size(); block++) {
         blocks[block] = prefix_sum[block];
       }
-      //util::bit_compress(blocks);
+      util::bit_compress(blocks);
     }
 
     uint64_t access_PoL(uint64_t i) {
@@ -1204,6 +1204,7 @@ class k2tree_bp_sdsl_idems {
       tree.serialize(out);
       tree_support.serialize(out);
       l.serialize(out);
+      blocks.serialize(out);
     }
 
     void load(ifstream& in) {
@@ -1233,6 +1234,7 @@ class k2tree_bp_sdsl_idems {
       tree_support.load(in, &tree);
 
       l.load(in);
+      blocks.load(in);
     }
 
     uint64_t size_in_bits() {
@@ -1246,6 +1248,7 @@ class k2tree_bp_sdsl_idems {
              size_in_bytes(PoL) * 8 + size_in_bytes(rank1_PoL) * 8 + size_in_bytes(rank0_PoL) * 8 +
              size_in_bytes(select1_PoL) * 8 + size_in_bytes(select0_PoL) * 8;
 #ifdef INFO_SPACE
+      cout << blocks.size() << endl;
       cout << "BITS" << endl;
       cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << " " << (double) 100 *  (size_in_bytes(tree)) * 8 / total << endl;
       cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << " " << (double) 100 *  (size_in_bytes(tree_support)) * 8 / total  << endl;
