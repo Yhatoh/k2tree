@@ -53,7 +53,7 @@ template< uint64_t k = 2,
           class bv_leaves = bit_vector,
           class bit_vector_1 = bit_vector, class rank1_1 = rank_support_v5<>,
           class bit_vector_2 = bit_vector, class rank1_2 = rank_support_v5<>, class rank0_2 = rank_support_v5<0>,
-                                           class select1_2 = select_support_mcl<>, class select0_2 = select_support_mcl<0>, uint64_t b_size = 128 >
+                                           class select1_2 = select_support_mcl<>, class select0_2 = select_support_mcl<0>, uint64_t b_size = 1280 >
 class k2tree_bp_sdsl_idems {
   private:
     //int_vector<> P;
@@ -364,7 +364,7 @@ class k2tree_bp_sdsl_idems {
       for(uint64_t bit = 1; bit < tree.size() - 3; bit++) {
         if(bit % b_size == 0) {
           prefix_sum.push_back(sum);
-          sum = 0;
+          //sum = 0;
         }
         if(tree[bit] && tree[bit + 1] && !tree[bit + 2] && !tree[bit + 3]) {
           sum += 1;
@@ -372,7 +372,7 @@ class k2tree_bp_sdsl_idems {
       }
 
       prefix_sum.push_back(sum);
-      blocks = int_vector<>(prefix_sum.size(), 0);
+      blocks = int_vector<>(prefix_sum.size(), -1);
       for(uint64_t block = 0; block < prefix_sum.size(); block++) {
         blocks[block] = prefix_sum[block];
       }
@@ -1248,7 +1248,6 @@ class k2tree_bp_sdsl_idems {
              size_in_bytes(PoL) * 8 + size_in_bytes(rank1_PoL) * 8 + size_in_bytes(rank0_PoL) * 8 +
              size_in_bytes(select1_PoL) * 8 + size_in_bytes(select0_PoL) * 8;
 #ifdef INFO_SPACE
-      cout << blocks.size() << endl;
       cout << "BITS" << endl;
       cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << " " << (double) 100 *  (size_in_bytes(tree)) * 8 / total << endl;
       cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << " " << (double) 100 *  (size_in_bytes(tree_support)) * 8 / total  << endl;
