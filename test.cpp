@@ -26,19 +26,18 @@ class Randomer {
     
 };
 
-Randomer pow2matrix(2, 10, 49);
-Randomer genmatrix(8024, 8024, 49);
+Randomer pow2matrix(10, 10, 49);
+Randomer genmatrix(1024, 1024, 49);
 Randomer zerone(0, 10000, 49);
 vector< pair< uint64_t, uint64_t > > gen_ones_matrix(uint64_t n, uint64_t m) {
     vector< pair< uint64_t, uint64_t > > ones;
     for (uint64_t i = 0; i < n; ++i) {
         for (uint64_t j = 0; j < m; ++j) {
-            if(zerone() > 9990) {
+            if(zerone() > 5000) {
               ones.push_back({i, j});
             }
         }
     }
-    cout << ones.size() << endl;
     return ones;
 }
 
