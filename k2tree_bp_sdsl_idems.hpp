@@ -369,10 +369,10 @@ class k2tree_bp_sdsl_idems {
       //P = dac_vector<>(aux);
       P = dac_vector_dp<rrr_vector<127>>(aux);
 
-      bit_vector bv_occ_PoL(tree.size(), 0);
-      for(const auto& bit : count_PoL) bv_occ_PoL[bit] = 1;
-      occ_PoL = bit_vector_1(bv_occ_PoL);
-      util::init_support(rank1_occ_PoL, &occ_PoL);
+//      bit_vector bv_occ_PoL(tree.size(), 0);
+//      for(const auto& bit : count_PoL) bv_occ_PoL[bit] = 1;
+//      occ_PoL = bit_vector_1(bv_occ_PoL);
+//      util::init_support(rank1_occ_PoL, &occ_PoL);
 
       // clean, is useless
       count_PoL.clear();
