@@ -29,6 +29,7 @@ using namespace std;
 using namespace sdsl;
 
 #define dbg(var) cout << #var << " = " << var << endl;
+#define print_bit(x, l) for(uint64_t __x__ = 0; __x__  < l; __x__++) cout << ((x & ((uint64_t) 1 << __x__)) != 0); cout << endl;
 
 struct union_find {
   vector< int64_t > e;
@@ -64,7 +65,7 @@ class k2tree_bp_sdsl_idems {
     dac_vector_dp<rrr_vector<127>> P;
 
     //bit_vector_1 occ_PoL;
-    //rank1_1 rank1_occ_PoL;
+    //rank1_1 rank_occ_PoL;
 
     bit_vector_2 PoL;
     rank1_2 rank1_PoL;
@@ -119,21 +120,51 @@ class k2tree_bp_sdsl_idems {
         uint64_t extra = 0;
         uint64_t read = tree.get_int(bit, 64);
         if(bit + 64 < i) {
-          uint64_t len = (6 > i - (bit + 61) ? i - (bit + 61) : 6);
+          uint64_t len = (6 > tree.size() - (bit + 61) ?
+                          tree.size() - (bit + 61) :
+                          6);
           extra = count(tree.get_int(bit + 61, len) | (((uint64_t) -1) << len));
         }
         ret += count(read) + extra;
       }
       if(i > bit) {
-        if(i - bit == 64) ret += count(tree.get_int(bit, 64));
-        else ret += count(tree.get_int(bit, i - bit) | (((uint64_t) -1) << (i - bit)));
+        uint64_t dist = i - bit;
+        if(dist == 64) ret += count(tree.get_int(bit, 64));
+        else ret += count(tree.get_int(bit, dist) | (((uint64_t) -1) << (dist)));
+
+        uint64_t extra = 0;
+
+        if(dist == 1) {
+          uint64_t len_extra = (i - 1 + 4 <= tree.size() ? 4 : tree.size() - (i - 1));
+          uint64_t read = tree.get_int(i - 1, len_extra);
+          extra = 
+            count(read | (((uint64_t) -1) << len_extra));
+          ret += extra;
+        } else if(dist == 2) {
+          uint64_t len_extra = (i - 2 + 5 <= tree.size() ? 5 : tree.size() - (i - 2));
+          uint64_t read = tree.get_int(i - 2, len_extra);
+          extra = 
+            count(read | (((uint64_t) -1) << len_extra));
+          ret += extra;
+        } else {
+          uint64_t len_extra = (i + 3 <= tree.size() ? 6 : tree.size() - (i - 3));
+          uint64_t read = tree.get_int(i - 3, len_extra);
+          extra = 
+            count(read | (((uint64_t) -1) << len_extra));
+          ret += extra;
+        }
       }
       return ret;
     }
 
+
   public:
     uint64_t height() { return height_tree; } 
-    uint64_t size() { return m; }
+    uint64_t size() {
+      uint64_t m = 0;
+      sdsl::rank_support_rrr<1, 127> rank(&l);
+      return rank(l.size());
+    }
     uint64_t size_matrix() { return rmsize; }
     uint64_t size_comp_subtrees() { return P.size(); }
     uint64_t size_maximal_subtrees() { return maximal_subtrees; }
@@ -372,7 +403,7 @@ class k2tree_bp_sdsl_idems {
 //      bit_vector bv_occ_PoL(tree.size(), 0);
 //      for(const auto& bit : count_PoL) bv_occ_PoL[bit] = 1;
 //      occ_PoL = bit_vector_1(bv_occ_PoL);
-//      util::init_support(rank1_occ_PoL, &occ_PoL);
+//      util::init_support(rank_occ_PoL, &occ_PoL);
 
       // clean, is useless
       count_PoL.clear();
@@ -405,11 +436,21 @@ class k2tree_bp_sdsl_idems {
       }
 
       prefix_sum.push_back(sum);
-      blocks = int_vector<>(prefix_sum.size(), -1);
+      blocks = int_vector<>(prefix_sum.size(), 0);
       for(uint64_t block = 0; block < prefix_sum.size(); block++) {
         blocks[block] = prefix_sum[block];
       }
       util::bit_compress(blocks);
+
+      uint64_t __sum__ = 0;
+      for(uint64_t bit = 0; bit < tree.size(); bit++) {
+        uint64_t __check__ = rank_occ_PoL(bit);
+        if(__check__ != __sum__) {
+          cout << bit << " " << __check__ << " " << __sum__ << endl;
+          return;
+        }
+        __sum__ += (bit + 3 >= tree.size() ? 0 : (tree[bit] & tree[bit + 1] & !tree[bit + 2] & !tree[bit + 3]) == 1);
+      }
     }
 
     uint64_t access_PoL(uint64_t i) {
@@ -454,7 +495,7 @@ class k2tree_bp_sdsl_idems {
           child_visit.push({0, r, c});
 
           if(P.size() > 0 && i < tree.size() - 4 && tree[i + 1] && !tree[i + 2] && !tree[i + 3]) {
-            //uint64_t read_PoL = (i >= occ_PoL.size() ? PoL.size() : rank1_occ_PoL(i));
+            //uint64_t read_PoL = (i >= tree.size() ? PoL.size() : rank_occ_PoL(i));
             uint64_t read_PoL = rank_occ_PoL(i);
 #ifdef DEBUG
             cout << "Is a pointer or a leaf?" << endl;
@@ -578,7 +619,7 @@ class k2tree_bp_sdsl_idems {
       while(pa < tree.size() && pb < B.tree.size()) {
         // see if there is a pointer A
         if(P.size() > 0 && pa < tree.size() - 4 && tree[pa] && tree[pa + 1] && !tree[pa + 2] && !tree[pa + 3]) {
-          uint64_t read_PoL = (pa >= occ_PoL.size() ? PoL.size() : rank1_occ_PoL(pa));
+          uint64_t read_PoL = (pa >= tree.size() ? PoL.size() : rank_occ_PoL(pa));
           if(!(read_PoL >= PoL.size() || access_PoL(read_PoL) == 0)) {
             uint64_t read_P = rank1_PoL(read_PoL);
 
@@ -589,7 +630,7 @@ class k2tree_bp_sdsl_idems {
         }
         // see if there is a pointer B
         if(B.P.size() > 0 && pb < B.tree.size() - 4 && B.tree[pb] && B.tree[pb + 1] && !B.tree[pb + 2] && !B.tree[pb + 3]) {
-            uint64_t read_PoL = (pb >= B.occ_PoL.size() ? B.PoL.size() : B.rank1_occ_PoL(pb));
+            uint64_t read_PoL = (pb >= B.tree.size() ? B.PoL.size() : B.rank_occ_PoL(pb));
             if(!(read_PoL >= B.PoL.size() || B.PoL[read_PoL] == 0)) {
               uint64_t read_P = B.rank1_PoL(read_PoL);
 
@@ -657,7 +698,7 @@ class k2tree_bp_sdsl_idems {
           while(counter > 0) {
             // see if there is a pointer A
             if(P.size() > 0 && pa < tree.size() - 4 && tree[pa] && tree[pa + 1] && !tree[pa + 2] && !tree[pa + 3]) {
-              uint64_t read_PoL = (pa >= occ_PoL.size() ? PoL.size() : rank1_occ_PoL(pa));
+              uint64_t read_PoL = (pa >= tree.size() ? PoL.size() : rank_occ_PoL(pa));
               if(!(read_PoL >= PoL.size() || access_PoL(read_PoL) == 0)) {
                 uint64_t read_P = rank1_PoL(read_PoL);
 
@@ -713,7 +754,7 @@ class k2tree_bp_sdsl_idems {
           while(counter > 0) {
             // see if there is a pointer B
             if(B.P.size() > 0 && pb < B.tree.size() - 4 && B.tree[pb] && B.tree[pb + 1] && !B.tree[pb + 2] && !B.tree[pb + 3]) {
-              uint64_t read_PoL = (pb >= B.occ_PoL.size() ? B.PoL.size() : B.rank1_occ_PoL(pb));
+              uint64_t read_PoL = (pb >= B.tree.size() ? B.PoL.size() : B.rank_occ_PoL(pb));
               if(!(read_PoL >= B.PoL.size() || B.PoL[read_PoL] == 0)) {
                 uint64_t read_P = B.rank1_PoL(read_PoL);
 
@@ -806,7 +847,7 @@ class k2tree_bp_sdsl_idems {
 
           if(P.size() > 0 && i < tree.size() - 4 && tree[i + 1] && !tree[i + 2] && !tree[i + 3]) {
             uint64_t read_PoL = rank_occ_PoL(i);
-            //uint64_t read_PoL = (i >= occ_PoL.size() ? PoL.size() : rank1_occ_PoL(i));
+            //uint64_t read_PoL = (i >= tree.size() ? PoL.size() : rank_occ_PoL(i));
 #ifdef DEBUG
             cout << "Is a pointer or a leaf?" << endl;
             cout << "Current pos in PoL: " << read_PoL << endl;
@@ -948,7 +989,6 @@ class k2tree_bp_sdsl_idems {
         A_tree++;
         if(B_flag) return;
         B_tree = B.tree_support.find_close(B_tree);
-        //uint64_t rank_p_B = B.rank1_occ_PoL(B_tree);
         uint64_t rank_p_B = B.rank_occ_PoL(B_tree);
         uint64_t pointer = B.rank1_PoL(rank_p_B);
         B_L = B_lvs_sk + B.rank0_PoL(rank_p_B) * 4 + (pointer > 0 ? pre_skips_B[pointer - 1] : 0);
@@ -968,7 +1008,6 @@ class k2tree_bp_sdsl_idems {
         if(A_flag) return;
 
         A_tree = tree_support.find_close(A_tree);
-        //uint64_t rank_p_A = rank1_occ_PoL(A_tree);
         uint64_t rank_p_A = rank_occ_PoL(A_tree);
         uint64_t pointer = rank1_PoL(rank_p_A);
         A_L = A_lvs_sk + rank0_PoL(rank_p_A) * 4 + (pointer > 0 ? pre_skips_A[pointer - 1] : 0);
@@ -1016,16 +1055,13 @@ class k2tree_bp_sdsl_idems {
 #ifdef DEBUG
         cout << "POINTER IN A" << endl;
 #endif
-        //uint64_t read_PoL = (A_tree >= occ_PoL.size() ? PoL.size() : rank1_occ_PoL(A_tree));
-        uint64_t read_PoL = rank_occ_PoL(A_tree);
+        uint64_t read_PoL = (A_tree >= tree.size() ? PoL.size() : rank_occ_PoL(A_tree));
         if(!(read_PoL >= PoL.size() || access_PoL(read_PoL) == 0)) {
           uint64_t read_P = rank1_PoL(read_PoL);
 
           uint64_t where_to_move = select_real_tree(P[read_P] + 1);
 
-          //uint64_t rank_p_here = rank1_occ_PoL(A_tree);
           uint64_t rank_p_here = rank_occ_PoL(A_tree);
-          //uint64_t rank_p_to_move = rank1_occ_PoL(where_to_move);
           uint64_t rank_p_to_move = rank_occ_PoL(where_to_move);
 
           uint64_t pointer_A = rank1_PoL(rank_p_here);
@@ -1044,15 +1080,12 @@ class k2tree_bp_sdsl_idems {
 #ifdef DEBUG
         cout << "POINTER IN B" << endl;
 #endif
-        //uint64_t read_PoL = (B_tree >= B.occ_PoL.size() ? B.PoL.size() : B.rank1_occ_PoL(B_tree));
-        uint64_t read_PoL = B.rank_occ_PoL(B_tree);
+        uint64_t read_PoL = (B_tree >= B.tree.size() ? B.PoL.size() : B.rank_occ_PoL(B_tree));
         if(!(read_PoL >= B.PoL.size() || B.PoL[read_PoL] == 0)) {
           uint64_t read_P = B.rank1_PoL(read_PoL);
 
           uint64_t where_to_move = B.select_real_tree(B.P[read_P] + 1);
-          //uint64_t rank_p_here = B.rank1_occ_PoL(B_tree);
           uint64_t rank_p_here = B.rank_occ_PoL(B_tree);
-          //uint64_t rank_p_to_move = B.rank1_occ_PoL(where_to_move);
           uint64_t rank_p_to_move = B.rank_occ_PoL(where_to_move);
 
           uint64_t pointer_B = B.rank1_PoL(rank_p_here);
@@ -1231,17 +1264,11 @@ class k2tree_bp_sdsl_idems {
       P.serialize(out);
 
       //occ_PoL.serialize(out);
-      //rank1_occ_PoL.serialize(out);
+      //rank_occ_PoL.serialize(out);
 
       PoL.serialize(out);
 
-      rank1_PoL.serialize(out);
-      rank0_PoL.serialize(out);
-      select1_PoL.serialize(out);
-      select0_PoL.serialize(out);
-
       real_tree.serialize(out);
-      select_real_tree.serialize(out);
 
       tree.serialize(out);
       tree_support.serialize(out);
@@ -1261,16 +1288,16 @@ class k2tree_bp_sdsl_idems {
       P.load(in);
 
       //occ_PoL.load(in);
-      //rank1_occ_PoL.load(in, &occ_PoL);
+      //rank_occ_PoL.load(in, &occ_PoL);
 
       PoL.load(in);
-      rank1_PoL.load(in, &PoL);
-      rank0_PoL.load(in, &PoL);
-      select1_PoL.load(in, &PoL);
-      select0_PoL.load(in, &PoL);
+      sdsl::util::init_support(rank1_PoL, &PoL);
+      sdsl::util::init_support(rank0_PoL, &PoL);
+      sdsl::util::init_support(select1_PoL, &PoL);
+      sdsl::util::init_support(select0_PoL, &PoL);
 
       real_tree.load(in);
-      select_real_tree.load(in, &real_tree);
+      sdsl::util::init_support(select_real_tree, &real_tree);
 
       tree.load(in);
       tree_support.load(in, &tree);
@@ -1289,7 +1316,7 @@ class k2tree_bp_sdsl_idems {
              size_in_bytes(PoL) * 8 + size_in_bytes(rank1_PoL) * 8 + size_in_bytes(rank0_PoL) * 8 +
              size_in_bytes(select1_PoL) * 8 + size_in_bytes(select0_PoL) * 8 + 
              size_in_bytes(blocks) * 8;
-             //size_in_bytes(occ_PoL) * 8 + size_in_bytes(rank1_occ_PoL) * 8;
+             //size_in_bytes(occ_PoL) * 8 + size_in_bytes(rank_occ_PoL) * 8;
 #ifdef INFO_SPACE
       cout << "BITS" << endl;
       cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << " " << (double) 100 *  (size_in_bytes(tree)) * 8 / total << endl;
@@ -1298,7 +1325,7 @@ class k2tree_bp_sdsl_idems {
       cout << "  P           : " << (size_in_bytes(P)) * 8 << " " << (double) 100 *  (size_in_bytes(P)) * 8 / total << endl;
       cout << "  Real P      : " << (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 << " " << (double) 100 *  (size_in_bytes(real_tree) + size_in_bytes(select_real_tree)) * 8 / total << endl;
       cout << "  PoL         : " << (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 << " " << (double) 100 *  (size_in_bytes(PoL) + size_in_bytes(rank1_PoL) + size_in_bytes(rank0_PoL) + size_in_bytes(select1_PoL) + size_in_bytes(select0_PoL)) * 8 / total << endl;
-      //cout << "  occ_PoL     : " << (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 << " " << (double) 100 *  (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 / total << endl;
+      //cout << "  occ_PoL     : " << (size_in_bytes(occ_PoL) + size_in_bytes(rank_occ_PoL)) * 8 << " " << (double) 100 *  (size_in_bytes(occ_PoL) + size_in_bytes(rank1_occ_PoL)) * 8 / total << endl;
       cout << "  occ_PoL (bs): " << (size_in_bytes(blocks)) * 8 << " " << (double) 100 * (size_in_bytes(blocks)) * 8 / total << endl;
 #endif
       return total;
@@ -1333,7 +1360,7 @@ class k2tree_bp_sdsl_idems {
       }
       cout << endl;
 //      cout << "OPoL: ";
-//      for(uint64_t i = 0; i < k2tree.occ_PoL.size(); i++) {
+//      for(uint64_t i = 0; i < k2tree.tree.size(); i++) {
 //        cout << k2tree.occ_PoL[i];
 //      }
 //      cout << endl;
