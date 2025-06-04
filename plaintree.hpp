@@ -100,7 +100,7 @@ struct plain_tree {
       for(uint32_t B_x = 0; B_x < leaves; B_x++) {
         l.set(l[A_L + B_x] | B.l[B_L + B_x], (A_L + B_x) * 4, 4);
       }
-      C.l.concat(l, A_L, A_L + leaves);
+      C.l.concat(l, A_L * 4, A_L + leaves * 4);
 
       A_tree = A_pos;
       B_tree = B_pos;
@@ -120,7 +120,7 @@ struct plain_tree {
         }
 
         C.tree.concat(B.tree);
-        C.l.concat(B.l, B_L, B_L + leaves);
+        C.l.concat(B.l, B_L * 4, B_L + leaves * 4);
 
         B_tree = B_pos - 1;
         B_L += leaves;

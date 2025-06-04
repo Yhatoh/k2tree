@@ -1027,7 +1027,11 @@ class k2tree_bp_sdsl_idems {
           C.tree.push_back(1);
           C.tree.push_back(0);
           C.tree.push_back(0);
-          C.l.push_back(aux_l);
+          C.l.push_back(0);
+          C.l.push_back(0);
+          C.l.push_back(0);
+          C.l.push_back(0);
+          C.l.set(aux_l, 0, 4);
         } else {
           C.reserve(2, 0);
           C.tree.push_back(1);
