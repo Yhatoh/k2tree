@@ -111,9 +111,7 @@ class k2tree_bp_sdsl {
       //l = pd.l;
       bit_vector aux_l = bit_vector(pd.l.size() * 4, 0);
       for(uint64_t i = 0; i < pd.l.size(); i++) {
-        for(uint64_t j = 0; j < 4; j++) {
-          if(pd.l[i] & (1 << j)) aux_l[i * 4 + j] = 1;
-        }
+        aux_l[i] = pd.l[i];
       }
       l = bv_leaves(aux_l);
       last_bit_l = l.size();
@@ -831,18 +829,25 @@ class k2tree_bp_sdsl {
       }
 
       C.tree.reserve(2 + C_0.tree.size() + C_1.tree.size() + C_2.tree.size() + C_3.tree.size());
-      C.tree.push_back(1);
-      C.tree.insert(C.tree.end(), C_0.tree.begin(), C_0.tree.end());
-      C.tree.insert(C.tree.end(), C_1.tree.begin(), C_1.tree.end());
-      C.tree.insert(C.tree.end(), C_2.tree.begin(), C_2.tree.end());
-      C.tree.insert(C.tree.end(), C_3.tree.begin(), C_3.tree.end());
-      C.tree.push_back(0);
-
       C.l.reserve(C_0.l.size() + C_1.l.size() + C_2.l.size() + C_3.l.size());
-      C.l.insert(C.l.end(), C_0.l.begin(), C_0.l.end());
-      C.l.insert(C.l.end(), C_1.l.begin(), C_1.l.end());
-      C.l.insert(C.l.end(), C_2.l.begin(), C_2.l.end());
-      C.l.insert(C.l.end(), C_3.l.begin(), C_3.l.end());
+      C.tree.push_back(1);
+
+      C.tree.concat(C_0.tree);
+      C.l.concat(C_0.l);
+      C_0.destroy();
+
+      C.tree.concat(C_1.tree);
+      C.l.concat(C_1.l);
+      C_1.destroy();
+
+      C.tree.concat(C_2.tree);
+      C.l.concat(C_2.l);
+      C_2.destroy();
+
+      C.tree.concat(C_3.tree);
+      C.tree.push_back(0);
+      C.l.concat(C_3.l);
+      C_3.destroy();
 
       C.height_tree = curr_h;
       C.m = m;
