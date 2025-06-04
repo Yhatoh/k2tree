@@ -41,6 +41,7 @@ int main(int argc, char** argv) {
 
   plain_tree result;
   m1.mul(m2, result);
+  cout << result.tree.size() << std::endl;
   k2tree_bp_sdsl<2, rrr_vector<127>> m3(result);
   
 

@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <vector>
 
+#define print_bit(x, l) for(uint64_t __x__ = 0; __x__  < l; __x__++) //cout << ((x & ((uint64_t) 1 << __x__)) != 0); cout << endl;
 
 struct bvector {
   std::vector< uint8_t > bv;
@@ -51,13 +52,13 @@ struct bvector {
   }
 
   void push_back(uint8_t bit) {
-    if(n / 8 >= bv.size()) {//full
+    if(n % 8 == 0) {//full
       bv.push_back(0);
     }
     const uint64_t integer = n / 8;
     const uint64_t i_int = n % 8;
     n++;
-    bv[integer] |= (1 << i_int);
+    bv[integer] |= (bit << i_int);
   }
 
   void destroy() {
@@ -65,18 +66,12 @@ struct bvector {
   }
 
   void concat(bvector& a, uint64_t i = 0, uint64_t end = 0) {
+    assert(i <= a.size());
+    assert(end <= a.size());
     if(end == 0) end = a.size();
-    while(i < end && 
-          !(i % 8 == 0 && size() % 8 == 0)) {
-      push_back(a.bv[i]);
-      i++;
+    for(uint64_t j = i; j < end; j++) {
+      push_back(a[j]);
     }
-
-    if(i == a.size()) return;
-
-    auto itr_begin = a.bv.begin() + (i / 8);
-    bv.insert(bv.end(), itr_begin, a.bv.end());
-    n += a.size() - i / 8;
   }
 
   void clear() {
