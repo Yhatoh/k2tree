@@ -8,11 +8,15 @@
 // sdsl includes
 #include <sdsl/int_vector.hpp>
 
+// local includes
+#include "bit_vector.hpp"
+
 using namespace sdsl;
 using namespace std;
 
 struct plain_tree {
-  vector< uint8_t > tree;
+  bvector tree;
+  //bvector l;
   vector< uint8_t > l;
 
   uint8_t height_tree;
@@ -37,7 +41,8 @@ struct plain_tree {
   }
   
   inline void destroy() {
-    vector< uint8_t >().swap(tree);
+    tree.destroy();
+    //l.destroy();
     vector< uint8_t >().swap(l);
   }
 
@@ -58,8 +63,11 @@ struct plain_tree {
     }
 
     if(B.tree.size() == 2) {
-      swap(C.tree, tree);
+      swap(C.tree.bv, tree.bv);
+      swap(C.tree.n, tree.n);
       swap(C.l, l);
+      //swap(C.l.bv, l.bv);
+      //swap(C.l.n, l.n);
       C.height_tree = height_tree;
       C.msize = msize;
       C.rmsize = rmsize;
@@ -68,8 +76,11 @@ struct plain_tree {
     }
 
     if(tree.size() == 2) {
-      swap(C.tree, B.tree);
+      swap(C.tree.bv, B.tree.bv);
+      swap(C.tree.n, B.tree.n);
       swap(C.l, B.l);
+      //swap(C.l.bv, B.l.bv);
+      //swap(C.l.n, B.l.n);
       C.height_tree = B.height_tree;
       C.msize = B.msize;
       C.rmsize = B.rmsize;
@@ -78,7 +89,7 @@ struct plain_tree {
     }
 
 #ifdef DEBUG
-    cout << "Starting algorithm" << endl;
+    //cout << "Starting algorithm" << endl;
 #endif
 
     uint8_t curr_depth = 0;
@@ -93,7 +104,7 @@ struct plain_tree {
       }
 
       // copy identical part and leaves
-      C.tree.insert(C.tree.end(), tree.begin() + A_tree, tree.begin() + A_pos);
+      C.tree.concat(tree, A_tree, A_pos);
       for(uint32_t B_x = 0; B_x < leaves; B_x++) {
         l[A_L + B_x] |= B.l[B_L + B_x];
       }
@@ -116,7 +127,8 @@ struct plain_tree {
           leaves += (counter == height_tree + 1);
         }
 
-        C.tree.insert(C.tree.end(), B.tree.begin() + B_tree, B.tree.begin() + B_pos);
+        C.tree.concat(B.tree, B_tree, B_pos);
+        //C.l.concat(B.l, B_L * 4, (B_L + leaves) * 4);
         C.l.insert(C.l.end(), B.l.begin() + B_L, B.l.begin() + B_L + leaves);
 
         B_tree = B_pos - 1;
@@ -135,7 +147,7 @@ struct plain_tree {
           leaves += (counter == height_tree + 1);
         }
 
-        C.tree.insert(C.tree.end(), tree.begin() + A_tree, tree.begin() + A_pos);
+        C.tree.concat(tree, A_tree, A_pos);
         C.l.insert(C.l.end(), l.begin() + A_L, l.begin() + A_L + leaves);
 
         A_tree = A_pos - 1;
@@ -149,25 +161,6 @@ struct plain_tree {
     C.rmsize = rmsize;
     C.m = m;
     return;
-  }
-
-  friend ostream& operator<<(ostream& os, const plain_tree &pt) {
-    cout << "HT  : " << (uint64_t) pt.height_tree << endl;
-    cout << "Tree: ";
-    for(uint64_t i = 0; i < pt.tree.size(); i++) {
-      cout << (pt.tree[i] ? "(" : ")");
-    }
-    cout << endl;
-    cout << "L   : ";
-    for(uint64_t i = 0; i < pt.l.size(); i++) {
-      for(uint8_t j = 0; j < 2 * 2; j++) {
-        uint8_t x = pt.l[i];
-        if(x & (1 << j)) cout << 1;
-        else cout << 0;
-      }
-      cout << " ";
-    }
-    return os;
   }
 };
 

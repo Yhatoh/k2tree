@@ -29,6 +29,8 @@
 using namespace std;
 using namespace sdsl;
 
+#define print_bit(x, l) for(uint64_t __x__ = 0; __x__  < l; __x__++) //cout << ((x & ((uint64_t) 1 << __x__)) != 0); cout << endl;
+
 // k2-tree
 // parameters:
 //   * k * k: amount of children per node
@@ -109,12 +111,17 @@ class k2tree_bp_sdsl {
       tree_support = bp_support_sada<>(&tree);
 
       //l = pd.l;
+//      bit_vector aux_l = bit_vector(pd.l.size(), 0);
+//      for(uint64_t i = 0; i < pd.l.size(); i++) {
+//        aux_l[i] = pd.l[i];
+//      }
       bit_vector aux_l = bit_vector(pd.l.size() * 4, 0);
       for(uint64_t i = 0; i < pd.l.size(); i++) {
         for(uint64_t j = 0; j < 4; j++) {
           if(pd.l[i] & (1 << j)) aux_l[i * 4 + j] = 1;
         }
       }
+
       l = bv_leaves(aux_l);
       last_bit_l = l.size();
 
@@ -149,9 +156,9 @@ class k2tree_bp_sdsl {
       msize = (1 << height_tree);
 
 #ifdef DEBUG
-      cout << "Real Size Matrix: " << rmsize << "x" << rmsize << endl;
-      cout << "Size Matrix: " << msize << "x" << msize << endl;
-      cout << "Height Tree: " << height_tree << endl;
+      //cout << "Real Size Matrix: " << rmsize << "x" << rmsize << endl;
+      //cout << "Size Matrix: " << msize << "x" << msize << endl;
+      //cout << "Height Tree: " << height_tree << endl;
 #endif // DEBUG
       
       vector< uint64_t > ia_ones;
@@ -165,7 +172,7 @@ class k2tree_bp_sdsl {
       // then i will generalize
 #ifdef DEBUG
       string balance_string = "";
-      cout << "Initialize recursion..." << endl;
+      //cout << "Initialize recursion..." << endl;
 #endif // DEBUG
       stack< tuple< uint64_t, uint64_t, uint64_t, uint64_t, vector< uint64_t >::iterator, uint64_t, bool, bool > > recursion;
       recursion.push(make_tuple(msize, 0, 0, 0, ia_ones.begin(), ia_ones.size(), true, false));
@@ -179,16 +186,16 @@ class k2tree_bp_sdsl {
       while(!recursion.empty()) {
         auto [subm_size, init_x, init_y, smin, ia, n_ia, one_one, flag] = recursion.top();
 #ifdef DEBUG
-        cout << "Recursion call..." << endl;
-        cout << "Current Sub Matrix Size: " << subm_size << " init x: " << init_x << " init y: " << init_y << " visited: " << flag << endl;
-        cout << " n ia: " << n_ia << endl;
+        //cout << "Recursion call..." << endl;
+        //cout << "Current Sub Matrix Size: " << subm_size << " init x: " << init_x << " init y: " << init_y << " visited: " << flag << endl;
+        //cout << " n ia: " << n_ia << endl;
 #endif // DEBUG
         recursion.pop();
         
         if(flag) {
 #ifdef DEBUG
           balance_string += ")";
-          cout << "Adding )..." << endl;
+          //cout << "Adding )..." << endl;
 #endif // DEBUG
           add_zero(bv_tree, pos_to_add);
           continue;
@@ -197,7 +204,7 @@ class k2tree_bp_sdsl {
         recursion.push(make_tuple(subm_size, init_x, init_y, smin, ia, n_ia, one_one, true));
 #ifdef DEBUG
         balance_string += "(";
-        cout << "Adding (..." << endl;
+        //cout << "Adding (..." << endl;
 #endif // DEBUG
         add_one(bv_tree, pos_to_add);
 
@@ -211,12 +218,12 @@ class k2tree_bp_sdsl {
 
           for(size_t i = 0; i < n_ia; i++) {
 #ifdef DEBUG
-            cout << "IA[" << i << "] = " << ia[i] << endl;
-            cout << "smin = " << smin << endl;
+            //cout << "IA[" << i << "] = " << ia[i] << endl;
+            //cout << "smin = " << smin << endl;
 #endif
             int64_t pos = (int64_t) (ia[i] - smin);
 #ifdef DEBUG
-            cout << "pos = " << pos << endl;
+            //cout << "pos = " << pos << endl;
 #endif
             t[pos] = 1;
           }
@@ -228,12 +235,12 @@ class k2tree_bp_sdsl {
 
 #ifdef DEBUG
           balance_string += "(";
-          cout << "Adding (..." << endl;
+          //cout << "Adding (..." << endl;
 #endif // DEBUG
           add_one(bv_tree, pos_to_add);
 #ifdef DEBUG
           balance_string += ")";
-          cout << "Adding )..." << endl;
+          //cout << "Adding )..." << endl;
 #endif // DEBUG
           add_zero(bv_tree, pos_to_add);
           continue;
@@ -277,8 +284,8 @@ class k2tree_bp_sdsl {
       last_bit_l = pos_to_add_l;
 
 #ifdef DEBUG
-      cout << "Result: " << balance_string << "..." << endl;
-      cout << "Init tree " << pos_to_add << "..." << endl;
+      //cout << "Result: " << balance_string << "..." << endl;
+      //cout << "Init tree " << pos_to_add << "..." << endl;
 #endif // DEBUG
       tree = bit_vector(pos_to_add, 0);
       for(const auto& bit : bv_tree) tree[bit] = 1;
@@ -294,19 +301,19 @@ class k2tree_bp_sdsl {
       util::init_support(rank_leaves, &leaves);
 
 #ifdef DEBUG
-      cout << "Init L " << pos_to_add_l << "..." << endl;
+      //cout << "Init L " << pos_to_add_l << "..." << endl;
 #endif // DEBUG
       auto aux_l = bit_vector(pos_to_add_l, 0);
       for(const auto& bit : bv_l) aux_l[bit] = 1;
       l = bv_leaves(aux_l);
 
 #ifdef DEBUG
-      cout << "Init Tree support..." << endl;
+      //cout << "Init Tree support..." << endl;
 #endif // DEBUG
       tree_support = bp_support_sada<>(&tree);
 
 #ifdef DEBUG
-      cout << "End k2tree building..." << endl;
+      //cout << "End k2tree building..." << endl;
 #endif // DEBUG
     }
 
@@ -322,30 +329,30 @@ class k2tree_bp_sdsl {
 
       for(uint64_t i = 1; i < tree.size(); i++) {
 #ifdef DEBUG
-        cout << "Total bits " << tree.size() << endl;
-        cout << "Reading " << i << " bit" << endl;
+        //cout << "Total bits " << tree.size() << endl;
+        //cout << "Reading " << i << " bit" << endl;
 #endif // DEBUG
         if(tree[i]) {
 #ifdef DEBUG
-          cout << "Start of subtree" << endl;
+          //cout << "Start of subtree" << endl;
 #endif // DEBUG
           auto [vis, r_, c_] = child_visit.top();
           r = r_ + (vis / k) * (1 << (height_tree - child_visit.size()));
           c = c_ + (vis % k) * (1 << (height_tree - child_visit.size()));
           child_visit.push({0, r, c});
 #ifdef DEBUG
-          cout << "Level " << child_visit.size() << endl;
-          cout << "Current row: " << r << " col: " << c << endl;
+          //cout << "Level " << child_visit.size() << endl;
+          //cout << "Current row: " << r << " col: " << c << endl;
 #endif // DEBUG
         } else {
 #ifdef DEBUG
-          cout << "End of subtree" << endl;
+          //cout << "End of subtree" << endl;
 #endif // DEBUG
           if(child_visit.size() == height_tree + 1) {
 #ifdef DEBUG
-            cout << "Last level, read real values" << endl;
-            cout << "L size " << l.size() << " ";
-            cout << "Current bit " << to_read_l << endl;
+            //cout << "Last level, read real values" << endl;
+            //cout << "L size " << l.size() << " ";
+            //cout << "Current bit " << to_read_l << endl;
 #endif // DEBUG
             for(uint64_t j = 0; j < k * k; j++) {
               if(l[to_read_l]) {
@@ -355,7 +362,7 @@ class k2tree_bp_sdsl {
               to_read_l++;
             }
 #ifdef DEBUG
-            cout << "Finishing reading real values" << endl;
+            //cout << "Finishing reading real values" << endl;
 #endif // DEBUG
           }
           child_visit.pop();
@@ -379,7 +386,7 @@ class k2tree_bp_sdsl {
 
       construct_im(csa, bp, 1);
 
-      cout << csa << "\n";
+      //cout << csa << "\n";
       uint64_t amount_idem_subtree = 0;
       uint64_t amount_of_groups = 0;
 
@@ -407,12 +414,12 @@ class k2tree_bp_sdsl {
             amount_idem_subtree++;
           } else {
 #ifdef DEBUG
-            cout << curr_start_pos << " " << curr_end_pos << "\n";
+            //cout << curr_start_pos << " " << curr_end_pos << "\n";
 
             for(uint64_t i = curr_start_pos; i < curr_end_pos + 1; i++) {
-              cout << (tree[i] ? "(" : ")");
+              //cout << (tree[i] ? "(" : ")");
             }
-            cout << endl;
+            //cout << endl;
 #endif // DEBUG
             amount_of_groups++;
           }
@@ -484,7 +491,7 @@ class k2tree_bp_sdsl {
       vector< uint64_t > bits_L;
 
 #ifdef DEBUG
-      cout << "Starting algorithm" << endl;
+      //cout << "Starting algorithm" << endl;
 #endif
 
       int64_t curr_depth = 0;
@@ -493,23 +500,23 @@ class k2tree_bp_sdsl {
         bool B_p = tree[B_tree];
         if(A_p && B_p && curr_depth < height_tree) {
 #ifdef DEBUG
-          cout << "Entering a subtree in both cases" << endl;
-          cout << " curr depth: " << curr_depth << endl;
-          cout << " pos tree A: " << A_tree << endl;
-          cout << " pos L    A: " << A_L << endl;
-          cout << " pos tree B: " << B_tree << endl;
-          cout << " pos L    B: " << B_L << endl;
+          //cout << "Entering a subtree in both cases" << endl;
+          //cout << " curr depth: " << curr_depth << endl;
+          //cout << " pos tree A: " << A_tree << endl;
+          //cout << " pos L    A: " << A_L << endl;
+          //cout << " pos tree B: " << B_tree << endl;
+          //cout << " pos L    B: " << B_L << endl;
 #endif
           A_tree++; B_tree++; curr_depth++;
           add_one(bits_tree, curr_bit_tree);
         } else if(A_p && B_p) {
 #ifdef DEBUG
-          cout << "Entering a subtree in both cases and last level" << endl;
-          cout << " curr depth: " << curr_depth << endl;
-          cout << " pos tree A: " << A_tree << endl;
-          cout << " pos L    A: " << A_L << endl;
-          cout << " pos tree B: " << B_tree << endl;
-          cout << " pos L    B: " << B_L << endl;
+          //cout << "Entering a subtree in both cases and last level" << endl;
+          //cout << " curr depth: " << curr_depth << endl;
+          //cout << " pos tree A: " << A_tree << endl;
+          //cout << " pos L    A: " << A_L << endl;
+          //cout << " pos tree B: " << B_tree << endl;
+          //cout << " pos L    B: " << B_L << endl;
 #endif
           add_one(bits_tree, curr_bit_tree);
           for(uint64_t i = 0; i < 4; i++) {
@@ -522,12 +529,12 @@ class k2tree_bp_sdsl {
           curr_depth++;
         } else if(tree[A_tree] && !B.tree[B_tree]) {
 #ifdef DEBUG
-          cout << "Copying subtree A" << endl;
-          cout << " curr depth: " << curr_depth << endl;
-          cout << " pos tree A: " << A_tree << endl;
-          cout << " pos L    A: " << A_L << endl;
-          cout << " pos tree B: " << B_tree << endl;
-          cout << " pos L    B: " << B_L << endl;
+          //cout << "Copying subtree A" << endl;
+          //cout << " curr depth: " << curr_depth << endl;
+          //cout << " pos tree A: " << A_tree << endl;
+          //cout << " pos L    A: " << A_L << endl;
+          //cout << " pos tree B: " << B_tree << endl;
+          //cout << " pos L    B: " << B_L << endl;
 #endif
           // end tree A
           uint64_t counter = 1;
@@ -556,12 +563,12 @@ class k2tree_bp_sdsl {
           B_tree++;
         } else if(!tree[A_tree] && B.tree[B_tree]) {
 #ifdef DEBUG
-          cout << "Copying subtree B" << endl;
-          cout << " curr depth: " << curr_depth << endl;
-          cout << " pos tree A: " << A_tree << endl;
-          cout << " pos L    A: " << A_L << endl;
-          cout << " pos tree B: " << B_tree << endl;
-          cout << " pos L    B: " << B_L << endl;
+          //cout << "Copying subtree B" << endl;
+          //cout << " curr depth: " << curr_depth << endl;
+          //cout << " pos tree A: " << A_tree << endl;
+          //cout << " pos L    A: " << A_L << endl;
+          //cout << " pos tree B: " << B_tree << endl;
+          //cout << " pos L    B: " << B_L << endl;
 #endif
           // end tree A
           A_tree++;
@@ -590,12 +597,12 @@ class k2tree_bp_sdsl {
           }
         } else {
 #ifdef DEBUG
-          cout << "Both submatrices 0" << endl;
-          cout << " curr depth: " << curr_depth << endl;
-          cout << " pos tree A: " << A_tree << endl;
-          cout << " pos L    A: " << A_L << endl;
-          cout << " pos tree B: " << B_tree << endl;
-          cout << " pos L    B: " << B_L << endl;
+          //cout << "Both submatrices 0" << endl;
+          //cout << " curr depth: " << curr_depth << endl;
+          //cout << " pos tree A: " << A_tree << endl;
+          //cout << " pos L    A: " << A_L << endl;
+          //cout << " pos tree B: " << B_tree << endl;
+          //cout << " pos L    B: " << B_L << endl;
 #endif
           add_zero(bits_tree, curr_bit_tree);
           A_tree++; B_tree++;
@@ -631,19 +638,20 @@ class k2tree_bp_sdsl {
              plain_tree &C,
              uint8_t curr_h) {
 #ifdef DEBUG
-      cout << "Current Height: " << curr_h << endl;
-      cout << "  Start Matrix A: " << A_tree << endl;
-      cout << "  Pos in L     A: " << A_L << endl;
-      cout << "  Start Matrix B: " << B_tree << endl;
-      cout << "  Pos in L     B: " << B_L << endl;
+      //cout << "Current Height: " << curr_h << endl;
+      //cout << "  Start Matrix A: " << A_tree << endl;
+      //cout << "  Pos in L     A: " << A_L << endl;
+      //cout << "  Start Matrix B: " << B_tree << endl;
+      //cout << "  Pos in L     B: " << B_L << endl;
 #endif
       // submatrix A or B full of 0's
       bool A_f0 = (!tree[A_tree + 1]);
       bool B_f0 = (!B.tree[B_tree + 1]);
       if(A_f0 && B_f0) { 
 #ifdef DEBUG
-        cout << "Full of 0's" << endl;
+        //cout << "Full of 0's" << endl;
 #endif
+        //cout << "----------" << endl;
         C.reserve(2, 0);
         C.tree.push_back(1);
         C.tree.push_back(0);
@@ -686,13 +694,14 @@ class k2tree_bp_sdsl {
       // base case, leave 
       if(curr_h == 1) { 
 #ifdef DEBUG
-        cout << "Leaf!" << endl;
+        //cout << "Leaf!" << endl;
 #endif
-        uint8_t aux_l = minimat_mul((A_L_S[A_L >> 2] ? A_L_S[A_L >> 2] : A_L_S[A_L >> 2] = l.get_int(A_L, 4)),
-                                    (B_L_S[B_L >> 2] ? B_L_S[B_L >> 2] : B_L_S[B_L >> 2] = B.l.get_int(B_L, 4)));
+        uint8_t aux_l =
+          minimat_mul((A_L_S[A_L >> 2] ? A_L_S[A_L >> 2] : A_L_S[A_L >> 2] = l.get_int(A_L, 4)),
+                      (B_L_S[B_L >> 2] ? B_L_S[B_L >> 2] : B_L_S[B_L >> 2] = B.l.get_int(B_L, 4)));
 
         if(aux_l > 0) {
-          C.reserve(4, 1);
+          C.reserve(4, 4);
           C.tree.push_back(1);
           C.tree.push_back(1);
           C.tree.push_back(0);
@@ -809,11 +818,11 @@ class k2tree_bp_sdsl {
 
       // merge results
 #ifdef DEBUG
-      cout << "MERGE" << endl;
-      cout << C_0 << endl;
-      cout << C_1 << endl;
-      cout << C_2 << endl;
-      cout << C_3 << endl;
+      //cout << "MERGE" << endl;
+      //cout << C_0 << endl;
+      //cout << C_1 << endl;
+      //cout << C_2 << endl;
+      //cout << C_3 << endl;
 #endif
       A_tree++;
       B_tree++;
@@ -831,18 +840,29 @@ class k2tree_bp_sdsl {
       }
 
       C.tree.reserve(2 + C_0.tree.size() + C_1.tree.size() + C_2.tree.size() + C_3.tree.size());
-      C.tree.push_back(1);
-      C.tree.insert(C.tree.end(), C_0.tree.begin(), C_0.tree.end());
-      C.tree.insert(C.tree.end(), C_1.tree.begin(), C_1.tree.end());
-      C.tree.insert(C.tree.end(), C_2.tree.begin(), C_2.tree.end());
-      C.tree.insert(C.tree.end(), C_3.tree.begin(), C_3.tree.end());
-      C.tree.push_back(0);
-
       C.l.reserve(C_0.l.size() + C_1.l.size() + C_2.l.size() + C_3.l.size());
+      C.tree.push_back(1);
+
+      C.tree.concat(C_0.tree);
+      //C.l.concat(C_0.l, 0, C_0.l.size());
       C.l.insert(C.l.end(), C_0.l.begin(), C_0.l.end());
+      C_0.destroy();
+
+      C.tree.concat(C_1.tree);
+      //C.l.concat(C_1.l, 0, C_1.l.size());
       C.l.insert(C.l.end(), C_1.l.begin(), C_1.l.end());
+      C_1.destroy();
+
+      C.tree.concat(C_2.tree);
+      //C.l.concat(C_2.l, 0, C_2.l.size());
       C.l.insert(C.l.end(), C_2.l.begin(), C_2.l.end());
+      C_2.destroy();
+
+      C.tree.concat(C_3.tree);
+      C.tree.push_back(0);
+      //C.l.concat(C_3.l, 0, C_3.l.size());
       C.l.insert(C.l.end(), C_3.l.begin(), C_3.l.end());
+      C_3.destroy();
 
       C.height_tree = curr_h;
       C.m = m;
@@ -894,32 +914,32 @@ class k2tree_bp_sdsl {
              size_in_bytes(l) * 8 +
              size_in_bytes(leaves) * 8 + size_in_bytes(rank_leaves) * 8;
 #ifdef INFO_SPACE
-      cout << "Leaves:" << rank_leaves(leaves.size()) << endl;
-      cout << "BITS" << endl;
-      cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << " " << (double) (size_in_bytes(tree)) * 8 / total<< endl;
-      cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << " " << (double) (size_in_bytes(tree_support)) * 8 / total << endl;
-      cout << "  L           : " << (size_in_bytes(l)) * 8 << " " << (double) (size_in_bytes(l)) * 8 / total << endl;
-      cout << "  leaves      : " << (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8  << " " << (double) (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 / total<< endl;
+      //cout << "Leaves:" << rank_leaves(leaves.size()) << endl;
+      //cout << "BITS" << endl;
+      //cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << " " << (double) (size_in_bytes(tree)) * 8 / total<< endl;
+      //cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << " " << (double) (size_in_bytes(tree_support)) * 8 / total << endl;
+      //cout << "  L           : " << (size_in_bytes(l)) * 8 << " " << (double) (size_in_bytes(l)) * 8 / total << endl;
+      //cout << "  leaves      : " << (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8  << " " << (double) (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 / total<< endl;
 #endif
       return total;
     }
 
     friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl<k, bv_leaves> &k2tree) {
-      cout << "HT  : " << k2tree.height_tree << endl;
-      cout << "Tree: ";
+      //cout << "HT  : " << k2tree.height_tree << endl;
+      //cout << "Tree: ";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {
-        cout << (k2tree.tree[i] ? "(" : ")");
+        //cout << (k2tree.tree[i] ? "(" : ")");
       }
-      cout << endl;
-      cout << "L   : ";
+      //cout << endl;
+      //cout << "L   : ";
       for(uint64_t i = 0; i < k2tree.l.size(); i++) {
         if(i % 4 == 0 && !(i == 0)) cout << " ";
         cout << (k2tree.l[i] ? "1" : "0");
       }
-      cout << endl;
-      cout << "Lvs : ";
+      //cout << endl;
+      //cout << "Lvs : ";
       for(uint64_t i = 0; i < k2tree.leaves.size(); i++) {
-        cout << (k2tree.leaves[i] ? "1" : "0");
+        //cout << (k2tree.leaves[i] ? "1" : "0");
       }
       return os;
     }

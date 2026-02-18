@@ -2,21 +2,12 @@
 #define UTIL_HPP
 
 #include <cstdint>
-#include <queue> 
-#include <vector>
-#include <utility>       
-#include <map>
 #include <cmath>
 #include <inttypes.h>
-#include <string>
-#include <tuple>
-
-#include <sdsl/vectors.hpp>
-#include <sdsl/bit_vectors.hpp>
-#include <sdsl/coder_elias_delta.hpp>
-#include <sdsl/suffix_arrays.hpp>
 
 using namespace std;
+
+#define dbg(var) cout << #var << " = " << var << endl;
 // from succint repository
 static const uint8_t debruijn64_mapping[64] = {
   63,  0, 58,  1, 59, 47, 53,  2,

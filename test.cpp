@@ -26,19 +26,18 @@ class Randomer {
     
 };
 
-Randomer pow2matrix(2, 10, 49);
-Randomer genmatrix(8024, 8024, 49);
-Randomer zerone(0, 10000, 49);
+Randomer pow2matrix(12, 12, 49);
+Randomer genmatrix(1024, 1024, 49);
+Randomer zerone(0, 10000);
 vector< pair< uint64_t, uint64_t > > gen_ones_matrix(uint64_t n, uint64_t m) {
     vector< pair< uint64_t, uint64_t > > ones;
     for (uint64_t i = 0; i < n; ++i) {
         for (uint64_t j = 0; j < m; ++j) {
-            if(zerone() > 9990) {
+            if(zerone() > 300) {
               ones.push_back({i, j});
             }
         }
     }
-    cout << ones.size() << endl;
     return ones;
 }
 
@@ -104,6 +103,8 @@ bool test_gen_matrices(uint64_t n, uint64_t m) {
 
   return true;
 }
+
+#define DEBUG
 
 bool test_multi_algorithm(uint64_t n, uint64_t m) {
   cout << "Generating a matrix of size " << n << "x"  << m << endl;
@@ -341,7 +342,7 @@ int main(int argc, char *argv[]) {
 
   if(f_multi) {
     cout << "Testing Multiply Algorithm" << endl;
-    for(uint64_t t = 0; t < 1; t++) {
+    for(uint64_t t = 0; t < 5; t++) {
       cout << "Test " << t + 1 << endl;
       test_multi_algorithm(genmatrix(), genmatrix());
       cout << "Passed!" << endl;
@@ -350,7 +351,7 @@ int main(int argc, char *argv[]) {
 
   if(f_multi_compr) {
     cout << "Testing Multiply Algorithm tree compression" << endl;
-    for(uint64_t t = 0; t < 1; t++) {
+    for(uint64_t t = 0; t < 5; t++) {
       cout << "Test " << t + 1 << endl;
       test_multi_algorithm_tree_comp(genmatrix(), genmatrix());
       cout << "Passed!" << endl;

@@ -4,3 +4,6 @@
 [submodule "sdsl-lite"]
 	path = sdsl-lite
 	url = git@github.com:vgteam/sdsl-lite.git
+[submodule "k2tree"]
+	path = k2tree
+	url = git@github.com:acubeLab/k2tree.git

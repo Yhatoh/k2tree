@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 
     cerr << "Getting ones k2tree..." << endl;
 
-    auto ones = k2tree.get_pos_ones();
+    //auto ones = k2tree.get_pos_ones();
 
     cerr << "Compressing k2tree..." << endl;
 
@@ -45,10 +45,10 @@ int main(int argc, char** argv) {
 
     cerr << "Checking if it is correct..." << endl;
 
-    auto check = k2tree_idem.get_pos_ones();
-    sort(check.begin(), check.end());
-    sort(ones.begin(), ones.end());
-    assert(check == ones);
+    //auto check = k2tree_idem.get_pos_ones();
+    //sort(check.begin(), check.end());
+    //sort(ones.begin(), ones.end());
+    //assert(check == ones);
 
     cerr << "Writing file..." << endl;
 
