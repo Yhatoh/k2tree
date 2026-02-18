@@ -1027,11 +1027,7 @@ class k2tree_bp_sdsl_idems {
           C.tree.push_back(1);
           C.tree.push_back(0);
           C.tree.push_back(0);
-          C.l.push_back(0);
-          C.l.push_back(0);
-          C.l.push_back(0);
-          C.l.push_back(0);
-          C.l.set(aux_l, 0, 4);
+          C.l.push_back(aux_l);
         } else {
           C.reserve(2, 0);
           C.tree.push_back(1);
@@ -1238,20 +1234,24 @@ class k2tree_bp_sdsl_idems {
       C.tree.push_back(1);
 
       C.tree.concat(C_0.tree);
-      C.l.concat(C_0.l);
+      //C.l.concat(C_0.l, 0, C_0.l.size());
+      C.l.insert(C.l.end(), C_0.l.begin(), C_0.l.end());
       C_0.destroy();
 
       C.tree.concat(C_1.tree);
-      C.l.concat(C_1.l);
+      //C.l.concat(C_1.l, 0, C_1.l.size());
+      C.l.insert(C.l.end(), C_1.l.begin(), C_1.l.end());
       C_1.destroy();
 
       C.tree.concat(C_2.tree);
-      C.l.concat(C_2.l);
+      //C.l.concat(C_2.l, 0, C_2.l.size());
+      C.l.insert(C.l.end(), C_2.l.begin(), C_2.l.end());
       C_2.destroy();
 
       C.tree.concat(C_3.tree);
       C.tree.push_back(0);
-      C.l.concat(C_3.l);
+      //C.l.concat(C_3.l, 0, C_3.l.size());
+      C.l.insert(C.l.end(), C_3.l.begin(), C_3.l.end());
       C_3.destroy();
 
       C.height_tree = curr_h;
