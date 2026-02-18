@@ -933,8 +933,8 @@ class k2tree_bp_sdsl {
       //cout << endl;
       //cout << "L   : ";
       for(uint64_t i = 0; i < k2tree.l.size(); i++) {
-        //if(i % 4 == 0 && !(i == 0)) //cout << " ";
-        //cout << (k2tree.l[i] ? "1" : "0");
+        if(i % 4 == 0 && !(i == 0)) cout << " ";
+        cout << (k2tree.l[i] ? "1" : "0");
       }
       //cout << endl;
       //cout << "Lvs : ";
