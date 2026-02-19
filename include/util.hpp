@@ -8,6 +8,8 @@
 using namespace std;
 
 #define dbg(var) cout << #var << " = " << var << endl;
+#define print_bit(x, l) for(uint64_t __x__ = 0; __x__  < l; __x__++) //cout << ((x & ((uint64_t) 1 << __x__)) != 0); cout << endl;
+
 // from succint repository
 static const uint8_t debruijn64_mapping[64] = {
   63,  0, 58,  1, 59, 47, 53,  2,

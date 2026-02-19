@@ -8,13 +8,6 @@
 #include <utility>
 #include <vector>
 
-// local includes
-#include "k2tree_bp_sdsl.hpp"
-#include "libsais/include/libsais64.h"
-#include "plaintree.hpp"
-#include "util.hpp"
-//#include "Modificacion-S18/s18/head/s18_vector.hpp"
-
 // sdsl includes
 #include <sdsl/construct.hpp>
 #include <sdsl/io.hpp>
@@ -25,10 +18,15 @@
 #include <sdsl/util.hpp>
 #include <sdsl/vectors.hpp>
 
+// local includes
+#include "k2_bp.hpp"
+#include "libsais64.h"
+#include "plaintree.hpp"
+#include "dac_vector_dp.hpp"
+#include "util.hpp"
+
 using namespace std;
 using namespace sdsl;
-
-#define print_bit(x, l) for(uint64_t __x__ = 0; __x__  < l; __x__++) cout << ((x & ((uint64_t) 1 << __x__)) != 0); cout << endl;
 
 struct union_find {
   vector< int64_t > e;
@@ -56,15 +54,9 @@ template< uint64_t k = 2,
           class bit_vector_1 = bit_vector, class rank1_1 = rank_support_v5<>,
           class bit_vector_2 = bit_vector, class rank1_2 = rank_support_v5<>, class rank0_2 = rank_support_v5<0>,
                                            class select1_2 = select_support_mcl<>, class select0_2 = select_support_mcl<0>, uint64_t b_size = 1280 >
-class k2tree_bp_sdsl_idems {
+class k2_cbp {
   private:
-    //int_vector<> P;
-    //vlc_vector<coder::fibonacci> P; // indo 5.2
-    //dac_vector<> P; // indo 5.1
     dac_vector_dp<rrr_vector<127>> P;
-
-    //bit_vector_1 occ_PoL;
-    //rank1_1 rank_occ_PoL;
 
     bit_vector_2 PoL;
     rank1_2 rank1_PoL;
@@ -169,9 +161,9 @@ class k2tree_bp_sdsl_idems {
     uint64_t size_maximal_subtrees() { return maximal_subtrees; }
     uint64_t nodes() { return (tree_support.find_close(0) + 1) / 2; }
 
-    k2tree_bp_sdsl_idems() {}
+    k2_cbp() {}
 
-    k2tree_bp_sdsl_idems(k2tree_bp_sdsl<k, bv_leaves> &k2tree) {
+    k2_cbp(k2_bp<k, bv_leaves> &k2tree) {
       k2tree.tree_support = bp_support_sada<>(&k2tree.tree);
       msize = k2tree.msize;
       rmsize = k2tree.rmsize;
@@ -564,7 +556,7 @@ class k2tree_bp_sdsl_idems {
     }
 
     /*
-    void binsum(const k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, plain_tree &C) {
+    void binsum(const k2_cbp< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, plain_tree &C) {
       uint64_t pa, pb;
       uint64_t pLa, pLb;
 
@@ -922,7 +914,7 @@ class k2tree_bp_sdsl_idems {
       }
     }
 
-    void mul(k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, plain_tree &C) {
+    void mul(k2_cbp< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, plain_tree &C) {
       vector< uint64_t > pre_skips_A(rank1_PoL(PoL.size()), 0);
       prefix_sum_skipped_values(pre_skips_A);
 
@@ -943,7 +935,7 @@ class k2tree_bp_sdsl_idems {
     void mul(uint64_t &A_tree,
              uint64_t &A_L, sdsl::int_vector<4> &A_L_S,
              vector< uint64_t > &pre_skips_A, uint64_t A_lvs_sk, bool A_flag,
-             k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1,
+             k2_cbp< k, bv_leaves, bit_vector_1, rank1_1,
                                          bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B,
              uint64_t &B_tree,
              uint64_t &B_L, sdsl::int_vector<4> &B_L_S,
@@ -1341,7 +1333,7 @@ class k2tree_bp_sdsl_idems {
       return total;
     }
 
-    friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl_idems< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2, b_size > &k2tree) {
+    friend ostream& operator<<(ostream& os, const k2_cbp< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2, b_size > &k2tree) {
       cout << "HT  : " << k2tree.height_tree << endl;
       cout << "Tree: ";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {

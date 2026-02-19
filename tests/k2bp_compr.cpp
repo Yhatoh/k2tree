@@ -2,8 +2,8 @@
 #include <iostream>
 
 // local includes
-#include "k2tree_bp_sdsl.hpp"
-#include "k2tree_bp_sdsl_idems.hpp"
+#include "k2_bp.hpp"
+#include "k2_cbp.hpp"
 
 int main(int argc, char** argv) {
   if(argc <= 1) {
@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 
     cerr << "Reading k2tree..." << endl;
 
-    k2tree_bp_sdsl<2, rrr_vector<127>> k2tree;
+    k2_bp<2, rrr_vector<127>> k2tree;
     k2tree.load(k2_file);
 
     k2_file.close();
@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 
     cerr << "Compressing k2tree..." << endl;
 
-    k2tree_bp_sdsl_idems<2, rrr_vector<127>,
+    k2_cbp<2, rrr_vector<127>,
       sd_vector<>, rank_support_sd<1>,
       sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
       select_support_sd<1>, select_support_sd<0>> k2tree_idem(k2tree);

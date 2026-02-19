@@ -4,8 +4,8 @@
 #include <set>
 
 // local includes
-#include "k2tree_bp_sdsl.hpp"
-//#include "k2tree_bp_sdsl_intL.hpp"
+#include "k2_bp.hpp"
+//#include "k2_bp_intL.hpp"
 
 int main(int argc, char** argv) {
 //  if(argc < 3) {
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 
     //cerr << "Building k2tree..." << endl;
 
-    k2tree_bp_sdsl<2, rrr_vector<127>> k2tree(ones, size);
+    k2_bp<2, rrr_vector<127>> k2tree(ones, size);
 
     //cerr << "Checking if it is correct..." << endl;
 

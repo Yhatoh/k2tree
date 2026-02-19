@@ -1,5 +1,4 @@
-#include "k2tree_bp_sdsl_idems.hpp"
-//#include "k2tree_bp.hpp"
+#include "k2_cbp.hpp"
 
 template< typename T, typename T2 >
 ostream& operator<<(ostream& os, const pair< T, T2 > &p) {
@@ -61,7 +60,7 @@ int main() {
   }
   }
 
-  k2tree_bp_sdsl_idems<2, rrr_vector<127>,
+  k2_cbp<2, rrr_vector<127>,
     sd_vector<>, rank_support_sd<1>,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> k2tree_idem(k2tree);

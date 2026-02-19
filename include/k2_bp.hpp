@@ -29,13 +29,11 @@
 using namespace std;
 using namespace sdsl;
 
-#define print_bit(x, l) for(uint64_t __x__ = 0; __x__  < l; __x__++) //cout << ((x & ((uint64_t) 1 << __x__)) != 0); cout << endl;
-
 // k2-tree
 // parameters:
 //   * k * k: amount of children per node
 template< uint64_t k = 2, class bv_leaves = bit_vector >
-class k2tree_bp_sdsl {
+class k2_bp {
   public:
     uint64_t height_tree;
 
@@ -101,20 +99,15 @@ class k2tree_bp_sdsl {
     uint64_t size_matrix() { return rmsize; }
     uint64_t nodes() { return tree.size() / 2; }
 
-    k2tree_bp_sdsl() {}
+    k2_bp() {}
     
-    k2tree_bp_sdsl(plain_tree &pd) {
+    k2_bp(plain_tree &pd) {
       tree = bit_vector(pd.tree.size(), 0);
       for(uint64_t i = 0; i < pd.tree.size(); i++) tree[i] = pd.tree[i];
 
       last_bit_t = tree.size();
       tree_support = bp_support_sada<>(&tree);
 
-      //l = pd.l;
-//      bit_vector aux_l = bit_vector(pd.l.size(), 0);
-//      for(uint64_t i = 0; i < pd.l.size(); i++) {
-//        aux_l[i] = pd.l[i];
-//      }
       bit_vector aux_l = bit_vector(pd.l.size() * 4, 0);
       for(uint64_t i = 0; i < pd.l.size(); i++) {
         for(uint64_t j = 0; j < 4; j++) {
@@ -142,7 +135,7 @@ class k2tree_bp_sdsl {
     }
 
 
-    k2tree_bp_sdsl(vector< pair< uint64_t, uint64_t > > &ones, uint64_t n = -1) { 
+    k2_bp(vector< pair< uint64_t, uint64_t > > &ones, uint64_t n = -1) { 
       m = ones.size();
 
       if(n == -1) {
@@ -174,7 +167,8 @@ class k2tree_bp_sdsl {
       string balance_string = "";
       //cout << "Initialize recursion..." << endl;
 #endif // DEBUG
-      stack< tuple< uint64_t, uint64_t, uint64_t, uint64_t, vector< uint64_t >::iterator, uint64_t, bool, bool > > recursion;
+      stack< tuple< uint64_t, uint64_t, uint64_t, uint64_t, vector< uint64_t >::iterator, uint64_t, bool, bool >,
+             vector< tuple< uint64_t, uint64_t, uint64_t, uint64_t, vector< uint64_t >::iterator, uint64_t, bool, bool > > > recursion;
       recursion.push(make_tuple(msize, 0, 0, 0, ia_ones.begin(), ia_ones.size(), true, false));
 
       vector< uint64_t > bv_tree;
@@ -318,7 +312,7 @@ class k2tree_bp_sdsl {
     }
 
     vector< pair< uint64_t, uint64_t > > get_pos_ones() {
-      stack< tuple< uint8_t, uint64_t, uint64_t > > child_visit;
+      stack< tuple< uint8_t, uint64_t, uint64_t >, std::vector< tuple< uint8_t, uint64_t, uint64_t > > > child_visit;
 
       uint64_t r, c;
       r = c = 0;
@@ -431,198 +425,7 @@ class k2tree_bp_sdsl {
       }
     }
 
-    /*
-    void binsum(const k2tree_bp_sdsl<k, bv_leaves>& B, plain_tree &C) {
-      uint64_t A_tree, B_tree;
-      uint64_t A_L, B_L;
-
-      A_tree = B_tree = A_L = B_L = 0;
-
-      if(B.tree.size() == 2 && tree.size() == 2) {
-        C.tree = bit_vector(2, 0);
-        C.tree[0] = 1;
-        C.height_tree = height_tree;
-        C.msize = msize;
-        C.rmsize = rmsize;
-        C.m = m;
-        return;
-      }
-
-      if(B.tree.size() == 2) {
-        C.tree = tree;
-        uint8_t num = l[0];
-        for(uint64_t A_L = 1; A_L < l.size(); A_L++) {
-          if(A_L % 4 == 0) {
-            C.l.push_back(num);
-            num = l[A_L];
-          } else {
-            num |= l[A_L] << (A_L % 4);
-          }
-        }
-        C.height_tree = height_tree;
-        C.msize = msize;
-        C.rmsize = rmsize;
-        C.m = m;
-        return;
-      }
-
-      if(tree.size() == 2) {
-        C.tree = B.tree;
-        uint8_t num = B.l[0];
-        for(uint64_t B_L = 1; B_L < B.l.size(); B_L++) {
-          if(B_L % 4 == 0) {
-            C.l.push_back(num);
-            num = B.l[B_L];
-          } else {
-            num |= B.l[B_L] << (B_L % 4);
-          }
-        }
-        C.l.push_back(num);
-        C.height_tree = B.height_tree;
-        C.msize = B.msize;
-        C.rmsize = B.rmsize;
-        C.m = B.m;
-        return;
-      }
-      uint64_t curr_bit_tree = 0;
-      vector< uint64_t > bits_tree;
-
-      uint64_t curr_bit_L = 0;
-      vector< uint64_t > bits_L;
-
-#ifdef DEBUG
-      //cout << "Starting algorithm" << endl;
-#endif
-
-      int64_t curr_depth = 0;
-      while(A_tree < tree.size() && B_tree < B.tree.size()) {
-        bool A_p = tree[A_tree];
-        bool B_p = tree[B_tree];
-        if(A_p && B_p && curr_depth < height_tree) {
-#ifdef DEBUG
-          //cout << "Entering a subtree in both cases" << endl;
-          //cout << " curr depth: " << curr_depth << endl;
-          //cout << " pos tree A: " << A_tree << endl;
-          //cout << " pos L    A: " << A_L << endl;
-          //cout << " pos tree B: " << B_tree << endl;
-          //cout << " pos L    B: " << B_L << endl;
-#endif
-          A_tree++; B_tree++; curr_depth++;
-          add_one(bits_tree, curr_bit_tree);
-        } else if(A_p && B_p) {
-#ifdef DEBUG
-          //cout << "Entering a subtree in both cases and last level" << endl;
-          //cout << " curr depth: " << curr_depth << endl;
-          //cout << " pos tree A: " << A_tree << endl;
-          //cout << " pos L    A: " << A_L << endl;
-          //cout << " pos tree B: " << B_tree << endl;
-          //cout << " pos L    B: " << B_L << endl;
-#endif
-          add_one(bits_tree, curr_bit_tree);
-          for(uint64_t i = 0; i < 4; i++) {
-            C.l |= (l[A_L] | B.l[B_L]) << 1;
-            A_L++;
-            B_L++;
-          }
-          A_tree++;
-          B_tree++;
-          curr_depth++;
-        } else if(tree[A_tree] && !B.tree[B_tree]) {
-#ifdef DEBUG
-          //cout << "Copying subtree A" << endl;
-          //cout << " curr depth: " << curr_depth << endl;
-          //cout << " pos tree A: " << A_tree << endl;
-          //cout << " pos L    A: " << A_L << endl;
-          //cout << " pos tree B: " << B_tree << endl;
-          //cout << " pos L    B: " << B_L << endl;
-#endif
-          // end tree A
-          uint64_t counter = 1;
-          while(counter > 0) {
-            if(tree[A_tree] && curr_depth < height_tree) {
-              add_one(bits_tree, curr_bit_tree);
-              counter++;
-              curr_depth++;
-            } else if(tree[A_tree]) {
-              add_one(bits_tree, curr_bit_tree);
-              for(uint64_t i = 0; i < 4; i++) {
-                C.l |= (l[A_L]) << 1;
-                A_L++;
-              }
-              counter++;
-              curr_depth++;
-            } else {
-              add_zero(bits_tree, curr_bit_tree);
-              counter--;
-              curr_depth--;
-            }
-            A_tree++;
-          }
-          
-          // end tree B
-          B_tree++;
-        } else if(!tree[A_tree] && B.tree[B_tree]) {
-#ifdef DEBUG
-          //cout << "Copying subtree B" << endl;
-          //cout << " curr depth: " << curr_depth << endl;
-          //cout << " pos tree A: " << A_tree << endl;
-          //cout << " pos L    A: " << A_L << endl;
-          //cout << " pos tree B: " << B_tree << endl;
-          //cout << " pos L    B: " << B_L << endl;
-#endif
-          // end tree A
-          A_tree++;
-          
-          // end tree B
-          uint64_t counter = 1;
-          while(counter > 0) {
-            if(B.tree[B_tree] && curr_depth < height_tree) {
-              add_one(bits_tree, curr_bit_tree);
-              counter++;
-              curr_depth++;
-            } else if(B.tree[B_tree]) {
-              add_one(bits_tree, curr_bit_tree);
-              for(uint64_t i = 0; i < 4; i++) {
-                C.l |= (B.l[B_L]) << 1;
-                B_L++;
-              }
-              counter++;
-              curr_depth++;
-            } else {
-              add_zero(bits_tree, curr_bit_tree);
-              counter--;
-              curr_depth--;
-            }
-            B_tree++;
-          }
-        } else {
-#ifdef DEBUG
-          //cout << "Both submatrices 0" << endl;
-          //cout << " curr depth: " << curr_depth << endl;
-          //cout << " pos tree A: " << A_tree << endl;
-          //cout << " pos L    A: " << A_L << endl;
-          //cout << " pos tree B: " << B_tree << endl;
-          //cout << " pos L    B: " << B_L << endl;
-#endif
-          add_zero(bits_tree, curr_bit_tree);
-          A_tree++; B_tree++;
-          curr_depth--;
-        }
-      }
-
-
-      C.tree = bit_vector(curr_bit_tree, 0);
-      for(auto bit : bits_tree) C.tree[bit] = 1;
-
-      C.height_tree = height_tree;
-      C.msize = msize;
-      C.rmsize = rmsize;
-      C.m = m;
-      return;
-    }
-*/
-
-    void mul(const k2tree_bp_sdsl<k, bv_leaves> &B, plain_tree &C) {
+    void mul(const k2_bp<k, bv_leaves> &B, plain_tree &C) {
       uint64_t A_tree, B_tree;
       A_tree = B_tree = 0;
       uint64_t A_L, B_L;
@@ -634,7 +437,7 @@ class k2tree_bp_sdsl {
     }
 
     void mul(uint64_t &A_tree, uint64_t &A_L, bool A_flag, sdsl::int_vector<4> &A_L_S,
-             const k2tree_bp_sdsl<k, bv_leaves> &B, uint64_t &B_tree, uint64_t &B_L, bool B_flag, sdsl::int_vector<4> &B_L_S,
+             const k2_bp<k, bv_leaves> &B, uint64_t &B_tree, uint64_t &B_L, bool B_flag, sdsl::int_vector<4> &B_L_S,
              plain_tree &C,
              uint8_t curr_h) {
 #ifdef DEBUG
@@ -924,7 +727,7 @@ class k2tree_bp_sdsl {
       return total;
     }
 
-    friend ostream& operator<<(ostream& os, const k2tree_bp_sdsl<k, bv_leaves> &k2tree) {
+    friend ostream& operator<<(ostream& os, const k2_bp<k, bv_leaves> &k2tree) {
       //cout << "HT  : " << k2tree.height_tree << endl;
       //cout << "Tree: ";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {

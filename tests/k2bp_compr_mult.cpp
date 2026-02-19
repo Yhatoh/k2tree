@@ -2,8 +2,7 @@
 #include <iostream>
 
 // local includes
-#include "k2tree_bp_sdsl.hpp"
-//#include "k2tree_bp_sdsl_intL.hpp"
+#include "k2_cbp.hpp"
 
 int main(int argc, char** argv) {
   if(argc <= 1 || argc > 3) {
@@ -23,7 +22,10 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  k2tree_bp_sdsl<2, rrr_vector<127>> m1;
+  k2_cbp<2, rrr_vector<127>,
+    sd_vector<>, rank_support_sd<1>,
+    sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
+    select_support_sd<1>, select_support_sd<0>> m1;
   m1.load(k2_1_file);
   k2_1_file.close();
 
@@ -35,13 +37,16 @@ int main(int argc, char** argv) {
     exit(2);
   }
 
-  k2tree_bp_sdsl<2, rrr_vector<127>> m2;
+  k2_cbp<2, rrr_vector<127>,
+    sd_vector<>, rank_support_sd<1>,
+    sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
+    select_support_sd<1>, select_support_sd<0>> m2;
   m2.load(k2_2_file);
   k2_2_file.close();
 
   plain_tree result;
   m1.mul(m2, result);
-  k2tree_bp_sdsl<2, rrr_vector<127>> m3(result);
+  k2_bp<2, rrr_vector<127>> m3(result);
   
 
   std::stringstream name_file;

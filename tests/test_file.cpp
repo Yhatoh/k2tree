@@ -4,8 +4,8 @@
 #include <utility>
 #include <string>
 
-#include "k2tree_bp_sdsl.hpp"
-#include "k2tree_bp_sdsl_idems.hpp"
+#include "k2_bp.hpp"
+#include "k2_cbp.hpp"
 
 #include <sdsl/rrr_vector.hpp>
 
@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 
     cout << amount << endl;
 
-    k2tree_bp_sdsl<2, sd_vector<>> k2tree(ones, stoi(n));
+    k2_bp<2, sd_vector<>> k2tree(ones, stoi(n));
 
     uint64_t amount_bits = k2tree.size_in_bits();
     cout << amount_bits << " " << (double) amount_bits / amount << " " << (double) amount_bits / k2tree.nodes() << endl;
@@ -47,11 +47,11 @@ int main(int argc, char** argv) {
     //sort(ret.begin(), ret.end());
     //assert(ret.size() == ones.size());
 
-//    k2tree_bp_sdsl_idems<2,
+//    k2_cbp<2,
 //                         rrr_vector<127>, rank_support_rrr<1, 127>,
 //                         rrr_vector<127>, rank_support_rrr<1, 127>, rank_support_rrr<0, 127>,
 //                                          select_support_rrr<1, 127>, select_support_rrr<0, 127>> k2tree_idems(k2tree);
-    k2tree_bp_sdsl_idems<2, sd_vector<>,
+    k2_cbp<2, sd_vector<>,
                          sd_vector<>, rank_support_sd<>,
                          sd_vector<>, rank_support_sd<>, rank_support_sd<0>,
                                           select_support_sd<1>, select_support_sd<0>> k2tree_idems(k2tree);

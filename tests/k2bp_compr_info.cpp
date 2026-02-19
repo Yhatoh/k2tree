@@ -2,7 +2,7 @@
 #include <iostream>
 
 // local includes
-#include "k2tree_bp_sdsl_idems.hpp"
+#include "k2_cbp.hpp"
 
 int main(int argc, char** argv) {
   if(argc <= 1) {
@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
       exit(1);
     }
 
-    k2tree_bp_sdsl_idems<2, rrr_vector<127>,
+    k2_cbp<2, rrr_vector<127>,
       sd_vector<>, rank_support_sd<1>,
       sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
       select_support_sd<1>, select_support_sd<0>> k2tree;

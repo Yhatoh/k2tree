@@ -2,8 +2,7 @@
 #include <iostream>
 
 // local includes
-#include "k2tree_bp_sdsl.hpp"
-//#include "k2tree_bp_sdsl_intL.hpp"
+#include "k2_bp.hpp"
 
 int main(int argc, char** argv) {
   if(argc <= 1) {
@@ -24,7 +23,7 @@ int main(int argc, char** argv) {
       exit(1);
     }
 
-    k2tree_bp_sdsl<2, rrr_vector<127>> k2tree;
+    k2_bp<2, rrr_vector<127>> k2tree;
     k2tree.load(k2_file);
 
     k2_file.close();

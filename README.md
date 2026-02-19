@@ -1,4 +1,4 @@
-# Depth-First Representation of a $k^2$-Tree
+# Balanced Parenthesis for $k^2$-trees
 
 This project implements a depth-first representation of a $k^2$-tree, an efficient data structure for representing sparse matrices. It leverages two external libraries: **sdsl-lite** for succinct data structures and **libsais** for efficient suffix array construction.
 
@@ -8,6 +8,7 @@ This project implements a depth-first representation of a $k^2$-tree, an efficie
 - **sdsl-lite** – choose one of the following versions:
   - [simongog's version](https://github.com/simongog/sdsl-lite)
   - [vgteam's version](https://github.com/vgteam/sdsl-lite) (includes support for rle-vector and more updated features)
+  - [xxsds's version](https://github.com/xxsds/sdsl-lite/) (is like a sdsl-lite v3)
 - **libsais** – available at [libsais repository](https://github.com/IlyaGrebnov/libsais)
 
 ## Compilation
@@ -96,7 +97,7 @@ You can multiply two $k^2$-trees using the following commands:
 - **For Uncompressed Trees:**
 
   ```bash
-  path_to_folder/k2bp_mult_1.x path_to_k2bp1/matrix1.txt.k2bp path_to_k2bp2/matrix2.txt.k2bp
+  path_to_folder/k2bp_mult.x path_to_k2bp1/matrix1.txt.k2bp path_to_k2bp2/matrix2.txt.k2bp
   ```
 
 - **For Compressed Trees:**
@@ -104,8 +105,3 @@ You can multiply two $k^2$-trees using the following commands:
   ```bash
   path_to_folder/k2bp_compr_mult.x path_to_k2bpi1/matrix1.txt.k2bpi path_to_k2bpi2/matrix2.txt.k2bpi
   ```
-
-## Acknowledgments
-
-- [sdsl-lite](https://github.com/simongog/sdsl-lite) and [vgteam's sdsl-lite](https://github.com/vgteam/sdsl-lite)
-- [libsais](https://github.com/IlyaGrebnov/libsais)

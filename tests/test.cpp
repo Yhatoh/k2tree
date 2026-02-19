@@ -1,5 +1,5 @@
-#include "k2tree_bp_sdsl.hpp"
-#include "k2tree_bp_sdsl_idems.hpp"
+#include "k2_bp.hpp"
+#include "k2_cbp.hpp"
 
 #include <algorithm>
 #include <fstream>
@@ -46,7 +46,7 @@ bool test_pow_2_matrices(uint64_t p) {
   vector< pair< uint64_t, uint64_t> > ones = gen_ones_matrix(1 << p, 1 << p);
 
   cout << "Generating k2 tree" << endl;
-  k2tree_bp_sdsl<2, bit_vector> k2tree(ones);
+  k2_bp<2, bit_vector> k2tree(ones);
 
   cout << "Getting ones from k2 tree" << endl;
 
@@ -58,7 +58,7 @@ bool test_pow_2_matrices(uint64_t p) {
     assert(check[i] == ones[i]);
   }
 
-  k2tree_bp_sdsl_idems<2, bit_vector,
+  k2_cbp<2, bit_vector,
     sd_vector<>, rank_support_sd<1>,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> k2tree_idem(k2tree);
@@ -80,8 +80,8 @@ bool test_gen_matrices(uint64_t n, uint64_t m) {
   vector< pair< uint64_t, uint64_t> > ones = gen_ones_matrix(n, m);
 
   cout << "Generating k2 tree" << endl;
-  k2tree_bp_sdsl<2, bit_vector> k2tree(ones);
-  k2tree_bp_sdsl_idems<2, bit_vector,
+  k2_bp<2, bit_vector> k2tree(ones);
+  k2_cbp<2, bit_vector,
     sd_vector<>, rank_support_sd<1>,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> k2tree_idem(k2tree);
@@ -141,14 +141,14 @@ bool test_multi_algorithm(uint64_t n, uint64_t m) {
 #endif
 
   cout << "Generating A" << endl;
-  k2tree_bp_sdsl<2, rrr_vector<127>> A(ones);
+  k2_bp<2, rrr_vector<127>> A(ones);
   cout << "Generating B" << endl;
-  k2tree_bp_sdsl<2, rrr_vector<127>> B(ones2);
+  k2_bp<2, rrr_vector<127>> B(ones2);
 
   cout << "C = A * B" << endl;
   plain_tree aux_C;
   A.mul(B, aux_C);
-  k2tree_bp_sdsl<2, rrr_vector<127>> C(aux_C);
+  k2_bp<2, rrr_vector<127>> C(aux_C);
 
 #ifdef DEBUG
   auto check = C.get_pos_ones();
@@ -200,15 +200,15 @@ bool test_multi_algorithm_tree_comp(uint64_t n, uint64_t m) {
 #endif
 
   cout << "Generating A" << endl;
-  k2tree_bp_sdsl<2, bit_vector> A(ones);
-  k2tree_bp_sdsl_idems<2, bit_vector,
+  k2_bp<2, bit_vector> A(ones);
+  k2_cbp<2, bit_vector,
     sd_vector<>, rank_support_sd<1>,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> A_idem(A);
 
   cout << "Generating B" << endl;
-  k2tree_bp_sdsl<2, bit_vector> B(ones2);
-  k2tree_bp_sdsl_idems<2, bit_vector,
+  k2_bp<2, bit_vector> B(ones2);
+  k2_cbp<2, bit_vector,
     sd_vector<>, rank_support_sd<1>,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> B_idem(A);
@@ -216,9 +216,9 @@ bool test_multi_algorithm_tree_comp(uint64_t n, uint64_t m) {
   cout << "C = A * B" << endl;
   plain_tree aux_C;
   A.mul(B, aux_C);
-  k2tree_bp_sdsl<2, bit_vector> C(aux_C);
+  k2_bp<2, bit_vector> C(aux_C);
   cout << "Compressing C" << endl;
-  k2tree_bp_sdsl_idems<2, bit_vector,
+  k2_cbp<2, bit_vector,
     sd_vector<>, rank_support_sd<1>,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> C_idem(C);
@@ -244,7 +244,7 @@ bool test_write_load(uint64_t n, uint64_t m) {
   vector< pair< uint64_t, uint64_t> > ones = gen_ones_matrix(n, m);
 
   cout << "Generating k2 tree" << endl;
-  k2tree_bp_sdsl<2, bit_vector> k2tree(ones);
+  k2_bp<2, bit_vector> k2tree(ones);
   {
     cout << "Writing on file" << endl;
     ofstream file_k2_write;
@@ -255,7 +255,7 @@ bool test_write_load(uint64_t n, uint64_t m) {
 
     ifstream file_k2_read;
     file_k2_read.open("matrix.k2");
-    k2tree_bp_sdsl<2, bit_vector> k2tree_load;
+    k2_bp<2, bit_vector> k2tree_load;
     k2tree_load.load(file_k2_read);
     file_k2_read.close();
 
@@ -269,7 +269,7 @@ bool test_write_load(uint64_t n, uint64_t m) {
     }
   }
   cout << "Compressing k2 tree" << endl;
-  k2tree_bp_sdsl_idems<2, bit_vector,
+  k2_cbp<2, bit_vector,
     sd_vector<>, rank_support_sd<1>,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> k2tree_idem(k2tree);
@@ -283,7 +283,7 @@ bool test_write_load(uint64_t n, uint64_t m) {
 
     ifstream file_k2_read;
     file_k2_read.open("matrix.k2");
-    k2tree_bp_sdsl<2, bit_vector> k2tree_load;
+    k2_bp<2, bit_vector> k2tree_load;
     k2tree_load.load(file_k2_read);
     file_k2_read.close();
 

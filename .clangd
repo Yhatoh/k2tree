@@ -1,0 +1,7 @@
+# .clangd
+CompileFlags:
+  Add:
+    - -std=c++20
+    - -I/mnt/c/Users/gacar/OneDrive - University of Pisa/Escritorio/k2tree/sdsl-lite/include
+    - -I/mnt/c/Users/gacar/OneDrive - University of Pisa/Escritorio/k2tree/libsais/include
+    - -I/mnt/c/Users/gacar/OneDrive - University of Pisa/Escritorio/k2tree/include
