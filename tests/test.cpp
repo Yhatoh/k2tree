@@ -59,10 +59,8 @@ bool test_pow_2_matrices(uint64_t p) {
   }
 
   k2_cbp<2, bit_vector,
-    sd_vector<>, rank_support_sd<1>,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> k2tree_idem(k2tree);
-  //cout << k2tree_idem << endl;
   auto check2 = k2tree_idem.get_pos_ones();
 
   assert(check2.size() == ones.size());
@@ -82,7 +80,6 @@ bool test_gen_matrices(uint64_t n, uint64_t m) {
   cout << "Generating k2 tree" << endl;
   k2_bp<2, bit_vector> k2tree(ones);
   k2_cbp<2, bit_vector,
-    sd_vector<>, rank_support_sd<1>,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> k2tree_idem(k2tree);
 
@@ -202,14 +199,12 @@ bool test_multi_algorithm_tree_comp(uint64_t n, uint64_t m) {
   cout << "Generating A" << endl;
   k2_bp<2, bit_vector> A(ones);
   k2_cbp<2, bit_vector,
-    sd_vector<>, rank_support_sd<1>,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> A_idem(A);
 
   cout << "Generating B" << endl;
   k2_bp<2, bit_vector> B(ones2);
   k2_cbp<2, bit_vector,
-    sd_vector<>, rank_support_sd<1>,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> B_idem(A);
 
@@ -219,7 +214,6 @@ bool test_multi_algorithm_tree_comp(uint64_t n, uint64_t m) {
   k2_bp<2, bit_vector> C(aux_C);
   cout << "Compressing C" << endl;
   k2_cbp<2, bit_vector,
-    sd_vector<>, rank_support_sd<1>,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> C_idem(C);
 
@@ -270,7 +264,6 @@ bool test_write_load(uint64_t n, uint64_t m) {
   }
   cout << "Compressing k2 tree" << endl;
   k2_cbp<2, bit_vector,
-    sd_vector<>, rank_support_sd<1>,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> k2tree_idem(k2tree);
   {

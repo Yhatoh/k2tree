@@ -24,7 +24,6 @@ int main(int argc, char** argv) {
     }
 
     k2_cbp<2, rrr_vector<127>,
-      sd_vector<>, rank_support_sd<1>,
       sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
       select_support_sd<1>, select_support_sd<0>> k2tree;
     k2tree.load(k2_file);

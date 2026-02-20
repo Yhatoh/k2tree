@@ -51,7 +51,6 @@ struct union_find {
 //   * k * k: amount of children per node
 template< uint64_t k = 2,
           class bv_leaves = bit_vector,
-          class bit_vector_1 = bit_vector, class rank1_1 = rank_support_v5<>,
           class bit_vector_2 = bit_vector, class rank1_2 = rank_support_v5<>, class rank0_2 = rank_support_v5<0>,
                                            class select1_2 = select_support_mcl<>, class select0_2 = select_support_mcl<0>, uint64_t b_size = 1280 >
 class k2_cbp {
@@ -391,11 +390,6 @@ class k2_cbp {
       //P = dac_vector<>(aux);
       P = dac_vector_dp<rrr_vector<127>>(aux);
 
-//      bit_vector bv_occ_PoL(tree.size(), 0);
-//      for(const auto& bit : count_PoL) bv_occ_PoL[bit] = 1;
-//      occ_PoL = bit_vector_1(bv_occ_PoL);
-//      util::init_support(rank_occ_PoL, &occ_PoL);
-
       // clean, is useless
       count_PoL.clear();
 
@@ -556,7 +550,7 @@ class k2_cbp {
     }
 
     /*
-    void binsum(const k2_cbp< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, plain_tree &C) {
+    void binsum(const k2_cbp< k, bv_leaves, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, plain_tree &C) {
       uint64_t pa, pb;
       uint64_t pLa, pLb;
 
@@ -914,7 +908,7 @@ class k2_cbp {
       }
     }
 
-    void mul(k2_cbp< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, plain_tree &C) {
+    void mul(k2_cbp< k, bv_leaves, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B, plain_tree &C) {
       vector< uint64_t > pre_skips_A(rank1_PoL(PoL.size()), 0);
       prefix_sum_skipped_values(pre_skips_A);
 
@@ -935,8 +929,7 @@ class k2_cbp {
     void mul(uint64_t &A_tree,
              uint64_t &A_L, sdsl::int_vector<4> &A_L_S,
              vector< uint64_t > &pre_skips_A, uint64_t A_lvs_sk, bool A_flag,
-             k2_cbp< k, bv_leaves, bit_vector_1, rank1_1,
-                                         bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B,
+             k2_cbp< k, bv_leaves, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2 >& B,
              uint64_t &B_tree,
              uint64_t &B_L, sdsl::int_vector<4> &B_L_S,
              vector< uint64_t > &pre_skips_B, uint64_t B_lvs_sk, bool B_flag,
@@ -1333,7 +1326,7 @@ class k2_cbp {
       return total;
     }
 
-    friend ostream& operator<<(ostream& os, const k2_cbp< k, bv_leaves, bit_vector_1, rank1_1, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2, b_size > &k2tree) {
+    friend ostream& operator<<(ostream& os, const k2_cbp< k, bv_leaves, bit_vector_2, rank1_2, rank0_2, select1_2, select0_2, b_size > &k2tree) {
       cout << "HT  : " << k2tree.height_tree << endl;
       cout << "Tree: ";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {
