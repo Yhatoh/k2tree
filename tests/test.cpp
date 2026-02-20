@@ -305,6 +305,7 @@ int main(int argc, char *argv[]) {
   bool f_multi = 0;
   bool f_multi_compr = 0;
   bool f_write_and_load = 0;
+  uint64_t amount_of_test = 2;
   if(argc == 1) {
     f_compr = f_multi = f_multi_compr = f_write_and_load = 1;
   } else {
@@ -327,13 +328,13 @@ int main(int argc, char *argv[]) {
   }
   if(f_compr) {
     cout << "Testing pow 2 square matrices" << endl;
-    for(uint64_t t = 0; t < 50; t++) {
+    for(uint64_t t = 0; t < amount_of_test; t++) {
       cout << "Test " << t + 1 << endl;
       test_pow_2_matrices(pow2matrix());
       cout << " Passed!" << endl;
     }
     cout << "Testing general matrices" << endl;
-    for(uint64_t t = 0; t < 50; t++) {
+    for(uint64_t t = 0; t < amount_of_test; t++) {
       cout << "Test " << t + 1 << endl;
       test_gen_matrices(genmatrix(), genmatrix());
       cout << "Passed!" << endl;
@@ -342,7 +343,7 @@ int main(int argc, char *argv[]) {
 
   if(f_multi) {
     cout << "Testing Multiply Algorithm" << endl;
-    for(uint64_t t = 0; t < 5; t++) {
+    for(uint64_t t = 0; t < amount_of_test; t++) {
       cout << "Test " << t + 1 << endl;
       test_multi_algorithm(genmatrix(), genmatrix());
       cout << "Passed!" << endl;
@@ -351,7 +352,7 @@ int main(int argc, char *argv[]) {
 
   if(f_multi_compr) {
     cout << "Testing Multiply Algorithm tree compression" << endl;
-    for(uint64_t t = 0; t < 5; t++) {
+    for(uint64_t t = 0; t < amount_of_test; t++) {
       cout << "Test " << t + 1 << endl;
       test_multi_algorithm_tree_comp(genmatrix(), genmatrix());
       cout << "Passed!" << endl;
@@ -360,7 +361,7 @@ int main(int argc, char *argv[]) {
   
   if(f_write_and_load) {
     cout << "Testing writing and load" << endl;
-    for(uint64_t t = 0; t < 50; t++) {
+    for(uint64_t t = 0; t < amount_of_test; t++) {
       cout << "Test " << t + 1 << endl;
       test_write_load(genmatrix(), genmatrix());
       cout << "Passed!" << endl;

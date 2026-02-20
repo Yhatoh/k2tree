@@ -1,113 +1,75 @@
 // c++ includes
+#include <algorithm>
 #include <iostream>
-#include <random>
-#include <vector>
+
+// sdsl includes
+#include <sdsl/int_vector.hpp>
 
 // local includes
 #include "bit_vector.hpp"
 
-std::vector<bool> random_bit_vector(size_t n, size_t seed = 42) {
-  static std::mt19937 gen(seed);        // Mersenne Twister RNG
-  static std::bernoulli_distribution d(0.5); // 50/50 chance for 0 or 1
-
-  std::vector<bool> bits(n);
-  for (size_t i = 0; i < n; ++i) {
-    bits[i] = d(gen);
-  }
+sdsl::bit_vector random_bit_vector(size_t n, size_t seed = 42) {
+  sdsl::bit_vector bits(n, 0);
+  sdsl::util::set_random_bits(bits, seed);
   return bits;
 }
 
 #define N 100000
 #define NN 100
 int main() {
-
   {
-    std::cout << "testing push_back" << std::endl;
+    std::cout << "testing access" << std::endl;
     auto bv_test = random_bit_vector(N);
 
-    block_vector bv;
-
-    for(auto x : bv_test) {
-      bv.push_back(x);
+    bvector bv_min;
+    for(size_t i = 0; i < N; i++) {
+      bv_min.push_back(bv_test[i]);
     }
 
-    bv.init_scan();
+    for(size_t i = 0; i < N; i++) {
+      assert(bv_min[i] == bv_test[i]);
+    }
+    std::cout << "test passed" << std::endl;
+  }
+  {
+    std::cout << "testing read int" << std::endl;
+    auto bv_test = random_bit_vector(N);
 
-    for(size_t i = 0; i < bv_test.size(); i++) {
-      auto obtain = bv.read();
-      bv.move();
-      assert(obtain == bv_test[i]);
+    bvector bv_min;
+    for(size_t i = 0; i < N; i++) {
+      bv_min.push_back(bv_test[i]);
     }
 
-    std::cout << "all test passed" << std::endl;
+    for(size_t i = 0; i < N - 64; i++) {
+      uint64_t len = (std::rand() % 64) + 1;
+      auto res = bv_min.read_int(i, len);
+      assert(res == bv_test.get_int(i, len));
+    }
+    std::cout << "test passed" << std::endl;
   }
   {
     std::cout << "testing concat" << std::endl;
 
-    std::vector< bool > bv_big_test;
-    std::vector< bool > bv_test = random_bit_vector(N);
-
-    block_vector bv_big;
-    for(auto x : bv_test) bv_big.push_back(x);
-    bv_big_test.insert(bv_big_test.end(), bv_test.begin(), bv_test.end());
-
-    for(size_t i = 0; i < NN; i++) {
-      block_vector bv_small;
-      std::vector< bool > bv_test = random_bit_vector(N);
-
-      for(auto x : bv_test) bv_small.push_back(x);
-      bv_big_test.insert(bv_big_test.end(), bv_test.begin(), bv_test.end());
-
-      bv_big.concat(bv_small);
-    }
-
-    bv_big.init_scan();
-    for(size_t i = 0; i < bv_big_test.size(); i++) {
-      assert(bv_big.read() == bv_big_test[i]);
-      bv_big.move();
-    }
-
-    std::cout << "all test passed" << std::endl;
-  }
-  {
-    std::cout << "testing copy" << std::endl;
-
-    std::vector< bool > bv_big_test;
-    std::vector< bool > bv_test = random_bit_vector(N);
-
-    block_vector bv_big;
-    for(auto x : bv_test) bv_big.push_back(x);
-    bv_big_test.insert(bv_big_test.end(), bv_test.begin(), bv_test.end());
-
-    for(size_t i = 0; i < NN; i++) {
-      block_vector bv_small;
-      std::vector< bool > bv_test = random_bit_vector(N);
-
-      for(auto x : bv_test) bv_small.push_back(x);
-      bv_big_test.insert(bv_big_test.end(), bv_test.begin(), bv_test.end());
-
-      bv_big.concat(bv_small);
-    }
-
-    for(size_t i = 0; i < N; i++) {
-      size_t x = 0 + (std::rand() % bv_big_test.size());
-      size_t y = x + (std::rand() % (bv_big_test.size() - x));
-      bv_big.init_scan();
-      for(size_t i = 0; i < x; i++) bv_big.move();
-      bv_big.save();
-
-      for(size_t i = x; i < y; i++) bv_big.move();
-
-      block_vector bv_range;
-      bv_big.append_in(bv_range);
-
-      bv_range.init_scan();
-      for(size_t i = x; i <= y; i++) {
-        assert(bv_range.read() == bv_big_test[i]);
-        bv_range.move();
+    bvector bv_min;
+    std::vector< bool > test_bool;
+    for(size_t j = 0; j < NN; j++) {
+      auto bv_test = random_bit_vector(N);
+      bvector bv_min2;
+      for(size_t i = 0; i < N; i++) {
+        bv_min2.push_back(bv_test[i]);
       }
+
+      size_t x = (std::rand() % bv_test.size());
+      size_t len = (std::rand() % (std::min((uint64_t) 64, (uint64_t) bv_test.size() - x)) + 1);
+      for(size_t i = 0; i < len; i++) {
+        test_bool.push_back(bv_test[x + i]);
+      }
+      bv_min.concat(bv_min2, x, x + len);
     }
 
-    std::cout << "all test passed" << std::endl;
+    for(size_t i = 0; i < test_bool.size(); i++) {
+      assert(bv_min[i] == test_bool[i]);
+    }
+    std::cout << "test passed" << std::endl;
   }
 }

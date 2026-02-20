@@ -33,7 +33,7 @@ gen_rand_matrix:
 	g++ tests/gen_rand_matrix.cpp $(FLAGS) -o gen_rand_matrix.x
 
 test_block_vector:
-	g++ -I include tests/test_block_vector.cpp -O3 -o test_block_vector.x
+	g++ -I $(SDSL_DIR)/include -I include -L $(SDSL_DIR)/lib -m64 tests/test_block_vector.cpp -O3 -lsdsl -ldivsufsort -ldivsufsort64 -o test_block_vector.x
 
 all: k2bp_build k2bp_comp_build k2bp_info k2bp_comp_info k2bp_mult_1 k2bp_mult_comp_1 k2bp_rand_test gen_rand_matrix
 
