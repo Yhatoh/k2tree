@@ -48,7 +48,7 @@ int main() {
     }
   }
 
-  k2tree_bp_sdsl<2, rrr_vector<127>> k2tree(ones);
+  k2_bp<2, rrr_vector<127>> k2tree(ones);
   cout << k2tree << "\n";
   {
   auto check = k2tree.get_pos_ones();

@@ -100,14 +100,18 @@ struct plain_tree {
       for(; A_pos < tree.size() && B_pos < B.tree.size(); A_pos++, B_pos++) {
         if(tree[A_pos] != B.tree[B_pos]) break;
         curr_depth += (tree[A_pos] ? 1 : -1);
-        leaves += (curr_depth == height_tree + 1);
+        //leaves += (curr_depth == height_tree + 1);
+        if(curr_depth == height_tree + 1) {
+          l[A_L + leaves] |= B.l[B_L + leaves];
+          leaves++;
+        }
       }
 
       // copy identical part and leaves
       C.tree.concat(tree, A_tree, A_pos);
-      for(uint32_t B_x = 0; B_x < leaves; B_x++) {
-        l[A_L + B_x] |= B.l[B_L + B_x];
-      }
+      //for(uint32_t B_x = 0; B_x < leaves; B_x++) {
+      //  l[A_L + B_x] |= B.l[B_L + B_x];
+      //}
       C.l.insert(C.l.end(), l.begin() + A_L, l.begin() + A_L + leaves);
 
       A_tree = A_pos;

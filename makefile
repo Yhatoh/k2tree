@@ -14,6 +14,9 @@ k2bp_build:
 k2bp_comp_build:
 	g++ -I $(SDSL_DIR)/include -I include -I libsais/include -L $(SDSL_DIR)/lib tests/k2bp_compr.cpp $(LIBSAIS_DIR)/liblibsais.a -lsdsl -ldivsufsort -ldivsufsort64 $(FLAGS) -o k2bp_compr.x
 
+simpler_test:
+	g++ -I $(SDSL_DIR)/include -I include -I libsais/include -L $(SDSL_DIR)/lib tests/simpler_test.cpp $(LIBSAIS_DIR)/liblibsais.a -lsdsl -ldivsufsort -ldivsufsort64 $(FLAGS) -o simpler_test.x
+
 k2bp_info:
 	g++ -I $(SDSL_DIR)/include -I include -I libsais/include  -L $(SDSL_DIR)/lib tests/k2bp_info.cpp $(LIBSAIS_DIR)/liblibsais.a -lsdsl -ldivsufsort -ldivsufsort64 $(FLAGS) -DINFO_SPACE -o k2bp_info.x
 

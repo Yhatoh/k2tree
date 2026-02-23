@@ -1,3 +1,5 @@
+#ifndef DEBUG_MODE
+#define DEBUG_MODE
 #include<bits/stdc++.h>
 using namespace std;
 
@@ -145,3 +147,4 @@ void debug_out(Head H, Tail... T) {
 }
  
 #define debug(...) cerr << "[" << #__VA_ARGS__ << "]:", debug_out(__VA_ARGS__)
+#endif
