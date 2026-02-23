@@ -22,7 +22,6 @@
 #include "k2_bp.hpp"
 #include "libsais64.h"
 #include "plaintree.hpp"
-#include "dac_vector_dp.hpp"
 #include "util.hpp"
 
 using namespace std;
@@ -55,7 +54,8 @@ template< uint64_t k = 2,
                                            class select1_2 = select_support_mcl<>, class select0_2 = select_support_mcl<0>, uint64_t b_size = 1280 >
 class k2_cbp {
   private:
-    dac_vector_dp<rrr_vector<127>> P;
+    //dac_vector_dp<rrr_vector<127>> P;
+    dac_vector<> P;
 
     bit_vector_2 PoL;
     rank1_2 rank1_PoL;
@@ -387,8 +387,8 @@ class k2_cbp {
 
 
       //P = vlc_vector<coder::fibonacci>(aux);
-      //P = dac_vector<>(aux);
-      P = dac_vector_dp<rrr_vector<127>>(aux);
+      P = dac_vector<>(aux);
+      //P = dac_vector_dp<rrr_vector<127>>(aux);
 
       // clean, is useless
       count_PoL.clear();
@@ -1280,24 +1280,28 @@ class k2_cbp {
       in.read((char*) &last_bit_t, sizeof(uint64_t));
       in.read((char*) &last_bit_l, sizeof(uint64_t));
 
-      P.load(in);
+      //P.load(in);
+      sdsl::load(P, in);
 
       //occ_PoL.load(in);
       //rank_occ_PoL.load(in, &occ_PoL);
 
-      PoL.load(in);
+      //PoL.load(in);
+      sdsl::load(PoL, in);
       sdsl::util::init_support(rank1_PoL, &PoL);
       sdsl::util::init_support(rank0_PoL, &PoL);
       sdsl::util::init_support(select1_PoL, &PoL);
       sdsl::util::init_support(select0_PoL, &PoL);
 
-      real_tree.load(in);
+      //real_tree.load(in);
+      sdsl::load(real_tree, in);
       sdsl::util::init_support(select_real_tree, &real_tree);
 
       tree.load(in);
       tree_support.load(in, &tree);
 
-      l.load(in);
+      //l.load(in);
+      sdsl::load(l, in);
       blocks.load(in);
     }
 

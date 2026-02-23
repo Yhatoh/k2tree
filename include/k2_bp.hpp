@@ -15,10 +15,8 @@
 #include <sdsl/int_vector.hpp>
 #include <sdsl/bp_support_sada.hpp>
 #include <sdsl/util.hpp>
-#include <sdsl/lcp.hpp>
 #include <sdsl/construct.hpp>
 #include <sdsl/io.hpp>
-#include <sdsl/lcp_support_sada.hpp>
 #include <sdsl/rrr_vector.hpp>
 #include <sdsl/sd_vector.hpp>
 
@@ -371,59 +369,59 @@ class k2_bp {
       return ret;
     }
 
-    void identical_trees() {
-      csa_sada<> csa;
-      string bp = "";
-      for(uint64_t i = 0; i < tree.size(); i++) {
-        bp += (tree[i] ? "(" : ")");
-      }
-
-      construct_im(csa, bp, 1);
-
-      //cout << csa << "\n";
-      uint64_t amount_idem_subtree = 0;
-      uint64_t amount_of_groups = 0;
-
-      vector< uint64_t > pointer_or_not(tree.size(), -1);
-
-      for(uint64_t pos_bp = 2; pos_bp < csa.size(); pos_bp++) {
-        // only considering suffix starting with (
-        if(tree[csa[pos_bp]]) {
-          
-          uint64_t curr_start_pos = csa[pos_bp];
-          uint64_t curr_end_pos = tree_support.find_close(curr_start_pos);
-
-          uint64_t prev_start_pos = csa[pos_bp - 1];
-          uint64_t prev_end_pos = tree_support.find_close(prev_start_pos);
-
-          // ignoring leaves
-          if(curr_end_pos - curr_start_pos <= 3) continue;
-
-          if(curr_end_pos - curr_start_pos == prev_end_pos - prev_start_pos) {
-            if(curr_start_pos < prev_start_pos) {
-              pointer_or_not[prev_start_pos] = (pointer_or_not[curr_start_pos] == -1 ? curr_start_pos : pointer_or_not[curr_start_pos]);
-            } else {
-              pointer_or_not[curr_start_pos] = (pointer_or_not[prev_start_pos] == -1 ? prev_start_pos : pointer_or_not[prev_start_pos]);
-            }
-            amount_idem_subtree++;
-          } else {
-#ifdef DEBUG
-            //cout << curr_start_pos << " " << curr_end_pos << "\n";
-
-            for(uint64_t i = curr_start_pos; i < curr_end_pos + 1; i++) {
-              //cout << (tree[i] ? "(" : ")");
-            }
-            //cout << endl;
-#endif // DEBUG
-            amount_of_groups++;
-          }
-
-        } else {
-          // ( < ) = true
-          break;
-        }
-      }
-    }
+//    void identical_trees() {
+//      csa_sada<> csa;
+//      string bp = "";
+//      for(uint64_t i = 0; i < tree.size(); i++) {
+//        bp += (tree[i] ? "(" : ")");
+//      }
+//
+//      construct_im(csa, bp, 1);
+//
+//      //cout << csa << "\n";
+//      uint64_t amount_idem_subtree = 0;
+//      uint64_t amount_of_groups = 0;
+//
+//      vector< uint64_t > pointer_or_not(tree.size(), -1);
+//
+//      for(uint64_t pos_bp = 2; pos_bp < csa.size(); pos_bp++) {
+//        // only considering suffix starting with (
+//        if(tree[csa[pos_bp]]) {
+//          
+//          uint64_t curr_start_pos = csa[pos_bp];
+//          uint64_t curr_end_pos = tree_support.find_close(curr_start_pos);
+//
+//          uint64_t prev_start_pos = csa[pos_bp - 1];
+//          uint64_t prev_end_pos = tree_support.find_close(prev_start_pos);
+//
+//          // ignoring leaves
+//          if(curr_end_pos - curr_start_pos <= 3) continue;
+//
+//          if(curr_end_pos - curr_start_pos == prev_end_pos - prev_start_pos) {
+//            if(curr_start_pos < prev_start_pos) {
+//              pointer_or_not[prev_start_pos] = (pointer_or_not[curr_start_pos] == -1 ? curr_start_pos : pointer_or_not[curr_start_pos]);
+//            } else {
+//              pointer_or_not[curr_start_pos] = (pointer_or_not[prev_start_pos] == -1 ? prev_start_pos : pointer_or_not[prev_start_pos]);
+//            }
+//            amount_idem_subtree++;
+//          } else {
+//#ifdef DEBUG
+//            //cout << curr_start_pos << " " << curr_end_pos << "\n";
+//
+//            for(uint64_t i = curr_start_pos; i < curr_end_pos + 1; i++) {
+//              //cout << (tree[i] ? "(" : ")");
+//            }
+//            //cout << endl;
+//#endif // DEBUG
+//            amount_of_groups++;
+//          }
+//
+//        } else {
+//          // ( < ) = true
+//          break;
+//        }
+//      }
+//    }
 
     void mul(const k2_bp<k, bv_leaves> &B, plain_tree &C) {
       uint64_t A_tree, B_tree;
@@ -701,13 +699,15 @@ class k2_bp {
       in.read((char*) &last_bit_t, sizeof(uint64_t));
       in.read((char*) &last_bit_l, sizeof(uint64_t));
 
-      leaves.load(in);
+      sdsl::load(leaves, in);
+      //leaves.load(in);
       rank_leaves.load(in, &leaves);
 
       tree.load(in);
       tree_support.load(in, &tree);
 
-      l.load(in);
+      //l.load(in);
+      sdsl::load(l, in);
     }
 
     uint64_t size_in_bits() {
