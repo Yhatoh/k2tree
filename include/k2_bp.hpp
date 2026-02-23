@@ -719,10 +719,10 @@ class k2_bp {
 #ifdef INFO_SPACE
       cout << "Leaves:" << rank_leaves(leaves.size()) << endl;
       cout << "BITS" << endl;
-      cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << " " << (double) (size_in_bytes(tree)) * 8 / total<< endl;
-      cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << " " << (double) (size_in_bytes(tree_support)) * 8 / total << endl;
-      cout << "  L           : " << (size_in_bytes(l)) * 8 << " " << (double) (size_in_bytes(l)) * 8 / total << endl;
-      cout << "  leaves      : " << (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8  << " " << (double) (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 / total<< endl;
+      cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << "," << (double) (size_in_bytes(tree)) * 8 / size() << "," << (double) (size_in_bytes(tree)) * 8 / total << endl;
+      cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << "," << (double) (size_in_bytes(tree_support)) * 8 / size() << "," << (double) (size_in_bytes(tree_support)) * 8 / total << endl;
+      cout << "  L           : " << (size_in_bytes(l)) * 8 << "," << (double) (size_in_bytes(l)) * 8 / size() << "," << (double) (size_in_bytes(l)) * 8 / total << endl;
+      cout << "  leaves      : " << (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 << "," << (double) (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 / size() << "," << (double) (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 / total << endl;
 #endif
       return total;
     }
