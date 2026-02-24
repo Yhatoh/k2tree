@@ -50,7 +50,8 @@ bool test_pow_2_matrices(uint64_t p) {
 
   cout << "Getting ones from k2 tree" << endl;
 
-  auto check = k2tree.get_pos_ones();
+  vector< pair< uint64_t, uint64_t >> check;
+  k2tree.get_pos_ones(check);
   assert(check.size() == ones.size());
   sort(ones.begin(), ones.end());
   sort(check.begin(), check.end());
@@ -84,7 +85,8 @@ bool test_gen_matrices(uint64_t n, uint64_t m) {
     select_support_sd<1>, select_support_sd<0>> k2tree_idem(k2tree);
 
   cout << "Getting ones from k2 tree" << endl;
-  auto check = k2tree.get_pos_ones();
+  vector< pair< uint64_t, uint64_t >> check;
+  k2tree.get_pos_ones(check);
   auto check2 = k2tree_idem.get_pos_ones();
 
   assert(check.size() == ones.size());
@@ -148,7 +150,8 @@ bool test_multi_algorithm(uint64_t n, uint64_t m) {
   k2_bp<2, rrr_vector<127>> C(aux_C);
 
 #ifdef DEBUG
-  auto check = C.get_pos_ones();
+  vector< pair< uint64_t, uint64_t >> check;
+  C.get_pos_ones(check);
 
   assert(check.size() == expected.size());
 
@@ -255,7 +258,8 @@ bool test_write_load(uint64_t n, uint64_t m) {
 
     cout << "Check ones k2" << endl;
 
-    auto check = k2tree_load.get_pos_ones();
+    vector< pair< uint64_t, uint64_t > > check;
+    k2tree_load.get_pos_ones(check);
     sort(check.begin(), check.end());
     sort(ones.begin(), ones.end());
     for(uint64_t i = 0; i < ones.size(); i++) {
@@ -282,7 +286,8 @@ bool test_write_load(uint64_t n, uint64_t m) {
 
     cout << "Check ones k2idem" << endl;
 
-    auto check = k2tree_load.get_pos_ones();
+    vector< pair< uint64_t, uint64_t > > check;
+    k2tree_load.get_pos_ones(check);
     sort(check.begin(), check.end());
     sort(ones.begin(), ones.end());
     for(uint64_t i = 0; i < ones.size(); i++) {

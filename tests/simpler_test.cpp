@@ -42,7 +42,6 @@ int main() {
   for(uint64_t i = 0; i < matrix.size(); i++) {
     for(uint64_t j = 0; j < matrix.size(); j++) {
       if(matrix[i][j]) {
-        cout << i << " " << j << "\n";
         ones.push_back({i, j});
       }
     }
@@ -51,13 +50,16 @@ int main() {
   k2_bp<2, rrr_vector<127>> k2tree(ones);
   cout << k2tree << "\n";
   {
-  auto check = k2tree.get_pos_ones();
-  assert(check.size() == ones.size());
-  sort(check.begin(), check.end());
-  sort(ones.begin(), ones.end());
-  for(uint64_t i = 0; i < ones.size(); i++) {
-    assert(check[i] == ones[i]);
-  }
+    vector< pair< uint64_t, uint64_t > > check;
+    k2tree.get_pos_ones(check);
+    assert(check.size() == ones.size());
+    sort(check.begin(), check.end());
+    //debug(check);
+    //debug(ones);
+    sort(ones.begin(), ones.end());
+    for(uint64_t i = 0; i < ones.size(); i++) {
+      assert(check[i] == ones[i]);
+    }
   }
 
   k2_cbp<2, rrr_vector<127>,

@@ -256,6 +256,26 @@ class k2_bp {
       pos++;
     }
 
+    void traverse(uint64_t m_size, uint64_t &pos, uint64_t &size_tree, uint64_t &n_leaves) {
+      assert(tree[pos] == 1);
+      uint64_t depth = tree[pos]; // this should be always (
+
+      uint64_t curr_pos = pos;
+      while(depth != 0) {
+        if(tree[pos]) {
+          m_size /= 2;
+          if(m_size == k) {
+            n_leaves++;
+          }
+        } else {
+          m_size *= 2;
+        }
+        depth += (tree[pos] ? 1 : -1);
+        pos++;
+      } // always end at position +1 of last ) of this tree
+      size_tree = pos - curr_pos; 
+    }
+
   public:
     uint64_t size() {
       uint64_t m = 0;
@@ -478,11 +498,6 @@ class k2_bp {
 #endif // DEBUG
       tree_support = bp_support_sada<>(&tree);
 
-
-      threshold = std::sqrt(tree.size() / 2);
-      uint64_t pos = 0;
-      uint64_t n_leaves = 0;
-      init_support_child(pos, child_support, n_leaves);
 #ifdef DEBUG
       pos = 0;
       n_leaves = 0;
@@ -491,119 +506,113 @@ class k2_bp {
 #endif // DEBUG
     }
 
-    vector< pair< uint64_t, uint64_t > > get_pos_ones() {
-      stack< tuple< uint8_t, uint64_t, uint64_t >, std::vector< tuple< uint8_t, uint64_t, uint64_t > > > child_visit;
+    void add_child_info(uint64_t threshold_ = 0) {
+      if(threshold_ == 0)
+        threshold = std::sqrt(tree.size() / 2);
+      else
+        threshold = threshold_;
 
-      uint64_t r, c;
-      r = c = 0;
-      child_visit.push({0, r, c});
-
-      uint64_t to_read_l = 0;
-      vector< pair< uint64_t, uint64_t > > ret;
-
-      for(uint64_t i = 1; i < tree.size(); i++) {
-#ifdef DEBUG
-        //cout << "Total bits " << tree.size() << endl;
-        //cout << "Reading " << i << " bit" << endl;
-#endif // DEBUG
-        if(tree[i]) {
-#ifdef DEBUG
-          //cout << "Start of subtree" << endl;
-#endif // DEBUG
-          auto [vis, r_, c_] = child_visit.top();
-          r = r_ + (vis / k) * (1 << (height_tree - child_visit.size()));
-          c = c_ + (vis % k) * (1 << (height_tree - child_visit.size()));
-          child_visit.push({0, r, c});
-#ifdef DEBUG
-          //cout << "Level " << child_visit.size() << endl;
-          //cout << "Current row: " << r << " col: " << c << endl;
-#endif // DEBUG
-        } else {
-#ifdef DEBUG
-          //cout << "End of subtree" << endl;
-#endif // DEBUG
-          if(child_visit.size() == height_tree + 1) {
-#ifdef DEBUG
-            //cout << "Last level, read real values" << endl;
-            //cout << "L size " << l.size() << " ";
-            //cout << "Current bit " << to_read_l << endl;
-#endif // DEBUG
-            for(uint64_t j = 0; j < k * k; j++) {
-              if(l[to_read_l]) {
-                auto [vis, r_, c_] = child_visit.top();
-                ret.push_back({r_ + j / k, c_ + j % k});
-              }
-              to_read_l++;
-            }
-#ifdef DEBUG
-            //cout << "Finishing reading real values" << endl;
-#endif // DEBUG
-          }
-          child_visit.pop();
-          // means we finish to read the complete tree
-          if(child_visit.size() != 0) {
-            auto [vis, r_, c_] = child_visit.top();
-            child_visit.pop();
-            child_visit.push({vis + 1, r_, c_});
-          }
-        }
-      }
-
-      return ret;
+      uint64_t pos = 0;
+      uint64_t n_leaves = 0;
+      init_support_child(pos, child_support, n_leaves);
     }
 
-//    void identical_trees() {
-//      csa_sada<> csa;
-//      string bp = "";
-//      for(uint64_t i = 0; i < tree.size(); i++) {
-//        bp += (tree[i] ? "(" : ")");
-//      }
+    void rec_get_pos_ones(uint64_t m_size, uint64_t x, uint64_t y, uint64_t &pos, uint64_t &n_l, std::vector< pair< uint64_t, uint64_t > > &res) {
+      if(pos + 1 < tree.size() && tree[pos] && !tree[pos + 1]) {
+        pos += 2;
+        return;
+      }
+
+      if(m_size == k) {
+        pos += 4;
+        if(l[n_l++]) {
+          res.push_back({x, y});
+        }
+        if(l[n_l++]) {
+          res.push_back({x, y + 1});
+        }
+        if(l[n_l++]) {
+          res.push_back({x + 1, y});
+        }
+        if(l[n_l++]) {
+          res.push_back({x + 1, y + 1});
+        }
+        return;
+      }
+
+      pos++;
+      rec_get_pos_ones(m_size / 2, x, y, pos, n_l, res);
+      rec_get_pos_ones(m_size / 2, x, y + m_size / 2, pos, n_l, res);
+      rec_get_pos_ones(m_size / 2, x + m_size / 2, y, pos, n_l, res);
+      rec_get_pos_ones(m_size / 2, x + m_size / 2, y + m_size / 2, pos, n_l, res);
+      pos++;
+    }
+
+    void get_pos_ones(std::vector< pair< uint64_t, uint64_t > > &res) {
+      uint64_t pos = 0;
+      uint64_t n_l = 0;
+      rec_get_pos_ones(msize, 0, 0, pos, n_l, res);
+    }
+
+//    vector< pair< uint64_t, uint64_t > > get_pos_ones() {
+//      stack< tuple< uint8_t, uint64_t, uint64_t >, std::vector< tuple< uint8_t, uint64_t, uint64_t > > > child_visit;
 //
-//      construct_im(csa, bp, 1);
+//      uint64_t r, c;
+//      r = c = 0;
+//      child_visit.push({0, r, c});
 //
-//      //cout << csa << "\n";
-//      uint64_t amount_idem_subtree = 0;
-//      uint64_t amount_of_groups = 0;
+//      uint64_t to_read_l = 0;
+//      vector< pair< uint64_t, uint64_t > > ret;
 //
-//      vector< uint64_t > pointer_or_not(tree.size(), -1);
-//
-//      for(uint64_t pos_bp = 2; pos_bp < csa.size(); pos_bp++) {
-//        // only considering suffix starting with (
-//        if(tree[csa[pos_bp]]) {
-//          
-//          uint64_t curr_start_pos = csa[pos_bp];
-//          uint64_t curr_end_pos = tree_support.find_close(curr_start_pos);
-//
-//          uint64_t prev_start_pos = csa[pos_bp - 1];
-//          uint64_t prev_end_pos = tree_support.find_close(prev_start_pos);
-//
-//          // ignoring leaves
-//          if(curr_end_pos - curr_start_pos <= 3) continue;
-//
-//          if(curr_end_pos - curr_start_pos == prev_end_pos - prev_start_pos) {
-//            if(curr_start_pos < prev_start_pos) {
-//              pointer_or_not[prev_start_pos] = (pointer_or_not[curr_start_pos] == -1 ? curr_start_pos : pointer_or_not[curr_start_pos]);
-//            } else {
-//              pointer_or_not[curr_start_pos] = (pointer_or_not[prev_start_pos] == -1 ? prev_start_pos : pointer_or_not[prev_start_pos]);
-//            }
-//            amount_idem_subtree++;
-//          } else {
+//      for(uint64_t i = 1; i < tree.size(); i++) {
 //#ifdef DEBUG
-//            //cout << curr_start_pos << " " << curr_end_pos << "\n";
-//
-//            for(uint64_t i = curr_start_pos; i < curr_end_pos + 1; i++) {
-//              //cout << (tree[i] ? "(" : ")");
-//            }
-//            //cout << endl;
+//        //cout << "Total bits " << tree.size() << endl;
+//        //cout << "Reading " << i << " bit" << endl;
 //#endif // DEBUG
-//            amount_of_groups++;
-//          }
-//
+//        if(tree[i]) {
+//#ifdef DEBUG
+//          //cout << "Start of subtree" << endl;
+//#endif // DEBUG
+//          auto [vis, r_, c_] = child_visit.top();
+//          r = r_ + (vis / k) * (1 << (height_tree - child_visit.size()));
+//          c = c_ + (vis % k) * (1 << (height_tree - child_visit.size()));
+//          child_visit.push({0, r, c});
+//#ifdef DEBUG
+//          //cout << "Level " << child_visit.size() << endl;
+//          //cout << "Current row: " << r << " col: " << c << endl;
+//#endif // DEBUG
 //        } else {
-//          // ( < ) = true
-//          break;
+//#ifdef DEBUG
+//          //cout << "End of subtree" << endl;
+//#endif // DEBUG
+//          if(child_visit.size() == height_tree + 1) {
+//#ifdef DEBUG
+//            //cout << "Last level, read real values" << endl;
+//            //cout << "L size " << l.size() << " ";
+//            //cout << "Current bit " << to_read_l << endl;
+//#endif // DEBUG
+//            for(uint64_t j = 0; j < k * k; j++) {
+//              if(l[to_read_l]) {
+//                auto [vis, r_, c_] = child_visit.top();
+//                ret.push_back({r_ + j / k, c_ + j % k});
+//              }
+//              to_read_l++;
+//            }
+//#ifdef DEBUG
+//            //cout << "Finishing reading real values" << endl;
+//#endif // DEBUG
+//          }
+//          child_visit.pop();
+//          // means we finish to read the complete tree
+//          if(child_visit.size() != 0) {
+//            auto [vis, r_, c_] = child_visit.top();
+//            child_visit.pop();
+//            child_visit.push({vis + 1, r_, c_});
+//          }
 //        }
 //      }
+//
+//      return ret;
 //    }
 
     void mul(const k2_bp<k, bv_leaves> &B, plain_tree &C) {
@@ -918,21 +927,21 @@ class k2_bp {
     }
 
     friend ostream& operator<<(ostream& os, const k2_bp<k, bv_leaves> &k2tree) {
-      //cout << "HT  : " << k2tree.height_tree << endl;
-      //cout << "Tree: ";
+      cout << "HT  : " << k2tree.height_tree << endl;
+      cout << "Tree: ";
       for(uint64_t i = 0; i < k2tree.tree.size(); i++) {
-        //cout << (k2tree.tree[i] ? "(" : ")");
+        cout << (k2tree.tree[i] ? "(" : ")");
       }
-      //cout << endl;
-      //cout << "L   : ";
+      cout << endl;
+      cout << "L   : ";
       for(uint64_t i = 0; i < k2tree.l.size(); i++) {
         if(i % 4 == 0 && !(i == 0)) cout << " ";
         cout << (k2tree.l[i] ? "1" : "0");
       }
-      //cout << endl;
-      //cout << "Lvs : ";
+      cout << endl;
+      cout << "Lvs : ";
       for(uint64_t i = 0; i < k2tree.leaves.size(); i++) {
-        //cout << (k2tree.leaves[i] ? "1" : "0");
+        cout << (k2tree.leaves[i] ? "1" : "0");
       }
       return os;
     }

@@ -53,7 +53,8 @@ int main(int argc, char** argv) {
 
     //cerr << "Checking if it is correct..." << endl;
 
-    auto check = k2tree.get_pos_ones();
+    std::vector< std::pair< uint64_t, uint64_t > > check;
+    k2tree.get_pos_ones(check);
     sort(check.begin(), check.end());
 
     assert(check == ones);
