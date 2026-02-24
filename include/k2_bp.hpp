@@ -801,6 +801,7 @@ class k2_bp {
       in.read((char*) &last_bit_l, sizeof(uint64_t));
       uint64_t size;
       in.read((char*) &size, sizeof(uint64_t));
+      child_support.resize(size, 0);
       in.read((char*) child_support.data(), size * sizeof(uint64_t));
 
       sdsl::load(leaves, in);
