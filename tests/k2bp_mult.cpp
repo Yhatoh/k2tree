@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
   k2_2_file.close();
 
   plain_tree result;
-  m1.mul(m2, result);
+  m1.new_mul(m2, result);
   k2_bp<2, rrr_vector<127>> m3(result);
   
 
