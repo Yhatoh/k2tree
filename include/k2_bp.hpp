@@ -34,6 +34,17 @@ using namespace sdsl;
 #define GET_SKIPS(x) (x >> NUM_SUPPORT)
 #define ENCODE(x, y) (x << NUM_SUPPORT) | y
 
+struct child_info {
+  uint64_t size_tree;
+  uint32_t n_leaves;
+
+  child_info(uint64_t x, uint64_t y, uint32_t leaves) {
+    n_leaves = leaves;
+    size_tree = ENCODE(x, y);
+  }
+  child_info() {}
+};
+
 // k2-tree
 // parameters:
 //   * k * k: amount of children per node
@@ -43,7 +54,7 @@ class k2_bp {
     uint64_t height_tree;
 
     bp_support_sada<> tree_support;
-    std::vector< uint64_t > child_support;
+    std::vector< child_info > child_support;
     bit_vector tree; // k2tree
     uint64_t last_bit_t; // universe
 
@@ -100,12 +111,13 @@ class k2_bp {
     // x numbers to skip in child support
     // y amount of nodes
 
-    void init_support_child(uint64_t &pos, std::vector< uint64_t > &c, uint64_t threshold) {
+    void init_support_child(uint64_t &pos, std::vector< child_info > &c, uint64_t &leaves) {
       assert(tree.size() > 0);
       assert(tree[pos] > 0); // should be always a (
       if(tree[pos] && tree[pos + 1] && !tree[pos + 2] && !tree[pos + 3]) {
         // jumping last level tree
         pos += 4;
+        leaves++;
         return;
       }
 
@@ -115,49 +127,51 @@ class k2_bp {
         return ;
       }
 
-      std::vector< std::vector< uint64_t > > each_child_size(4);
+      std::vector< std::vector< child_info > > each_child_size(4);
       std::vector< uint64_t > c_sizes(4, 0);
+      std::vector< uint64_t > c_leaves(4, 0);
 
       pos++;
       uint64_t curr_pos = pos;
-      init_support_child(pos, each_child_size[0], threshold);
+      init_support_child(pos, each_child_size[0], c_leaves[0]);
       c_sizes[0] = (pos - curr_pos) / 2;
 
       //c.push_back(ENCODE(each_child_size[0].size(), (pos - curr_pos) / 2));
 
       curr_pos = pos;
-      init_support_child(pos, each_child_size[1], threshold);
+      init_support_child(pos, each_child_size[1], c_leaves[1]);
       c_sizes[1] = (pos - curr_pos) / 2;
 
       //c.push_back(ENCODE(each_child_size[1].size(), (pos - curr_pos) / 2));
 
       curr_pos = pos;
-      init_support_child(pos, each_child_size[2], threshold);
+      init_support_child(pos, each_child_size[2], c_leaves[2]);
       c_sizes[2] = (pos - curr_pos) / 2;
 
       //c.push_back(ENCODE(each_child_size[2].size(), (pos - curr_pos) / 2));
 
       curr_pos = pos;
-      init_support_child(pos, each_child_size[3], threshold);
+      init_support_child(pos, each_child_size[3], c_leaves[3]);
       c_sizes[3] = (pos - curr_pos) / 2;
 
       pos++;
       if(c_sizes[0] >= threshold) {
-        c.push_back(ENCODE(each_child_size[0].size(), c_sizes[0]));
+        c.push_back(child_info(each_child_size[0].size(), c_sizes[0], c_leaves[0]));
       } else {
-        c.push_back(c_sizes[0]);
+        c.push_back(child_info(0, c_sizes[0], c_leaves[0]));
       }
       if(c_sizes[1] >= threshold) {
-        c.push_back(ENCODE(each_child_size[1].size(), c_sizes[1]));
+        c.push_back(child_info(each_child_size[1].size(), c_sizes[1], c_leaves[1]));
       } else {
-        c.push_back(c_sizes[1]);
+        c.push_back(child_info(0, c_sizes[1], c_leaves[1]));
       }
       if(c_sizes[2] >= threshold) {
-        c.push_back(ENCODE(each_child_size[2].size(), c_sizes[2]));
+        c.push_back(child_info(each_child_size[2].size(), c_sizes[2], c_leaves[2]));
       } else {
-        c.push_back(c_sizes[2]);
+        c.push_back(child_info(0, c_sizes[2], c_leaves[2]));
       }
 
+      leaves = c_leaves[0] + c_leaves[1] + c_leaves[2] + c_leaves[3];
 
       if(c_sizes[0] >= threshold) {
         c.insert(c.end(), each_child_size[0].begin(), each_child_size[0].end());
@@ -173,9 +187,10 @@ class k2_bp {
       }
     }
 
-    void check_size(uint64_t &pos, uint64_t curr_child, uint64_t curr_size) {
+    void check_size(uint64_t &pos, uint64_t &leaves, uint64_t curr_child, uint64_t curr_size, uint64_t curr_n_leaves) {
       if(pos + 3 < tree.size() && tree[pos] && tree[pos + 1] && !tree[pos + 2] && !tree[pos + 3]) {
         pos += 4;
+        leaves++;
         return;
       }
 
@@ -187,39 +202,57 @@ class k2_bp {
       if(curr_size < threshold) {
         uint64_t curr_pos = pos;
         pos++;
-        check_size(pos, curr_child, curr_size);
-        check_size(pos, curr_child, curr_size);
-        check_size(pos, curr_child, curr_size);
-        check_size(pos, curr_child, curr_size);
+        check_size(pos, leaves, curr_child, curr_size, curr_n_leaves);
+        check_size(pos, leaves, curr_child, curr_size, curr_n_leaves);
+        check_size(pos, leaves, curr_child, curr_size, curr_n_leaves);
+        check_size(pos, leaves, curr_child, curr_size, curr_n_leaves);
         pos++;
 
         //debug(tree_support.find_close(curr_pos) - curr_pos + 1, pos - curr_pos);
         return;
       }
 
-      uint64_t c_size[4] = {GET_NODES(child_support[curr_child]),
-                          GET_NODES(child_support[curr_child + 1]),
-                          GET_NODES(child_support[curr_child + 2]),
-                          0};
-      uint64_t c_skip[4] = {GET_SKIPS(child_support[curr_child]),
-                          GET_SKIPS(child_support[curr_child + 1]),
-                          GET_SKIPS(child_support[curr_child + 2]),
-                          0};
+      uint64_t c_size[4] = {GET_NODES(child_support[curr_child].size_tree),
+                            GET_NODES(child_support[curr_child + 1].size_tree),
+                            GET_NODES(child_support[curr_child + 2].size_tree),
+                            0};
+      uint64_t c_skip[4] = {GET_SKIPS(child_support[curr_child].size_tree),
+                            GET_SKIPS(child_support[curr_child + 1].size_tree),
+                            GET_SKIPS(child_support[curr_child + 2].size_tree),
+                            0};
+      uint64_t c_leaves[4] = {child_support[curr_child].n_leaves,
+                              child_support[curr_child + 1].n_leaves,
+                              child_support[curr_child + 2].n_leaves,
+                              0};
       c_size[3] = curr_size - (c_size[0] + c_size[1] + c_size[2] + 1); // 3 subtrees + root
+      c_leaves[3] = curr_n_leaves - (c_leaves[0] + c_leaves[1] + c_leaves[2]);
 
       pos++;
+
       uint64_t curr_pos = pos;
-      check_size(pos, curr_child + 3, c_size[0]);
+      uint64_t curr_leaves = leaves;
+      check_size(pos, leaves, curr_child + 3, c_size[0], c_leaves[0]);
       assert(c_size[0] * 2 == pos - curr_pos);
+      assert(c_leaves[0] == leaves - curr_leaves);
+
       curr_pos = pos;
-      check_size(pos, curr_child + 3 + c_skip[0], c_size[1]);
+      curr_leaves = leaves;
+      check_size(pos, leaves, curr_child + 3 + c_skip[0], c_size[1], c_leaves[1]);
       assert(c_size[1] * 2 == pos - curr_pos);
+      assert(c_leaves[1] == leaves - curr_leaves);
+
       curr_pos = pos;
-      check_size(pos, curr_child + 3 + c_skip[0] + c_skip[1], c_size[2]);
+      curr_leaves = leaves;
+      check_size(pos, leaves, curr_child + 3 + c_skip[0] + c_skip[1], c_size[2], c_leaves[2]);
       assert(c_size[2] * 2 == pos - curr_pos);
+      assert(c_leaves[2] == leaves - curr_leaves);
+
       curr_pos = pos;
-      check_size(pos, curr_child + 3 + c_skip[0] + c_skip[1] + c_skip[2], c_size[3]);
+      curr_leaves = leaves;
+      check_size(pos, leaves, curr_child + 3 + c_skip[0] + c_skip[1] + c_skip[2], c_size[3], c_leaves[3]);
       assert(c_size[3] * 2 == pos - curr_pos);
+      assert(c_leaves[3] == leaves - curr_leaves);
+
       pos++;
     }
 
@@ -268,8 +301,9 @@ class k2_bp {
       util::init_support(rank_leaves, &leaves);
 
       uint64_t pos = 0;
+      uint64_t n_leaves = 0;
       threshold = std::sqrt(tree.size() / 2);
-      init_support_child(pos, child_support, threshold);
+      init_support_child(pos, child_support, n_leaves);
     }
 
 
@@ -447,10 +481,12 @@ class k2_bp {
 
       threshold = std::sqrt(tree.size() / 2);
       uint64_t pos = 0;
-      init_support_child(pos, child_support, threshold);
-      pos = 0;
-      check_size(pos, 0, tree.size() / 2);
+      uint64_t n_leaves = 0;
+      init_support_child(pos, child_support, n_leaves);
 #ifdef DEBUG
+      pos = 0;
+      n_leaves = 0;
+      check_size(pos, n_leaves, 0, tree.size() / 2, l.size() / 4);
       //cout << "End k2tree building..." << endl;
 #endif // DEBUG
     }
@@ -849,7 +885,7 @@ class k2_bp {
       in.read((char*) &last_bit_l, sizeof(uint64_t));
       uint64_t size;
       in.read((char*) &size, sizeof(uint64_t));
-      child_support.resize(size, 0);
+      child_support.resize(size, child_info());
       in.read((char*) child_support.data(), size * sizeof(uint64_t));
 
       sdsl::load(leaves, in);
