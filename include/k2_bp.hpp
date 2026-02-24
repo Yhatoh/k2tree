@@ -865,7 +865,7 @@ class k2_bp {
       out.write((char*) &last_bit_l, sizeof(uint64_t));
       uint64_t values = child_support.size();
       out.write((char*) &values, sizeof(uint64_t));
-      out.write((char*) child_support.data(), values * sizeof(uint64_t));
+      out.write((char*) child_support.data(), values * sizeof(child_info));
 
       leaves.serialize(out);
       rank_leaves.serialize(out);
@@ -886,7 +886,7 @@ class k2_bp {
       uint64_t size;
       in.read((char*) &size, sizeof(uint64_t));
       child_support.resize(size, child_info());
-      in.read((char*) child_support.data(), size * sizeof(uint64_t));
+      in.read((char*) child_support.data(), size * sizeof(child_info));
 
       sdsl::load(leaves, in);
       //leaves.load(in);
@@ -911,7 +911,7 @@ class k2_bp {
       cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << "," << (double) (size_in_bytes(tree)) * 8 / size() << "," << (double) (size_in_bytes(tree)) * 8 / total << endl;
       cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << "," << (double) (size_in_bytes(tree_support)) * 8 / size() << "," << (double) (size_in_bytes(tree_support)) * 8 / total << endl;
       cout << "  L           : " << (size_in_bytes(l)) * 8 << "," << (double) (size_in_bytes(l)) * 8 / size() << "," << (double) (size_in_bytes(l)) * 8 / total << endl;
-      cout << "  child supp  : " << child_support.size() * sizeof(uint64_t) * 8 << "," << (double) (child_support.size() * sizeof(uint64_t) * 8) / size() << "," << (double) child_support.size() * sizeof(uint64_t) * 8 / total << endl;
+      cout << "  child supp  : " << child_support.size() * sizeof(child_info) * 8 << "," << (double) (child_support.size() * sizeof(child_info) * 8) / size() << "," << (double) child_support.size() * sizeof(child_info) * 8 / total << endl;
       cout << "  leaves      : " << (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 << "," << (double) (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 / size() << "," << (double) (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 / total << endl;
 #endif
       return total;
