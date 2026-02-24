@@ -140,14 +140,17 @@ bool test_multi_algorithm(uint64_t n, uint64_t m) {
 #endif
 
   cout << "Generating A" << endl;
-  k2_bp<2, rrr_vector<127>> A(ones);
+  k2_bp<2, bit_vector> A(ones);
   cout << "Generating B" << endl;
-  k2_bp<2, rrr_vector<127>> B(ones2);
+  k2_bp<2, bit_vector> B(ones2);
 
   cout << "C = A * B" << endl;
   plain_tree aux_C;
-  A.mul(B, aux_C);
-  k2_bp<2, rrr_vector<127>> C(aux_C);
+  A.add_child_info(std::sqrt(ones.size()));
+  B.add_child_info(std::sqrt(ones2.size()));
+  //A.mul(B, aux_C);
+  A.new_mul(B, aux_C);
+  k2_bp<2, bit_vector> C(aux_C);
 
 #ifdef DEBUG
   vector< pair< uint64_t, uint64_t >> check;
