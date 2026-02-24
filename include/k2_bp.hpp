@@ -4,6 +4,7 @@
 // std includes
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <stack>
@@ -56,6 +57,8 @@ class k2_bp {
     uint64_t rmsize;
     uint64_t m;
 
+    uint64_t threshold;
+
     void add_one(vector< uint64_t > &bv, uint64_t &pos_to_add) {
       bv.push_back(pos_to_add++);
     }
@@ -97,7 +100,7 @@ class k2_bp {
     // x numbers to skip in child support
     // y amount of nodes
 
-    void init_support_child(uint64_t &pos, std::vector< uint64_t > &c) {
+    void init_support_child(uint64_t &pos, std::vector< uint64_t > &c, uint64_t threshold) {
       assert(tree.size() > 0);
       assert(tree[pos] > 0); // should be always a (
       if(tree[pos] && tree[pos + 1] && !tree[pos + 2] && !tree[pos + 3]) {
@@ -113,31 +116,61 @@ class k2_bp {
       }
 
       std::vector< std::vector< uint64_t > > each_child_size(4);
+      std::vector< uint64_t > c_sizes(4, 0);
 
       pos++;
       uint64_t curr_pos = pos;
-      init_support_child(pos, each_child_size[0]);
+      init_support_child(pos, each_child_size[0], threshold);
+      c_sizes[0] = (pos - curr_pos) / 2;
 
-      c.push_back(ENCODE(each_child_size[0].size(), pos - curr_pos));
-
-      curr_pos = pos;
-      init_support_child(pos, each_child_size[1]);
-
-      c.push_back(ENCODE(each_child_size[1].size(), pos - curr_pos));
+      //c.push_back(ENCODE(each_child_size[0].size(), (pos - curr_pos) / 2));
 
       curr_pos = pos;
-      init_support_child(pos, each_child_size[2]);
+      init_support_child(pos, each_child_size[1], threshold);
+      c_sizes[1] = (pos - curr_pos) / 2;
 
-      c.push_back(ENCODE(each_child_size[2].size(), pos - curr_pos));
+      //c.push_back(ENCODE(each_child_size[1].size(), (pos - curr_pos) / 2));
 
       curr_pos = pos;
-      init_support_child(pos, each_child_size[3]);
+      init_support_child(pos, each_child_size[2], threshold);
+      c_sizes[2] = (pos - curr_pos) / 2;
+
+      //c.push_back(ENCODE(each_child_size[2].size(), (pos - curr_pos) / 2));
+
+      curr_pos = pos;
+      init_support_child(pos, each_child_size[3], threshold);
+      c_sizes[3] = (pos - curr_pos) / 2;
 
       pos++;
-      c.insert(c.end(), each_child_size[0].begin(), each_child_size[0].end());
-      c.insert(c.end(), each_child_size[1].begin(), each_child_size[1].end());
-      c.insert(c.end(), each_child_size[2].begin(), each_child_size[2].end());
-      c.insert(c.end(), each_child_size[3].begin(), each_child_size[3].end());
+      if(c_sizes[0] >= threshold) {
+        c.push_back(ENCODE(each_child_size[0].size(), c_sizes[0]));
+      } else {
+        c.push_back(c_sizes[0]);
+      }
+      if(c_sizes[1] >= threshold) {
+        c.push_back(ENCODE(each_child_size[1].size(), c_sizes[1]));
+      } else {
+        c.push_back(c_sizes[1]);
+      }
+      if(c_sizes[2] >= threshold) {
+        c.push_back(ENCODE(each_child_size[2].size(), c_sizes[2]));
+      } else {
+        c.push_back(c_sizes[2]);
+      }
+
+
+      if(c_sizes[0] >= threshold) {
+        c.insert(c.end(), each_child_size[0].begin(), each_child_size[0].end());
+      }
+      if(c_sizes[1] >= threshold) {
+        c.insert(c.end(), each_child_size[1].begin(), each_child_size[1].end());
+      }
+      if(c_sizes[2] >= threshold) {
+        c.insert(c.end(), each_child_size[2].begin(), each_child_size[2].end());
+      }
+      if(c_sizes[3] >= threshold) {
+        c.insert(c.end(), each_child_size[3].begin(), each_child_size[3].end());
+      }
     }
 
     void check_size(uint64_t &pos, uint64_t curr_child, uint64_t curr_size) {
@@ -151,6 +184,19 @@ class k2_bp {
         return;
       }
 
+      if(curr_size < threshold) {
+        uint64_t curr_pos = pos;
+        pos++;
+        check_size(pos, curr_child, curr_size);
+        check_size(pos, curr_child, curr_size);
+        check_size(pos, curr_child, curr_size);
+        check_size(pos, curr_child, curr_size);
+        pos++;
+
+        //debug(tree_support.find_close(curr_pos) - curr_pos + 1, pos - curr_pos);
+        return;
+      }
+
       uint64_t c_size[4] = {GET_NODES(child_support[curr_child]),
                           GET_NODES(child_support[curr_child + 1]),
                           GET_NODES(child_support[curr_child + 2]),
@@ -159,21 +205,21 @@ class k2_bp {
                           GET_SKIPS(child_support[curr_child + 1]),
                           GET_SKIPS(child_support[curr_child + 2]),
                           0};
-      c_size[3] = curr_size - (c_size[0] + c_size[1] + c_size[2] + 2); // 3 subtrees + root
+      c_size[3] = curr_size - (c_size[0] + c_size[1] + c_size[2] + 1); // 3 subtrees + root
 
       pos++;
       uint64_t curr_pos = pos;
       check_size(pos, curr_child + 3, c_size[0]);
-      assert(c_size[0] == pos - curr_pos);
+      assert(c_size[0] * 2 == pos - curr_pos);
       curr_pos = pos;
       check_size(pos, curr_child + 3 + c_skip[0], c_size[1]);
-      assert(c_size[1] == pos - curr_pos);
+      assert(c_size[1] * 2 == pos - curr_pos);
       curr_pos = pos;
       check_size(pos, curr_child + 3 + c_skip[0] + c_skip[1], c_size[2]);
-      assert(c_size[2] == pos - curr_pos);
+      assert(c_size[2] * 2 == pos - curr_pos);
       curr_pos = pos;
       check_size(pos, curr_child + 3 + c_skip[0] + c_skip[1] + c_skip[2], c_size[3]);
-      assert(c_size[3] == pos - curr_pos);
+      assert(c_size[3] * 2 == pos - curr_pos);
       pos++;
     }
 
@@ -222,7 +268,8 @@ class k2_bp {
       util::init_support(rank_leaves, &leaves);
 
       uint64_t pos = 0;
-      init_support_child(pos, child_support);
+      threshold = std::sqrt(tree.size() / 2);
+      init_support_child(pos, child_support, threshold);
     }
 
 
@@ -398,10 +445,11 @@ class k2_bp {
       tree_support = bp_support_sada<>(&tree);
 
 
+      threshold = std::sqrt(tree.size() / 2);
       uint64_t pos = 0;
-      init_support_child(pos, child_support);
+      init_support_child(pos, child_support, threshold);
       pos = 0;
-      check_size(pos, 0, tree.size());
+      check_size(pos, 0, tree.size() / 2);
 #ifdef DEBUG
       //cout << "End k2tree building..." << endl;
 #endif // DEBUG
