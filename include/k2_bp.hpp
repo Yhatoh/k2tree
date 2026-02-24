@@ -779,6 +779,9 @@ class k2_bp {
       out.write((char*) &height_tree, sizeof(uint64_t));
       out.write((char*) &last_bit_t, sizeof(uint64_t));
       out.write((char*) &last_bit_l, sizeof(uint64_t));
+      uint64_t values = child_support.size();
+      out.write((char*) &values, sizeof(uint64_t));
+      out.write((char*) child_support.data(), values * sizeof(uint64_t));
 
       leaves.serialize(out);
       rank_leaves.serialize(out);
@@ -796,6 +799,9 @@ class k2_bp {
       in.read((char*) &height_tree, sizeof(uint64_t));
       in.read((char*) &last_bit_t, sizeof(uint64_t));
       in.read((char*) &last_bit_l, sizeof(uint64_t));
+      uint64_t size;
+      in.read((char*) &size, sizeof(uint64_t));
+      in.read((char*) child_support.data(), size * sizeof(uint64_t));
 
       sdsl::load(leaves, in);
       //leaves.load(in);
