@@ -471,6 +471,8 @@ class k2_bp {
     void mul(k2_bp<k, bv_leaves> &b, plain_tree &c) {
       traverse_info info_a(0, 0, 0, tree.size() / 2, l.size() / 4, 1);
       traverse_info info_b(0, 0, 0, b.tree.size() / 2, b.l.size() / 4, 1);
+      dynamic_support.reserve(threshold * 3);
+      b.dynamic_support.reserve(b.threshold * 3);
       mul(msize, info_a, b, info_b, c, height_tree);
     }
 
@@ -633,7 +635,7 @@ class k2_bp {
                               bs[2].node + GET_SKIPS(b.child_support[info_b.node + 2].size_tree),
                               info_b.size - (bs[0].size + bs[1].size + bs[2].size + 1),
                               info_b.n_l - (bs[0].n_l + bs[1].n_l + bs[2].n_l), 1);
-      } else if(b.dynamic_support.size() > 0 && info_a.size >= 3) {
+      } else if(b.dynamic_support.size() > 0 && info_b.size >= 3) {
         bs[0] = traverse_info(info_b.pos + 1, info_b.l,
                               info_b.node + 3,
                               GET_NODES(b.dynamic_support[info_b.node].size_tree),
@@ -755,11 +757,9 @@ class k2_bp {
 
       if(da) {
         dynamic_support.clear();
-        dynamic_support.shrink_to_fit();
       }
       if(db) {
         b.dynamic_support.clear();
-        b.dynamic_support.shrink_to_fit();
       }
       if(c_[0].tree.size() == 2 &&
          c_[1].tree.size() == 2 &&
