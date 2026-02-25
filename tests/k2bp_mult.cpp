@@ -41,18 +41,18 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
+  std::ifstream k2_2_file;
+  k2_2_file.open(k2_2_path);
+
+  if(!k2_2_file.is_open()) {
+    cerr << "Error opening file. Check if the file exists or the path is writed correctly" << endl;
+    exit(2);
+  }
+
   if(type == 0) {
     k2_bp<2, bit_vector> m1;
     m1.load(k2_1_file);
     k2_1_file.close();
-
-    std::ifstream k2_2_file;
-    k2_2_file.open(k2_2_path);
-
-    if(!k2_2_file.is_open()) {
-      cerr << "Error opening file. Check if the file exists or the path is writed correctly" << endl;
-      exit(2);
-    }
 
     k2_bp<2, bit_vector> m2;
     m2.load(k2_2_file);
@@ -74,14 +74,6 @@ int main(int argc, char** argv) {
     k2_bp<2, rrr_vector<127>> m1;
     m1.load(k2_1_file);
     k2_1_file.close();
-
-    std::ifstream k2_2_file;
-    k2_2_file.open(k2_2_path);
-
-    if(!k2_2_file.is_open()) {
-      cerr << "Error opening file. Check if the file exists or the path is writed correctly" << endl;
-      exit(2);
-    }
 
     k2_bp<2, rrr_vector<127>> m2;
     m2.load(k2_2_file);
