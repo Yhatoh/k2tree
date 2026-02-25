@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     //cerr << "Building k2tree..." << endl;
 
     k2_bp<2, rrr_vector<127>> k2tree(ones, size);
-    k2tree.add_child_info(std::sqrt(ones.size()) * 0.1);
+    k2tree.add_child_info(std::sqrt(k2tree.nodes()) * 0.1);
     //cerr << "Checking if it is correct..." << endl;
 
     std::vector< std::pair< uint64_t, uint64_t > > check;
