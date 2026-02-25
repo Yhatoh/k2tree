@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
       exit(1);
     }
 
-    k2_bp<2, rrr_vector<127>> k2tree;
+    k2_bp<2, bit_vector> k2tree;
     k2tree.load(k2_file);
 
     k2_file.close();

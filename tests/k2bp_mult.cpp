@@ -100,7 +100,6 @@ int main(int argc, char** argv) {
     m3.write(result_file);
     result_file.close();
   }
-
   return 0;
 }
 
