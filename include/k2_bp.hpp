@@ -293,7 +293,7 @@ class k2_bp {
   public:
     uint64_t size() {
       uint64_t m = 0;
-      sdsl::rank_support_rrr<1, 127> rank(&l);
+      sdsl::rank_support_v5<> rank(&l);
       return rank(l.size());
     }
 
