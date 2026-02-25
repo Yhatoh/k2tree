@@ -509,7 +509,7 @@ class k2_bp {
       }
 
       if(m_size == k) {
-        uint8_t aux_l = minimat_mul(l.get_int(info_a.l << 2, 4), b.l.get_int(info_b.l << 2, 4));
+        uint8_t aux_l = table_mul[l.get_int(info_a.l << 2, 4)][b.l.get_int(info_b.l << 2, 4)];
         if(aux_l > 0) {
           c.reserve(4, 4);
           c.tree.push_back(1);

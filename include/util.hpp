@@ -63,7 +63,7 @@ static const uint8_t table_mul[16][16] = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
   {0,5,10,15,5,5,15,15,10,15,10,15,15,15,15,15}
 };
 
-inline uint8_t minimat_mul(uint8_t a, uint8_t b) { return table_mul[a][b]; }
+inline uint8_t minimat_mul(const uint8_t a, const uint8_t b) const { return table_mul[a][b]; }
 
 static const uint8_t rev_table[16] = {0,8,4,12,2,10,6,14,1,9,5,13,3,11,7,15};
 
