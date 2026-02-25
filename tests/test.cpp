@@ -146,10 +146,9 @@ bool test_multi_algorithm(uint64_t n, uint64_t m) {
 
   cout << "C = A * B" << endl;
   plain_tree aux_C;
-  A.add_child_info(std::sqrt(ones.size()));
-  B.add_child_info(std::sqrt(ones2.size()));
-  //A.mul(B, aux_C);
-  A.new_mul(B, aux_C);
+  A.add_child_info(std::sqrt(A.nodes()));
+  B.add_child_info(std::sqrt(B.nodes()));
+  A.mul(B, aux_C);
   k2_bp<2, bit_vector> C(aux_C);
 
 #ifdef DEBUG

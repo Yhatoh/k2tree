@@ -163,7 +163,7 @@ class k2_cbp {
     k2_cbp() {}
 
     k2_cbp(k2_bp<k, bv_leaves> &k2tree) {
-      k2tree.tree_support = bp_support_sada<>(&k2tree.tree);
+      bp_support_sada<> aux_tree_support = bp_support_sada<>(&k2tree.tree);
       msize = k2tree.msize;
       rmsize = k2tree.rmsize;
       m = k2tree.m;
@@ -196,15 +196,16 @@ class k2_cbp {
       // remove later
       union_find idems_tree(k2tree.tree.size());
 
+
       for(uint64_t pos_bp = 2; pos_bp < bp.size(); pos_bp++) {
         // only considering suffix starting with (
         if(k2tree.tree[csa[pos_bp]]) {
 
           uint64_t curr_start_pos = csa[pos_bp];
-          uint64_t curr_end_pos = k2tree.tree_support.find_close(curr_start_pos);
+          uint64_t curr_end_pos = aux_tree_support.find_close(curr_start_pos);
 
           uint64_t prev_start_pos = csa[pos_bp - 1];
-          uint64_t prev_end_pos = k2tree.tree_support.find_close(prev_start_pos);
+          uint64_t prev_end_pos = aux_tree_support.find_close(prev_start_pos);
 
 #ifdef DEBUG
           cout << "VS Subtree pos: " << prev_start_pos << " " << prev_end_pos << endl;
@@ -269,7 +270,7 @@ class k2_cbp {
             //maxi_repre = (repre - prefix_help[repre - 1]);
             maxi_repre.insert(repre - prefix_help[repre - 1]);
 
-            uint64_t next_bit = k2tree.tree_support.find_close(bit);
+            uint64_t next_bit = aux_tree_support.find_close(bit);
             for(uint64_t pfh = bit; pfh <= next_bit; pfh++) {
               prefix_help[pfh] = prefix_help[pfh - 1] + 1;
             }
@@ -305,12 +306,12 @@ class k2_cbp {
           uint64_t repre = idems_tree.find_set(bit);
 
           // if has an identical tree and is big enough
-          if(repre != bit && k2tree.tree_support.find_close(repre) - repre + 1 > log2_w + 4) {
+          if(repre != bit && aux_tree_support.find_close(repre) - repre + 1 > log2_w + 4) {
             new_tree_bv.push_back(ref_bit++);
             pointer.push_back(repre - prefix_help[repre - 1]);
             ref_bit += 2;
 
-            uint64_t next_bit = k2tree.tree_support.find_close(bit);
+            uint64_t next_bit = aux_tree_support.find_close(bit);
             for(uint64_t pfh = bit; pfh <= next_bit; pfh++) {
               prefix_help[pfh] = prefix_help[pfh - 1] + 1;
             }

@@ -65,7 +65,6 @@ class k2_bp {
   public:
     uint64_t height_tree;
 
-    bp_support_sada<> tree_support;
     std::vector< child_info > child_support;
     std::vector< child_info > dynamic_support;
     bit_vector tree; // k2tree
@@ -73,9 +72,6 @@ class k2_bp {
 
     bv_leaves l; // real values
     uint64_t last_bit_l; // universe
-
-    sd_vector<> leaves;
-    rank_support_sd<> rank_leaves;
 
     uint64_t msize;
     uint64_t rmsize;
@@ -120,9 +116,6 @@ class k2_bp {
       }
       return l;
     }
-
-    // x numbers to skip in child support
-    // y amount of nodes
 
     void init_support_child(uint64_t &pos, std::vector< child_info > &c, uint64_t &leaves, uint64_t threshold) {
       assert(tree.size() > 0);
@@ -291,11 +284,7 @@ class k2_bp {
     }
 
   public:
-    uint64_t size() {
-      uint64_t m = 0;
-      sdsl::rank_support_rrr<1, 127> rank(&l);
-      return rank(l.size());
-    }
+    uint64_t size() { return m; }
 
     uint64_t size_matrix() { return rmsize; }
     uint64_t nodes() { return tree.size() / 2; }
@@ -306,13 +295,14 @@ class k2_bp {
       tree = bit_vector(pd.tree.size(), 0);
       for(uint64_t i = 0; i < pd.tree.size(); i++) tree[i] = pd.tree[i];
 
-      last_bit_t = tree.size();
-      tree_support = bp_support_sada<>(&tree);
-
+      m = 0;
       bit_vector aux_l = bit_vector(pd.l.size() * 4, 0);
       for(uint64_t i = 0; i < pd.l.size(); i++) {
         for(uint64_t j = 0; j < 4; j++) {
-          if(pd.l[i] & (1 << j)) aux_l[i * 4 + j] = 1;
+          if(pd.l[i] & (1 << j)) {
+            aux_l[i * 4 + j] = 1;
+            m++;
+          }
         }
       }
 
@@ -322,22 +312,6 @@ class k2_bp {
       height_tree = pd.height_tree;
       msize = pd.msize;
       rmsize = pd.rmsize;
-      m = pd.m;
-
-      // i think this can be improved
-      bit_vector aux_leaves(tree.size(), 0);
-      for(uint64_t i = 0; i < tree.size() - 3; i++) {
-        if(tree[i] && tree[i + 1] && !tree[i + 2] && !tree[i + 3])
-          aux_leaves[i] = 1;
-      }
-
-      leaves = sd_vector<>(aux_leaves);
-      util::init_support(rank_leaves, &leaves);
-
-      uint64_t pos = 0;
-      uint64_t n_leaves = 0;
-      threshold = std::sqrt(tree.size() / 2);
-      init_support_child(pos, child_support, n_leaves, threshold);
     }
 
 
@@ -353,12 +327,6 @@ class k2_bp {
       rmsize = n;
       height_tree = ceil_log2(n);
       msize = (1 << height_tree);
-
-#ifdef DEBUG
-      //cout << "Real Size Matrix: " << rmsize << "x" << rmsize << endl;
-      //cout << "Size Matrix: " << msize << "x" << msize << endl;
-      //cout << "Height Tree: " << height_tree << endl;
-#endif // DEBUG
       
       vector< uint64_t > ia_ones;
       for(const auto& one : ones) {
@@ -366,13 +334,6 @@ class k2_bp {
       }
 
       sort(ia_ones.begin(), ia_ones.end());
-
-      // first i will do it asuming k = 2
-      // then i will generalize
-#ifdef DEBUG
-      string balance_string = "";
-      //cout << "Initialize recursion..." << endl;
-#endif // DEBUG
       stack< tuple< uint64_t, uint64_t, uint64_t, uint64_t, vector< uint64_t >::iterator, uint64_t, bool, bool >,
              vector< tuple< uint64_t, uint64_t, uint64_t, uint64_t, vector< uint64_t >::iterator, uint64_t, bool, bool > > > recursion;
       recursion.push(make_tuple(msize, 0, 0, 0, ia_ones.begin(), ia_ones.size(), true, false));
@@ -385,27 +346,14 @@ class k2_bp {
 
       while(!recursion.empty()) {
         auto [subm_size, init_x, init_y, smin, ia, n_ia, one_one, flag] = recursion.top();
-#ifdef DEBUG
-        //cout << "Recursion call..." << endl;
-        //cout << "Current Sub Matrix Size: " << subm_size << " init x: " << init_x << " init y: " << init_y << " visited: " << flag << endl;
-        //cout << " n ia: " << n_ia << endl;
-#endif // DEBUG
         recursion.pop();
         
         if(flag) {
-#ifdef DEBUG
-          balance_string += ")";
-          //cout << "Adding )..." << endl;
-#endif // DEBUG
           add_zero(bv_tree, pos_to_add);
           continue;
         }
 
         recursion.push(make_tuple(subm_size, init_x, init_y, smin, ia, n_ia, one_one, true));
-#ifdef DEBUG
-        balance_string += "(";
-        //cout << "Adding (..." << endl;
-#endif // DEBUG
         add_one(bv_tree, pos_to_add);
 
         if(!one_one) {
@@ -417,14 +365,7 @@ class k2_bp {
           vector< int64_t > t(4, 0);
 
           for(size_t i = 0; i < n_ia; i++) {
-#ifdef DEBUG
-            //cout << "IA[" << i << "] = " << ia[i] << endl;
-            //cout << "smin = " << smin << endl;
-#endif
             int64_t pos = (int64_t) (ia[i] - smin);
-#ifdef DEBUG
-            //cout << "pos = " << pos << endl;
-#endif
             t[pos] = 1;
           }
 
@@ -433,15 +374,7 @@ class k2_bp {
             else add_zero(bv_l, pos_to_add_l);
           }
 
-#ifdef DEBUG
-          balance_string += "(";
-          //cout << "Adding (..." << endl;
-#endif // DEBUG
           add_one(bv_tree, pos_to_add);
-#ifdef DEBUG
-          balance_string += ")";
-          //cout << "Adding )..." << endl;
-#endif // DEBUG
           add_zero(bv_tree, pos_to_add);
           continue;
         }
@@ -483,41 +416,12 @@ class k2_bp {
       last_bit_t = pos_to_add;
       last_bit_l = pos_to_add_l;
 
-#ifdef DEBUG
-      //cout << "Result: " << balance_string << "..." << endl;
-      //cout << "Init tree " << pos_to_add << "..." << endl;
-#endif // DEBUG
       tree = bit_vector(pos_to_add, 0);
       for(const auto& bit : bv_tree) tree[bit] = 1;
 
-      // i think this can be improved
-      bit_vector aux_leaves(pos_to_add, 0);
-      for(uint64_t i = 0; i < pos_to_add - 3; i++) {
-        if(tree[i] && tree[i + 1] && !tree[i + 2] && !tree[i + 3])
-          aux_leaves[i] = 1;
-      }
-
-      leaves = sd_vector<>(aux_leaves);
-      util::init_support(rank_leaves, &leaves);
-
-#ifdef DEBUG
-      //cout << "Init L " << pos_to_add_l << "..." << endl;
-#endif // DEBUG
       auto aux_l = bit_vector(pos_to_add_l, 0);
       for(const auto& bit : bv_l) aux_l[bit] = 1;
       l = bv_leaves(aux_l);
-
-#ifdef DEBUG
-      //cout << "Init Tree support..." << endl;
-#endif // DEBUG
-      tree_support = bp_support_sada<>(&tree);
-
-#ifdef DEBUG
-      pos = 0;
-      n_leaves = 0;
-      check_size(pos, n_leaves, 0, tree.size() / 2, l.size() / 4);
-      //cout << "End k2tree building..." << endl;
-#endif // DEBUG
     }
 
     void add_child_info(uint64_t threshold_ = 0) {
@@ -564,74 +468,13 @@ class k2_bp {
       rec_get_pos_ones(msize, 0, 0, pos, n_l, res);
     }
 
-//    vector< pair< uint64_t, uint64_t > > get_pos_ones() {
-//      stack< tuple< uint8_t, uint64_t, uint64_t >, std::vector< tuple< uint8_t, uint64_t, uint64_t > > > child_visit;
-//
-//      uint64_t r, c;
-//      r = c = 0;
-//      child_visit.push({0, r, c});
-//
-//      uint64_t to_read_l = 0;
-//      vector< pair< uint64_t, uint64_t > > ret;
-//
-//      for(uint64_t i = 1; i < tree.size(); i++) {
-//#ifdef DEBUG
-//        //cout << "Total bits " << tree.size() << endl;
-//        //cout << "Reading " << i << " bit" << endl;
-//#endif // DEBUG
-//        if(tree[i]) {
-//#ifdef DEBUG
-//          //cout << "Start of subtree" << endl;
-//#endif // DEBUG
-//          auto [vis, r_, c_] = child_visit.top();
-//          r = r_ + (vis / k) * (1 << (height_tree - child_visit.size()));
-//          c = c_ + (vis % k) * (1 << (height_tree - child_visit.size()));
-//          child_visit.push({0, r, c});
-//#ifdef DEBUG
-//          //cout << "Level " << child_visit.size() << endl;
-//          //cout << "Current row: " << r << " col: " << c << endl;
-//#endif // DEBUG
-//        } else {
-//#ifdef DEBUG
-//          //cout << "End of subtree" << endl;
-//#endif // DEBUG
-//          if(child_visit.size() == height_tree + 1) {
-//#ifdef DEBUG
-//            //cout << "Last level, read real values" << endl;
-//            //cout << "L size " << l.size() << " ";
-//            //cout << "Current bit " << to_read_l << endl;
-//#endif // DEBUG
-//            for(uint64_t j = 0; j < k * k; j++) {
-//              if(l[to_read_l]) {
-//                auto [vis, r_, c_] = child_visit.top();
-//                ret.push_back({r_ + j / k, c_ + j % k});
-//              }
-//              to_read_l++;
-//            }
-//#ifdef DEBUG
-//            //cout << "Finishing reading real values" << endl;
-//#endif // DEBUG
-//          }
-//          child_visit.pop();
-//          // means we finish to read the complete tree
-//          if(child_visit.size() != 0) {
-//            auto [vis, r_, c_] = child_visit.top();
-//            child_visit.pop();
-//            child_visit.push({vis + 1, r_, c_});
-//          }
-//        }
-//      }
-//
-//      return ret;
-//    }
-
-    void new_mul(k2_bp<k, bv_leaves> &b, plain_tree &c) {
+    void mul(k2_bp<k, bv_leaves> &b, plain_tree &c) {
       traverse_info info_a(0, 0, 0, tree.size() / 2, l.size() / 4, 1);
       traverse_info info_b(0, 0, 0, b.tree.size() / 2, b.l.size() / 4, 1);
-      new_mul(msize, info_a, b, info_b, c, height_tree);
+      mul(msize, info_a, b, info_b, c, height_tree);
     }
 
-    void new_mul(uint64_t m_size, traverse_info &info_a,
+    void mul(uint64_t m_size, traverse_info &info_a,
                  k2_bp<k, bv_leaves> &b, traverse_info &info_b,
                  plain_tree &c, uint64_t curr_h) {
       assert(tree[info_a.pos]);
@@ -689,23 +532,6 @@ class k2_bp {
         return;
       }
 
-//      //  A_0 | A_1
-//      //  ---------
-//      //  A_2 | A_3
-//      uint64_t A_0, A_1, A_2, A_3;
-//      uint64_t A_0_L, A_1_L, A_2_L, A_3_L;
-//
-//      //  B_0 | B_1
-//      //  ---------
-//      //  B_2 | B_3
-//      uint64_t B_0, B_1, B_2, B_3;
-//      uint64_t B_0_L, B_1_L, B_2_L, B_3_L;
-// 
-//      //  C_0 | C_1
-//      //  ---------
-//      //  C_2 | C_3
-//      plain_tree C_0, C_1, C_2, C_3;
-//      plain_tree C_0_0, C_1_2, C_0_1, C_1_3, C_2_0, C_3_2, C_2_1, C_3_3;
       traverse_info as[4], bs[4];
       bool da, db;
       da = db = false;
@@ -782,23 +608,6 @@ class k2_bp {
                               as[2].node + GET_SKIPS(dynamic_support[2].size_tree),
                               info_a.size - (as[0].size + as[1].size + as[2].size + 1),
                               info_a.n_l - (as[0].n_l + as[1].n_l + as[2].n_l), 1);
-//        uint64_t curr_pos = info_a.pos + 1;
-//
-//        as[0].pos = info_a.pos + 1;
-//        as[0].l = info_a.l;
-//        traverse(m_size / 2, curr_pos, as[0].size, as[0].n_l);
-//
-//        as[1].pos = curr_pos;
-//        as[1].l = info_a.l + as[0].n_l;
-//        traverse(m_size / 2, curr_pos, as[1].size, as[1].n_l);
-//
-//        as[2].pos = curr_pos;
-//        as[2].l = info_a.l + as[0].n_l + as[1].n_l;
-//        traverse(m_size / 2, curr_pos, as[2].size, as[2].n_l);
-//
-//        as[3].pos = curr_pos;
-//        as[3].l = info_a.l + as[0].n_l + as[1].n_l + as[2].n_l;
-//        traverse(m_size / 2, curr_pos, as[3].size, as[3].n_l);
       }
 
       if(b.child_support.size() > 0 && info_b.size >= b.threshold) {
@@ -874,23 +683,6 @@ class k2_bp {
                               bs[2].node + GET_SKIPS(b.dynamic_support[2].size_tree),
                               info_b.size - (bs[0].size + bs[1].size + bs[2].size + 1),
                               info_b.n_l - (bs[0].n_l + bs[1].n_l + bs[2].n_l), 1);
-//        uint64_t curr_pos = info_b.pos + 1;
-//
-//        bs[0].pos = info_b.pos + 1;
-//        bs[0].l = info_b.l;
-//        b.traverse(m_size / 2, curr_pos, bs[0].size, bs[0].n_l);
-//
-//        bs[1].pos = curr_pos;
-//        bs[1].l = info_b.l + bs[0].n_l;
-//        b.traverse(m_size / 2, curr_pos, bs[1].size, bs[1].n_l);
-//
-//        bs[2].pos = curr_pos;
-//        bs[2].l = info_b.l + bs[0].n_l + bs[1].n_l;
-//        b.traverse(m_size / 2, curr_pos, bs[2].size, bs[2].n_l);
-//
-//        bs[3].pos = curr_pos;
-//        bs[3].l = info_b.l + bs[0].n_l + bs[1].n_l + bs[2].n_l;
-//        b.traverse(m_size / 2, curr_pos, bs[3].size, bs[3].n_l);
       }
 
       //  C_0 | C_1
@@ -900,52 +692,61 @@ class k2_bp {
       plain_tree aux_c[2];
       traverse_info save_a, save_b;
       save_a = as[0]; save_b = bs[0];
-      new_mul(m_size / 2, as[0], b, bs[0], aux_c[0], curr_h - 1);
+      mul(m_size / 2, as[0], b, bs[0], aux_c[0], curr_h - 1);
       as[0] = save_a; bs[0] = save_b;
 
       save_a = as[1]; save_b = bs[2];
-      new_mul(m_size / 2, as[1], b, bs[2], aux_c[1], curr_h - 1);
+      mul(m_size / 2, as[1], b, bs[2], aux_c[1], curr_h - 1);
       as[1] = save_a; bs[2] = save_b;
 
+      c_[0].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
+      c_[0].l.reserve(aux_c[0].l.size() + aux_c[1].l.size());
       aux_c[0].binsum(aux_c[1], c_[0]);
       aux_c[0].destroy();
       aux_c[1].destroy();
       aux_c[0] = aux_c[1] = plain_tree();
 
       save_a = as[0]; save_b = bs[1];
-      new_mul(m_size / 2, as[0], b, bs[1], aux_c[0], curr_h - 1);
+      mul(m_size / 2, as[0], b, bs[1], aux_c[0], curr_h - 1);
       as[0] = save_a; bs[1] = save_b;
 
       save_a = as[1]; save_b = bs[3];
-      new_mul(m_size / 2, as[1], b, bs[3], aux_c[1], curr_h - 1);
+      mul(m_size / 2, as[1], b, bs[3], aux_c[1], curr_h - 1);
       as[1] = save_a; bs[3] = save_b;
 
+      c_[1].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
+      c_[1].l.reserve(aux_c[0].l.size() + aux_c[1].l.size());
       aux_c[0].binsum(aux_c[1], c_[1]);
       aux_c[0].destroy();
       aux_c[1].destroy();
       aux_c[0] = aux_c[1] = plain_tree();
 
       save_a = as[2]; save_b = bs[0];
-      new_mul(m_size / 2, as[2], b, bs[0], aux_c[0], curr_h - 1);
+      mul(m_size / 2, as[2], b, bs[0], aux_c[0], curr_h - 1);
       as[2] = save_a; bs[0] = save_b;
 
       save_a = as[3]; save_b = bs[2];
-      new_mul(m_size / 2, as[3], b, bs[2], aux_c[1], curr_h - 1);
+      mul(m_size / 2, as[3], b, bs[2], aux_c[1], curr_h - 1);
       as[3] = save_a; bs[2] = save_b;
 
+      c_[2].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
+      c_[2].l.reserve(aux_c[0].l.size() + aux_c[1].l.size());
       aux_c[0].binsum(aux_c[1], c_[2]);
       aux_c[0].destroy();
       aux_c[1].destroy();
       aux_c[0] = aux_c[1] = plain_tree();
 
       save_a = as[2]; save_b = bs[1];
-      new_mul(m_size / 2, as[2], b, bs[1], aux_c[0], curr_h - 1);
+      mul(m_size / 2, as[2], b, bs[1], aux_c[0], curr_h - 1);
       as[2] = save_a; bs[1] = save_b;
 
       save_a = as[3]; save_b = bs[3];
-      new_mul(m_size / 2, as[3], b, bs[3], aux_c[1], curr_h - 1);
+      mul(m_size / 2, as[3], b, bs[3], aux_c[1], curr_h - 1);
       as[3] = save_a; bs[3] = save_b;
 
+
+      c_[3].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
+      c_[3].l.reserve(aux_c[0].l.size() + aux_c[1].l.size());
       aux_c[0].binsum(aux_c[1], c_[3]);
       aux_c[0].destroy();
       aux_c[1].destroy();
@@ -954,9 +755,11 @@ class k2_bp {
 
       if(da) {
         dynamic_support.clear();
+        dynamic_support.shrink_to_fit();
       }
       if(db) {
         b.dynamic_support.clear();
+        b.dynamic_support.shrink_to_fit();
       }
       if(c_[0].tree.size() == 2 &&
          c_[1].tree.size() == 2 &&
@@ -976,23 +779,19 @@ class k2_bp {
       c.tree.push_back(1);
 
       c.tree.concat(c_[0].tree);
-      //c.l.concat(c_[0].l, 0, c_[0].l.size());
       c.l.insert(c.l.end(), c_[0].l.begin(), c_[0].l.end());
       c_[0].destroy();
 
       c.tree.concat(c_[1].tree);
-      //c.l.concat(c_[1].l, 0, c_[1].l.size());
       c.l.insert(c.l.end(), c_[1].l.begin(), c_[1].l.end());
       c_[1].destroy();
 
       c.tree.concat(c_[2].tree);
-      //c.l.concat(c_[2].l, 0, c_[2].l.size());
       c.l.insert(c.l.end(), c_[2].l.begin(), c_[2].l.end());
       c_[2].destroy();
 
       c.tree.concat(c_[3].tree);
       c.tree.push_back(0);
-      //c.l.concat(c_[3].l, 0, c_[3].l.size());
       c.l.insert(c.l.end(), c_[3].l.begin(), c_[3].l.end());
       c_[3].destroy();
 
@@ -1005,235 +804,7 @@ class k2_bp {
       return;
 
     }
-
-    void mul(const k2_bp<k, bv_leaves> &B, plain_tree &C) {
-      uint64_t A_tree, B_tree;
-      A_tree = B_tree = 0;
-      uint64_t A_L, B_L;
-      A_L = B_L = 0;
-      sdsl::int_vector<4> A_L_S(l.size() / 4, 0);
-      sdsl::int_vector<4> B_L_S(B.l.size() / 4, 0);
-
-      mul(A_tree, A_L, 0, A_L_S, B, B_tree, B_L, 0, B_L_S, C, height_tree);
-    }
-
-    void mul(uint64_t &A_tree, uint64_t &A_L, bool A_flag, sdsl::int_vector<4> &A_L_S,
-             const k2_bp<k, bv_leaves> &B, uint64_t &B_tree, uint64_t &B_L, bool B_flag, sdsl::int_vector<4> &B_L_S,
-             plain_tree &C,
-             uint8_t curr_h) {
-      // submatrix A or B full of 0's
-      bool A_f0 = (!tree[A_tree + 1]);
-      bool B_f0 = (!B.tree[B_tree + 1]);
-      if(A_f0 && B_f0) { 
-        C.reserve(2, 0);
-        C.tree.push_back(1);
-        C.tree.push_back(0);
-        C.height_tree = curr_h;
-        C.m = m;
-        C.msize = msize;
-        C.rmsize = rmsize;
-        A_tree++;
-        B_tree++;
-        return;
-      } else if(A_f0) {
-        C.reserve(2, 0);
-        C.tree.push_back(1);
-        C.tree.push_back(0);
-        C.height_tree = curr_h;
-        C.m = m;
-        C.msize = msize;
-        C.rmsize = rmsize;
-        A_tree++;
-        if(B_flag) return;
-        B_tree = B.tree_support.find_close(B_tree);
-        B_L = B.rank_leaves(B_tree) * 4;
-        return;
-      } else if(B_f0) {
-        C.reserve(2, 0);
-        C.tree.push_back(1);
-        C.tree.push_back(0);
-        C.height_tree = curr_h;
-        C.m = m;
-        C.msize = msize;
-        C.rmsize = rmsize;
-        B_tree++;
-        if(A_flag) return;
-
-        A_tree = tree_support.find_close(A_tree);
-        A_L = rank_leaves(A_tree) * 4;
-        return;
-      }
-
-      // base case, leave 
-      if(curr_h == 1) { 
-        uint8_t aux_l =
-          minimat_mul((A_L_S[A_L >> 2] ? A_L_S[A_L >> 2] : A_L_S[A_L >> 2] = l.get_int(A_L, 4)),
-                      (B_L_S[B_L >> 2] ? B_L_S[B_L >> 2] : B_L_S[B_L >> 2] = B.l.get_int(B_L, 4)));
-        if(aux_l > 0) {
-          C.reserve(4, 4);
-          C.tree.push_back(1);
-          C.tree.push_back(1);
-          C.tree.push_back(0);
-          C.tree.push_back(0);
-          C.l.push_back(aux_l);
-        } else {
-          C.reserve(2, 0);
-          C.tree.push_back(1);
-          C.tree.push_back(0);
-        }
-        C.height_tree = curr_h;
-        C.m = m;
-        C.msize = msize;
-        C.rmsize = rmsize;
-
-        A_tree += 3;
-        B_tree += 3;
-        A_L += 4;
-        B_L += 4;
-
-        return;
-      }
-
-      //  A_0 | A_1
-      //  ---------
-      //  A_2 | A_3
-      uint64_t A_0, A_1, A_2, A_3;
-      uint64_t A_0_L, A_1_L, A_2_L, A_3_L;
-
-      //  B_0 | B_1
-      //  ---------
-      //  B_2 | B_3
-      uint64_t B_0, B_1, B_2, B_3;
-      uint64_t B_0_L, B_1_L, B_2_L, B_3_L;
  
-      //  C_0 | C_1
-      //  ---------
-      //  C_2 | C_3
-      plain_tree C_0, C_1, C_2, C_3;
-      plain_tree C_0_0, C_1_2, C_0_1, C_1_3, C_2_0, C_3_2, C_2_1, C_3_3;
-
-      A_tree++;
-      A_0 = A_tree;
-      A_0_L = A_L;
-
-      B_tree++;
-      B_0 = B_tree;
-      B_0_L = B_L;
-      // A_0 * B_0
-      mul(A_tree, A_L, 0, A_L_S, B, B_tree, B_L, 0, B_L_S, C_0_0, curr_h - 1); // A_tree == A_1 && B_tree == B_1
-      
-      A_tree++;
-      A_1 = A_tree;
-      A_1_L = A_L;
-
-      B_tree++;
-      B_1 = B_tree;
-      B_1_L = B_L;
-      // A_0 * B_1
-      mul(A_0, A_0_L, 1, A_L_S, B, B_tree, B_L, 0, B_L_S, C_0_1, curr_h - 1); // A_tree == A_1 && B_tree == B_2
-
-      B_tree++;
-      B_2 = B_tree;
-      B_2_L = B_L;
-      // A_1 * B_2
-      mul(A_tree, A_L, 0, A_L_S, B, B_tree, B_L, 0, B_L_S, C_1_2, curr_h - 1);
-
-      C_0.reserve(2 * max(C_0_0.tree.size(), C_1_2.tree.size()), 2 * max(C_0_0.l.size(), C_1_2.l.size()));
-      C_0_0.binsum(C_1_2, C_0);
-      C_0_0.destroy();
-      C_1_2.destroy();
-
-      A_tree++;
-      A_2 = A_tree;
-      A_2_L = A_L;
-
-      B_tree++;
-      B_3 = B_tree;
-      B_3_L = B_L;
-
-      // A_1 * B_3
-      mul(A_1, A_1_L, 1, A_L_S, B, B_tree, B_L, 0, B_L_S, C_1_3, curr_h - 1);
-
-      C_1.reserve(2 * max(C_0_1.tree.size(), C_1_3.tree.size()), 2 * max(C_0_1.l.size(), C_1_3.l.size()));
-      C_0_1.binsum(C_1_3, C_1);
-      C_0_1.destroy();
-      C_1_3.destroy();
-
-      // A_2 * B_0
-      mul(A_tree, A_L, 0, A_L_S, B, B_0, B_0_L, 1, B_L_S, C_2_0, curr_h - 1);
-
-      A_tree++;
-      A_3 = A_tree;
-      A_3_L = A_L;
-
-      // A_2 * B_1
-      mul(A_2, A_2_L, 1, A_L_S, B, B_1, B_1_L, 1, B_L_S, C_2_1, curr_h - 1);
-
-      // A_3 * B_2
-      mul(A_tree, A_L, 0, A_L_S, B, B_2, B_2_L, 1, B_L_S, C_3_2, curr_h - 1);
-
-      C_2.reserve(2 * max(C_2_0.tree.size(), C_3_2.tree.size()), 2 * max(C_2_0.l.size(), C_3_2.l.size()));
-      C_2_0.binsum(C_3_2, C_2);
-      C_2_0.destroy();
-      C_3_2.destroy();
-
-      // A_3 * B_3
-      mul(A_3, A_3_L, 1, A_L_S, B, B_3, B_3_L, 1, B_L_S, C_3_3, curr_h - 1);
-
-      C_3.reserve(2 * max(C_2_1.tree.size(), C_3_3.tree.size()), 2 * max(C_2_1.l.size(), C_3_3.l.size()));
-      C_2_1.binsum(C_3_3, C_3);
-      C_2_1.destroy();
-      C_3_3.destroy();
-
-      // merge results
-      A_tree++;
-      B_tree++;
-      if(C_0.tree.size() == 2 &&
-         C_1.tree.size() == 2 &&
-         C_2.tree.size() == 2 &&
-         C_3.tree.size() == 2) {
-        C.tree.push_back(1);
-        C.tree.push_back(0);
-        C.height_tree = curr_h;
-        C.m = m;
-        C.msize = msize;
-        C.rmsize = rmsize;
-        return;
-      }
-
-      C.tree.reserve(2 + C_0.tree.size() + C_1.tree.size() + C_2.tree.size() + C_3.tree.size());
-      C.l.reserve(C_0.l.size() + C_1.l.size() + C_2.l.size() + C_3.l.size());
-      C.tree.push_back(1);
-
-      C.tree.concat(C_0.tree);
-      //C.l.concat(C_0.l, 0, C_0.l.size());
-      C.l.insert(C.l.end(), C_0.l.begin(), C_0.l.end());
-      C_0.destroy();
-
-      C.tree.concat(C_1.tree);
-      //C.l.concat(C_1.l, 0, C_1.l.size());
-      C.l.insert(C.l.end(), C_1.l.begin(), C_1.l.end());
-      C_1.destroy();
-
-      C.tree.concat(C_2.tree);
-      //C.l.concat(C_2.l, 0, C_2.l.size());
-      C.l.insert(C.l.end(), C_2.l.begin(), C_2.l.end());
-      C_2.destroy();
-
-      C.tree.concat(C_3.tree);
-      C.tree.push_back(0);
-      //C.l.concat(C_3.l, 0, C_3.l.size());
-      C.l.insert(C.l.end(), C_3.l.begin(), C_3.l.end());
-      C_3.destroy();
-
-      C.height_tree = curr_h;
-      C.m = m;
-      C.msize = msize;
-      C.rmsize = rmsize;
-
-      return;
-    }
-
     void write(ofstream& out) {
       // writing integers first
       out.write((char*) &msize, sizeof(uint64_t));
@@ -1246,11 +817,8 @@ class k2_bp {
       out.write((char*) &values, sizeof(uint64_t));
       out.write((char*) child_support.data(), values * sizeof(child_info));
 
-      leaves.serialize(out);
-      rank_leaves.serialize(out);
 
       tree.serialize(out);
-      tree_support.serialize(out);
       l.serialize(out);
     }
 
@@ -1267,53 +835,26 @@ class k2_bp {
       child_support.resize(size, child_info());
       in.read((char*) child_support.data(), size * sizeof(child_info));
 
-      sdsl::load(leaves, in);
-      //leaves.load(in);
-      rank_leaves.load(in, &leaves);
-
       tree.load(in);
-      tree_support.load(in, &tree);
 
-      //l.load(in);
       sdsl::load(l, in);
     }
 
     uint64_t size_in_bits() {
       uint64_t total = sizeof(uint64_t) * 5 +
              size_in_bytes(tree) * 8 +
-             size_in_bytes(tree_support) * 8 +
-             size_in_bytes(l) * 8 +
-             size_in_bytes(leaves) * 8 + size_in_bytes(rank_leaves) * 8;
+             child_support.size() * sizeof(child_info) * 8 +
+             size_in_bytes(l) * 8;
 #ifdef INFO_SPACE
-      cout << "Leaves:" << rank_leaves(leaves.size()) << endl;
+      vector< child_info > aux_leaves; uint64_t pos = 0; uint64_t leaves = 0;
+      init_support_child(pos, aux_leaves, leaves, nodes() / 2);
+      cout << "Leaves:" << leaves << endl;
       cout << "BITS" << endl;
       cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << "," << (double) (size_in_bytes(tree)) * 8 / size() << "," << (double) (size_in_bytes(tree)) * 8 / total << endl;
-      cout << "  Tree Support: " << (size_in_bytes(tree_support)) * 8 << "," << (double) (size_in_bytes(tree_support)) * 8 / size() << "," << (double) (size_in_bytes(tree_support)) * 8 / total << endl;
       cout << "  L           : " << (size_in_bytes(l)) * 8 << "," << (double) (size_in_bytes(l)) * 8 / size() << "," << (double) (size_in_bytes(l)) * 8 / total << endl;
       cout << "  child supp  : " << child_support.size() * sizeof(child_info) * 8 << "," << (double) (child_support.size() * sizeof(child_info) * 8) / size() << "," << (double) child_support.size() * sizeof(child_info) * 8 / total << endl;
-      cout << "  leaves      : " << (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 << "," << (double) (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 / size() << "," << (double) (size_in_bytes(leaves) + size_in_bytes(rank_leaves)) * 8 / total << endl;
 #endif
       return total;
-    }
-
-    friend ostream& operator<<(ostream& os, const k2_bp<k, bv_leaves> &k2tree) {
-      cout << "HT  : " << k2tree.height_tree << endl;
-      cout << "Tree: ";
-      for(uint64_t i = 0; i < k2tree.tree.size(); i++) {
-        cout << (k2tree.tree[i] ? "(" : ")");
-      }
-      cout << endl;
-      cout << "L   : ";
-      for(uint64_t i = 0; i < k2tree.l.size(); i++) {
-        if(i % 4 == 0 && !(i == 0)) cout << " ";
-        cout << (k2tree.l[i] ? "1" : "0");
-      }
-      cout << endl;
-      cout << "Lvs : ";
-      for(uint64_t i = 0; i < k2tree.leaves.size(); i++) {
-        cout << (k2tree.leaves[i] ? "1" : "0");
-      }
-      return os;
     }
 };
 #endif // !K2_TREE_BP_SDSL
