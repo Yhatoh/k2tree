@@ -194,13 +194,13 @@ class k2_bp {
     }
 
     void check_size(uint64_t &pos, uint64_t &leaves, uint64_t curr_child, uint64_t curr_size, uint64_t curr_n_leaves) {
-      if(pos + 3 < tree.size() && tree[pos] && tree[pos + 1] && !tree[pos + 2] && !tree[pos + 3]) {
+      if(pos + 3 < tree.size() && tree.get_int(pos, 4) == 3) {
         pos += 4;
         leaves++;
         return;
       }
 
-      if(pos + 1 < tree.size() && tree[pos] && !tree[pos + 1]) {
+      if(pos + 1 < tree.size() && tree.get_int(pos, 2) == 1) {
         pos += 2;
         return;
       }
@@ -214,7 +214,6 @@ class k2_bp {
         check_size(pos, leaves, curr_child, curr_size, curr_n_leaves);
         pos++;
 
-        //debug(tree_support.find_close(curr_pos) - curr_pos + 1, pos - curr_pos);
         return;
       }
 
@@ -281,6 +280,100 @@ class k2_bp {
         pos++;
       } // always end at position +1 of last ) of this tree
       size_tree = (pos - curr_pos) / 2; 
+    }
+
+    inline uint64_t count(uint64_t num) {
+      uint64_t x = num;
+      uint64_t y = num >> 1;
+      uint64_t hi = x & y;
+      uint64_t lo = ~ (x | y);
+
+      uint64_t bits = (hi & (lo >> 2)) & 2305843009213693951;
+      return __builtin_popcountll(bits);
+    }
+
+    inline uint64_t rank_leave(uint64_t i, uint64_t j) {
+
+      uint64_t ret = 0;
+      uint64_t bit = i;
+      for(; bit + 64 < j; bit += 64) {
+        uint64_t extra = 0;
+        uint64_t read = tree.get_int(bit, 64);
+        if(bit + 64 < i) {
+          uint64_t len = (6 > tree.size() - (bit + 61) ?
+                          tree.size() - (bit + 61) :
+                          6);
+          extra = count(tree.get_int(bit + 61, len) | (((uint64_t) -1) << len));
+        }
+        ret += count(read) + extra;
+      }
+      if(i > bit) {
+        uint64_t dist = i - bit;
+        if(dist == 64) ret += count(tree.get_int(bit, 64));
+        else ret += count(tree.get_int(bit, dist) | (((uint64_t) -1) << (dist)));
+
+        uint64_t extra = 0;
+
+        if(dist == 1) {
+          uint64_t len_extra = (i - 1 + 4 <= tree.size() ? 4 : tree.size() - (i - 1));
+          uint64_t read = tree.get_int(i - 1, len_extra);
+          extra = 
+            count(read | (((uint64_t) -1) << len_extra));
+          ret += extra;
+        } else if(dist == 2) {
+          uint64_t len_extra = (i - 2 + 5 <= tree.size() ? 5 : tree.size() - (i - 2));
+          uint64_t read = tree.get_int(i - 2, len_extra);
+          extra = 
+            count(read | (((uint64_t) -1) << len_extra));
+          ret += extra;
+        } else {
+          uint64_t len_extra = (i + 3 <= tree.size() ? 6 : tree.size() - (i - 3));
+          uint64_t read = tree.get_int(i - 3, len_extra);
+          extra = 
+            count(read | (((uint64_t) -1) << len_extra));
+          ret += extra;
+        }
+      }
+      return ret;
+    }
+
+    inline void fasttraverse(uint64_t &pos, uint64_t &size_tree, uint64_t &n_leaves) {
+      if(tree.get_int(pos, 4) == 3) {
+        pos += 4; size_tree = 2; n_leaves = 1;
+        return;
+      }
+      if(tree.get_int(pos, 2) == 1) {
+        pos += 2; size_tree = 1; n_leaves = 0;
+        return;
+      }
+
+      uint64_t curr_pos = pos;
+      int64_t depth = 0;
+
+      uint64_t bits = tree.get_int(pos, 10); // 12 is the smaller size it should receive
+      n_leaves += count(bits | ((uint64_t)-1 << 10));
+
+      int64_t plus_one = __builtin_popcountll(bits & ((1ULL << 8) - 1ULL));
+      depth = plus_one - (8 - plus_one);
+
+      pos += 8;
+
+      while(depth > 0) {
+        bits = tree.get_int(pos, 10);
+        uint8_t end__= end_tree[depth - 1][bits & ((1LL << 8) - 1LL)];
+        if(end__== 8) {
+          plus_one = __builtin_popcountll(bits & ((1LL << 8) - 1LL));
+          depth += plus_one - (8 - plus_one);
+          n_leaves += count(bits | ((uint64_t) -1 << 10));
+          pos += 8;
+        } else {
+          plus_one = __builtin_popcountll(bits & ((1LL << (end__+ 1)) - 1LL));
+          depth = 0;
+          n_leaves += count(bits | ((uint64_t) -1 << (end__+ 1)));
+          pos += end__+ 1;
+        }
+      }
+      size_tree = (pos - curr_pos) / 2;
     }
 
   public:
@@ -482,7 +575,7 @@ class k2_bp {
       assert(tree[info_a.pos]);
       assert(b.tree[info_b.pos]);
 
-      if(tree[info_a.pos] && !tree[info_a.pos + 1]) { // result is 0
+      if(tree.get_int(info_a.pos, 2) == 1) { // result is 0
         c.reserve(2, 0);
         c.tree.push_back(1);
         c.tree.push_back(0);
@@ -495,7 +588,7 @@ class k2_bp {
         return;
       }
 
-      if(b.tree[info_b.pos] && !b.tree[info_b.pos + 1]) { // result is 0
+      if(b.tree.get_int(info_b.pos, 2) == 1) { // result is 0
         c.reserve(2, 0);
         c.tree.push_back(1);
         c.tree.push_back(0);
@@ -560,56 +653,74 @@ class k2_bp {
                               as[2].node + GET_SKIPS(child_support[info_a.node + 2].size_tree),
                               info_a.size - (as[0].size + as[1].size + as[2].size + 1),
                               info_a.n_l - (as[0].n_l + as[1].n_l + as[2].n_l), 1);
-      } else if(dynamic_support.size() > 0 && info_a.size >= 3) {
-        as[0] = traverse_info(info_a.pos + 1, info_a.l,
-                              info_a.node + 3,
-                              GET_NODES(dynamic_support[info_a.node].size_tree),
-                              dynamic_support[info_a.node].n_leaves, 1);
-
-        as[1] = traverse_info(info_a.pos + 1 + as[0].size * 2,
-                              info_a.l + as[0].n_l,
-                              as[0].node + GET_SKIPS(dynamic_support[info_a.node].size_tree),
-                              GET_NODES(dynamic_support[info_a.node + 1].size_tree),
-                              dynamic_support[info_a.node + 1].n_leaves, 1);
-
-        as[2] = traverse_info(info_a.pos + 1 + as[0].size * 2 + as[1].size * 2,
-                              info_a.l + as[0].n_l + as[1].n_l,
-                              as[1].node + GET_SKIPS(dynamic_support[info_a.node + 1].size_tree),
-                              GET_NODES(dynamic_support[info_a.node + 2].size_tree),
-                              dynamic_support[info_a.node + 2].n_leaves, 1);
-
-        as[3] = traverse_info(info_a.pos + 1 + as[0].size * 2 + as[1].size * 2 + as[2].size * 2,
-                              info_a.l + as[0].n_l + as[1].n_l + as[2].n_l,
-                              as[2].node + GET_SKIPS(dynamic_support[info_a.node + 2].size_tree),
-                              info_a.size - (as[0].size + as[1].size + as[2].size + 1),
-                              info_a.n_l - (as[0].n_l + as[1].n_l + as[2].n_l), 1);
+//      } else if(dynamic_support.size() > 0 && info_a.size >= 3) {
+//        as[0] = traverse_info(info_a.pos + 1, info_a.l,
+//                              info_a.node + 3,
+//                              GET_NODES(dynamic_support[info_a.node].size_tree),
+//                              dynamic_support[info_a.node].n_leaves, 1);
+//
+//        as[1] = traverse_info(info_a.pos + 1 + as[0].size * 2,
+//                              info_a.l + as[0].n_l,
+//                              as[0].node + GET_SKIPS(dynamic_support[info_a.node].size_tree),
+//                              GET_NODES(dynamic_support[info_a.node + 1].size_tree),
+//                              dynamic_support[info_a.node + 1].n_leaves, 1);
+//
+//        as[2] = traverse_info(info_a.pos + 1 + as[0].size * 2 + as[1].size * 2,
+//                              info_a.l + as[0].n_l + as[1].n_l,
+//                              as[1].node + GET_SKIPS(dynamic_support[info_a.node + 1].size_tree),
+//                              GET_NODES(dynamic_support[info_a.node + 2].size_tree),
+//                              dynamic_support[info_a.node + 2].n_leaves, 1);
+//
+//        as[3] = traverse_info(info_a.pos + 1 + as[0].size * 2 + as[1].size * 2 + as[2].size * 2,
+//                              info_a.l + as[0].n_l + as[1].n_l + as[2].n_l,
+//                              as[2].node + GET_SKIPS(dynamic_support[info_a.node + 2].size_tree),
+//                              info_a.size - (as[0].size + as[1].size + as[2].size + 1),
+//                              info_a.n_l - (as[0].n_l + as[1].n_l + as[2].n_l), 1);
       } else { // traverse
-        uint64_t curr_pos = info_a.pos;
-        uint64_t curr_leaves = 0;
-        init_support_child(curr_pos, dynamic_support, curr_leaves, 3);
-        da = true;
-        as[0] = traverse_info(info_a.pos + 1, info_a.l,
-                              3,
-                              GET_NODES(dynamic_support[0].size_tree),
-                              dynamic_support[0].n_leaves, 1);
+//        uint64_t curr_pos = info_a.pos;
+//        uint64_t curr_leaves = 0;
+//        assert(dynamic_support.size() == 0);
+//        init_support_child(curr_pos, dynamic_support, curr_leaves, 3);
+//        da = true;
+//        as[0] = traverse_info(info_a.pos + 1, info_a.l,
+//                              3,
+//                              GET_NODES(dynamic_support[0].size_tree),
+//                              dynamic_support[0].n_leaves, 1);
+//
+//        as[1] = traverse_info(info_a.pos + 1 + as[0].size * 2,
+//                              info_a.l + as[0].n_l,
+//                              as[0].node + GET_SKIPS(dynamic_support[0].size_tree),
+//                              GET_NODES(dynamic_support[1].size_tree),
+//                              dynamic_support[1].n_leaves, 1);
+//
+//        as[2] = traverse_info(info_a.pos + 1 + as[0].size * 2 + as[1].size * 2,
+//                              info_a.l + as[0].n_l + as[1].n_l,
+//                              as[1].node + GET_SKIPS(dynamic_support[1].size_tree),
+//                              GET_NODES(dynamic_support[2].size_tree),
+//                              dynamic_support[2].n_leaves, 1);
+//
+//        as[3] = traverse_info(info_a.pos + 1 + as[0].size * 2 + as[1].size * 2 + as[2].size * 2,
+//                              info_a.l + as[0].n_l + as[1].n_l + as[2].n_l,
+//                              as[2].node + GET_SKIPS(dynamic_support[2].size_tree),
+//                              info_a.size - (as[0].size + as[1].size + as[2].size + 1),
+//                              info_a.n_l - (as[0].n_l + as[1].n_l + as[2].n_l), 1);
+        uint64_t curr_pos = info_a.pos + 1;
 
-        as[1] = traverse_info(info_a.pos + 1 + as[0].size * 2,
-                              info_a.l + as[0].n_l,
-                              as[0].node + GET_SKIPS(dynamic_support[0].size_tree),
-                              GET_NODES(dynamic_support[1].size_tree),
-                              dynamic_support[1].n_leaves, 1);
+        as[0].pos = info_a.pos + 1;
+        as[0].l = info_a.l;
+        fasttraverse(curr_pos, as[0].size, as[0].n_l);
 
-        as[2] = traverse_info(info_a.pos + 1 + as[0].size * 2 + as[1].size * 2,
-                              info_a.l + as[0].n_l + as[1].n_l,
-                              as[1].node + GET_SKIPS(dynamic_support[1].size_tree),
-                              GET_NODES(dynamic_support[2].size_tree),
-                              dynamic_support[2].n_leaves, 1);
+        as[1].pos = curr_pos;
+        as[1].l = info_a.l + as[0].n_l;
+        fasttraverse(curr_pos, as[1].size, as[1].n_l);
 
-        as[3] = traverse_info(info_a.pos + 1 + as[0].size * 2 + as[1].size * 2 + as[2].size * 2,
-                              info_a.l + as[0].n_l + as[1].n_l + as[2].n_l,
-                              as[2].node + GET_SKIPS(dynamic_support[2].size_tree),
-                              info_a.size - (as[0].size + as[1].size + as[2].size + 1),
-                              info_a.n_l - (as[0].n_l + as[1].n_l + as[2].n_l), 1);
+        as[2].pos = curr_pos;
+        as[2].l = info_a.l + as[0].n_l + as[1].n_l;
+        fasttraverse(curr_pos, as[2].size, as[2].n_l);
+
+        as[3].pos = curr_pos;
+        as[3].l = info_a.l + as[0].n_l + as[1].n_l + as[2].n_l;
+        fasttraverse(curr_pos, as[3].size, as[3].n_l);
       }
 
       if(b.child_support.size() > 0 && info_b.size >= b.threshold) {
@@ -635,56 +746,74 @@ class k2_bp {
                               bs[2].node + GET_SKIPS(b.child_support[info_b.node + 2].size_tree),
                               info_b.size - (bs[0].size + bs[1].size + bs[2].size + 1),
                               info_b.n_l - (bs[0].n_l + bs[1].n_l + bs[2].n_l), 1);
-      } else if(b.dynamic_support.size() > 0 && info_b.size >= 3) {
-        bs[0] = traverse_info(info_b.pos + 1, info_b.l,
-                              info_b.node + 3,
-                              GET_NODES(b.dynamic_support[info_b.node].size_tree),
-                              b.dynamic_support[info_b.node].n_leaves, 1);
-
-        bs[1] = traverse_info(info_b.pos + 1 + bs[0].size * 2,
-                              info_b.l + bs[0].n_l,
-                              bs[0].node + GET_SKIPS(b.dynamic_support[info_b.node].size_tree),
-                              GET_NODES(b.dynamic_support[info_b.node + 1].size_tree),
-                              b.dynamic_support[info_b.node + 1].n_leaves, 1);
-
-        bs[2] = traverse_info(info_b.pos + 1 + bs[0].size * 2 + bs[1].size * 2,
-                              info_b.l + bs[0].n_l + bs[1].n_l,
-                              bs[1].node + GET_SKIPS(b.dynamic_support[info_b.node + 1].size_tree),
-                              GET_NODES(b.dynamic_support[info_b.node + 2].size_tree),
-                              b.dynamic_support[info_b.node + 2].n_leaves, 1);
-
-        bs[3] = traverse_info(info_b.pos + 1 + bs[0].size * 2 + bs[1].size * 2 + bs[2].size * 2,
-                              info_b.l + bs[0].n_l + bs[1].n_l + bs[2].n_l,
-                              bs[2].node + GET_SKIPS(b.dynamic_support[info_b.node + 2].size_tree),
-                              info_b.size - (bs[0].size + bs[1].size + bs[2].size + 1),
-                              info_b.n_l - (bs[0].n_l + bs[1].n_l + bs[2].n_l), 1);
+//      } else if(b.dynamic_support.size() > 0 && info_b.size >= 3) {
+//        bs[0] = traverse_info(info_b.pos + 1, info_b.l,
+//                              info_b.node + 3,
+//                              GET_NODES(b.dynamic_support[info_b.node].size_tree),
+//                              b.dynamic_support[info_b.node].n_leaves, 1);
+//
+//        bs[1] = traverse_info(info_b.pos + 1 + bs[0].size * 2,
+//                              info_b.l + bs[0].n_l,
+//                              bs[0].node + GET_SKIPS(b.dynamic_support[info_b.node].size_tree),
+//                              GET_NODES(b.dynamic_support[info_b.node + 1].size_tree),
+//                              b.dynamic_support[info_b.node + 1].n_leaves, 1);
+//
+//        bs[2] = traverse_info(info_b.pos + 1 + bs[0].size * 2 + bs[1].size * 2,
+//                              info_b.l + bs[0].n_l + bs[1].n_l,
+//                              bs[1].node + GET_SKIPS(b.dynamic_support[info_b.node + 1].size_tree),
+//                              GET_NODES(b.dynamic_support[info_b.node + 2].size_tree),
+//                              b.dynamic_support[info_b.node + 2].n_leaves, 1);
+//
+//        bs[3] = traverse_info(info_b.pos + 1 + bs[0].size * 2 + bs[1].size * 2 + bs[2].size * 2,
+//                              info_b.l + bs[0].n_l + bs[1].n_l + bs[2].n_l,
+//                              bs[2].node + GET_SKIPS(b.dynamic_support[info_b.node + 2].size_tree),
+//                              info_b.size - (bs[0].size + bs[1].size + bs[2].size + 1),
+//                              info_b.n_l - (bs[0].n_l + bs[1].n_l + bs[2].n_l), 1);
       } else { // traverse
-        uint64_t curr_pos = info_b.pos;
-        uint64_t curr_leaves = 0;
-        b.init_support_child(curr_pos, b.dynamic_support, curr_leaves, 3);
-        db = true;
-        bs[0] = traverse_info(info_b.pos + 1, info_b.l,
-                              3,
-                              GET_NODES(b.dynamic_support[0].size_tree),
-                              b.dynamic_support[0].n_leaves, 1);
+//        uint64_t curr_pos = info_b.pos;
+//        uint64_t curr_leaves = 0;
+//        assert(b.dynamic_support.size() == 0);
+//        b.init_support_child(curr_pos, b.dynamic_support, curr_leaves, 3);
+//        db = true;
+//        bs[0] = traverse_info(info_b.pos + 1, info_b.l,
+//                              3,
+//                              GET_NODES(b.dynamic_support[0].size_tree),
+//                              b.dynamic_support[0].n_leaves, 1);
+//
+//        bs[1] = traverse_info(info_b.pos + 1 + bs[0].size * 2,
+//                              info_b.l + bs[0].n_l,
+//                              bs[0].node + GET_SKIPS(b.dynamic_support[0].size_tree),
+//                              GET_NODES(b.dynamic_support[1].size_tree),
+//                              b.dynamic_support[1].n_leaves, 1);
+//
+//        bs[2] = traverse_info(info_b.pos + 1 + bs[0].size * 2 + bs[1].size * 2,
+//                              info_b.l + bs[0].n_l + bs[1].n_l,
+//                              bs[1].node + GET_SKIPS(b.dynamic_support[1].size_tree),
+//                              GET_NODES(b.dynamic_support[2].size_tree),
+//                              b.dynamic_support[2].n_leaves, 1);
+//
+//        bs[3] = traverse_info(info_b.pos + 1 + bs[0].size * 2 + bs[1].size * 2 + bs[2].size * 2,
+//                              info_b.l + bs[0].n_l + bs[1].n_l + bs[2].n_l,
+//                              bs[2].node + GET_SKIPS(b.dynamic_support[2].size_tree),
+//                              info_b.size - (bs[0].size + bs[1].size + bs[2].size + 1),
+//                              info_b.n_l - (bs[0].n_l + bs[1].n_l + bs[2].n_l), 1);
+        uint64_t curr_pos = info_b.pos + 1;
 
-        bs[1] = traverse_info(info_b.pos + 1 + bs[0].size * 2,
-                              info_b.l + bs[0].n_l,
-                              bs[0].node + GET_SKIPS(b.dynamic_support[0].size_tree),
-                              GET_NODES(b.dynamic_support[1].size_tree),
-                              b.dynamic_support[1].n_leaves, 1);
+        bs[0].pos = info_b.pos + 1;
+        bs[0].l = info_b.l;
+        b.fasttraverse(curr_pos, bs[0].size, bs[0].n_l);
 
-        bs[2] = traverse_info(info_b.pos + 1 + bs[0].size * 2 + bs[1].size * 2,
-                              info_b.l + bs[0].n_l + bs[1].n_l,
-                              bs[1].node + GET_SKIPS(b.dynamic_support[1].size_tree),
-                              GET_NODES(b.dynamic_support[2].size_tree),
-                              b.dynamic_support[2].n_leaves, 1);
+        bs[1].pos = curr_pos;
+        bs[1].l = info_b.l + bs[0].n_l;
+        b.fasttraverse(curr_pos, bs[1].size, bs[1].n_l);
 
-        bs[3] = traverse_info(info_b.pos + 1 + bs[0].size * 2 + bs[1].size * 2 + bs[2].size * 2,
-                              info_b.l + bs[0].n_l + bs[1].n_l + bs[2].n_l,
-                              bs[2].node + GET_SKIPS(b.dynamic_support[2].size_tree),
-                              info_b.size - (bs[0].size + bs[1].size + bs[2].size + 1),
-                              info_b.n_l - (bs[0].n_l + bs[1].n_l + bs[2].n_l), 1);
+        bs[2].pos = curr_pos;
+        bs[2].l = info_b.l + bs[0].n_l + bs[1].n_l;
+        b.fasttraverse(curr_pos, bs[2].size, bs[2].n_l);
+
+        bs[3].pos = curr_pos;
+        bs[3].l = info_b.l + bs[0].n_l + bs[1].n_l + bs[2].n_l;
+        b.fasttraverse(curr_pos, bs[3].size, bs[3].n_l);
       }
 
       //  C_0 | C_1
