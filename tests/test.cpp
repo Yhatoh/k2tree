@@ -27,7 +27,7 @@ class Randomer {
 };
 
 Randomer pow2matrix(12, 12, 49);
-Randomer genmatrix(512, 512, 49);
+Randomer genmatrix(256, 256, 49);
 Randomer zerone(0, 10000);
 vector< pair< uint64_t, uint64_t > > gen_ones_matrix(uint64_t n, uint64_t m) {
     vector< pair< uint64_t, uint64_t > > ones;
@@ -305,7 +305,7 @@ int main(int argc, char *argv[]) {
   bool f_multi = 0;
   bool f_multi_compr = 0;
   bool f_write_and_load = 0;
-  uint64_t amount_of_test = 1;
+  uint64_t amount_of_test = 10;
   if(argc == 1) {
     f_compr = f_multi = f_multi_compr = f_write_and_load = 1;
   } else {
