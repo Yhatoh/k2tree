@@ -350,8 +350,8 @@ class k2_bp {
       uint64_t curr_pos = pos;
       int64_t depth = 0;
 
-      uint64_t bits = tree.get_int(pos, 14); // 12 is the smaller size it should receive
-      n_leaves += count(bits | ((uint64_t)-1 << 14));
+      uint64_t bits = tree.get_int(pos, 11); // 12 is the smaller size it should receive
+      n_leaves += count(bits | ((uint64_t)-1 << 11));
 
       int64_t plus_one = __builtin_popcountll(bits & ((1ULL << 8) - 1ULL));
       depth = plus_one - (8 - plus_one);
@@ -359,12 +359,12 @@ class k2_bp {
       pos += 8;
 
       while(depth > 0) {
-        bits = tree.get_int(pos, 14);
+        bits = tree.get_int(pos, 11);
         uint8_t end__= end_tree[depth - 1][bits & ((1LL << 8) - 1LL)];
         if(end__== 8) {
           plus_one = __builtin_popcountll(bits & ((1LL << 8) - 1LL));
           depth += plus_one - (8 - plus_one);
-          n_leaves += count(bits | ((uint64_t) -1 << 14));
+          n_leaves += count(bits | ((uint64_t) -1 << 11));
           pos += 8;
         } else {
           //plus_one = __builtin_popcountll(bits & ((1LL << (end__+ 1)) - 1LL));
