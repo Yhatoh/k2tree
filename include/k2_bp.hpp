@@ -760,18 +760,18 @@ class k2_bp {
 
         as[0].pos = info_a.pos + 1;
         as[0].l = info_a.l;
-        ultratraverse(curr_pos, excess, as[0].size, as[0].n_l);
+        ultratraverse(curr_pos, excess + 1, as[0].size, as[0].n_l);
 
         as[1].pos = curr_pos;
         as[1].l = info_a.l + as[0].n_l;
 
         as[2].pos = curr_pos;
         as[2].l = info_a.l + as[0].n_l + as[1].n_l;
-        ultratraverse(curr_pos, excess, as[2].size, as[2].n_l);
+        ultratraverse(curr_pos, excess + 1, as[2].size, as[2].n_l);
         
         as[3].pos = curr_pos;
         as[3].l = info_a.l + as[0].n_l + as[1].n_l + as[2].n_l;
-        ultratraverse(curr_pos, excess, as[3].size, as[3].n_l);
+        ultratraverse(curr_pos, excess + 1, as[3].size, as[3].n_l);
       }
 
       if(b.child_support.size() > 0 && info_b.size >= b.threshold) {
@@ -802,19 +802,19 @@ class k2_bp {
 
         bs[0].pos = info_b.pos + 1;
         bs[0].l = info_b.l;
-        b.ultratraverse(curr_pos, excess, bs[0].size, bs[0].n_l);
+        b.ultratraverse(curr_pos, excess + 1, bs[0].size, bs[0].n_l);
 
         bs[1].pos = curr_pos;
         bs[1].l = info_b.l + bs[0].n_l;
-        b.ultratraverse(curr_pos, excess, bs[1].size, bs[1].n_l);
+        b.ultratraverse(curr_pos, excess + 1, bs[1].size, bs[1].n_l);
 
         bs[2].pos = curr_pos;
         bs[2].l = info_b.l + bs[0].n_l + bs[1].n_l;
-        b.ultratraverse(curr_pos, excess, bs[2].size, bs[2].n_l);
+        b.ultratraverse(curr_pos, excess + 1, bs[2].size, bs[2].n_l);
 
         bs[3].pos = curr_pos;
         bs[3].l = info_b.l + bs[0].n_l + bs[1].n_l + bs[2].n_l;
-        b.ultratraverse(curr_pos, excess, bs[3].size, bs[3].n_l);
+        b.ultratraverse(curr_pos, excess + 1, bs[3].size, bs[3].n_l);
       }
 
       //  C_0 | C_1
