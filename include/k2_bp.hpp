@@ -999,6 +999,8 @@ class k2_bp {
 
       tree.serialize(out);
       l.serialize(out);
+      exc_min_samples.serialize(out);
+      exc_samples.serialize(out);
     }
 
     void load(ifstream& in) {
@@ -1018,6 +1020,8 @@ class k2_bp {
       tree.load(in);
 
       sdsl::load(l, in);
+      sdsl::load(exc_min_samples,in);
+      sdsl::load(exc_samples,in);
     }
 
     uint64_t size_in_bits() {
