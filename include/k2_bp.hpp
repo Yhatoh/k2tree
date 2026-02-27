@@ -971,7 +971,9 @@ class k2_bp {
       uint64_t total = sizeof(uint64_t) * 5 +
              size_in_bytes(tree) * 8 +
              child_support.size() * sizeof(child_info) * 8 +
-             size_in_bytes(l) * 8;
+             size_in_bytes(l) * 8 +
+             size_in_bytes(exc_min_samples) * 8 + size_in_bytes(exc_samples) * 8
+             + 65536 * 8 + 65536 * 8;
 #ifdef INFO_SPACE
       vector< child_info > aux_leaves; uint64_t pos = 0; uint64_t leaves = 0;
       init_support_child(pos, aux_leaves, leaves, nodes() / 2);
