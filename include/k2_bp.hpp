@@ -615,8 +615,8 @@ class k2_bp {
       for(const auto& bit : bv_l) aux_l[bit] = 1;
       l = bv_leaves(aux_l);
 
-      uint64_t excess = 1;
-      uint64_t min_excess = 1;
+      int64_t excess = 1;
+      int64_t min_excess = 1;
       exc_min_samples.resize((tree.size() + bexc - 1) / bexc + 1);
       exc_samples.resize((tree.size() + bexc - 1) / bexc + 1);
       uint64_t block = 0;
@@ -625,7 +625,7 @@ class k2_bp {
           exc_min_samples[block] = min_excess;
           exc_samples[block] = excess;
           block++;
-          min_excess = -1;
+          min_excess = LLONG_MAX;
         }
         excess += (tree[i] ? 1 : -1);
         if(excess < min_excess) min_excess = excess;
