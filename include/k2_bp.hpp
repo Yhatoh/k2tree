@@ -984,7 +984,7 @@ class k2_bp {
       cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << "," << (double) (size_in_bytes(tree)) * 8 / size() << "," << (double) (size_in_bytes(tree)) * 8 / total << endl;
       cout << "  L           : " << (size_in_bytes(l)) * 8 << "," << (double) (size_in_bytes(l)) * 8 / size() << "," << (double) (size_in_bytes(l)) * 8 / total << endl;
       cout << "  child supp  : " << child_support.size() * sizeof(child_info) * 8 << "," << (double) (child_support.size() * sizeof(child_info) * 8) / size() << "," << (double) child_support.size() * sizeof(child_info) * 8 / total << endl;
-      cout << "  microtable  : " << 65536*8*2 << "," << (double) (65536*8*2) / size() << "," << (double) c65536*8*2 / total << endl;
+      cout << "  microtable  : " << 65536*8*2 << "," << (double) (65536*8*2) / size() << "," << (double) 65536*8*2 / total << endl;
       cout << "  exc samples : " << size_in_bytes(exc_min_samples) * 8 + size_in_bytes(exc_samples) * 8 << "," << (double) (size_in_bytes(exc_min_samples) * 8 + size_in_bytes(exc_samples) * 8) / size() << "," << (double) (size_in_bytes(exc_min_samples) * 8 + size_in_bytes(exc_samples) * 8) / total << std::endl;
 
 #endif
