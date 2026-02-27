@@ -26,6 +26,7 @@
 #include "plaintree.hpp"
 #include "debug.hpp"
 
+
 using namespace std;
 using namespace sdsl;
 
@@ -60,10 +61,14 @@ struct traverse_info {
 // k2-tree
 // parameters:
 //   * k * k: amount of children per node
-template< uint64_t k = 2, class bv_leaves = bit_vector >
+template< uint64_t k = 2, class bv_leaves = bit_vector, uint64_t bexc = 256 >
 class k2_bp {
   public:
     uint64_t height_tree;
+
+    sdsl::int_vector<> exc_min_samples;
+    sdsl::int_vector<> exc_samples;
+    sdsl::int_vector<> leaves_samples;
 
     std::vector< child_info > child_support;
     std::vector< child_info > dynamic_support;
@@ -299,7 +304,7 @@ class k2_bp {
       for(; bit + 64 < j; bit += 64) {
         uint64_t extra = 0;
         uint64_t read = tree.get_int(bit, 64);
-        if(bit + 64 < i) {
+        if(bit + 64 < j) {
           uint64_t len = (6 > tree.size() - (bit + 61) ?
                           tree.size() - (bit + 61) :
                           6);
@@ -307,28 +312,28 @@ class k2_bp {
         }
         ret += count(read) + extra;
       }
-      if(i > bit) {
-        uint64_t dist = i - bit;
+      if(j > bit) {
+        uint64_t dist = j - bit;
         if(dist == 64) ret += count(tree.get_int(bit, 64));
         else ret += count(tree.get_int(bit, dist) | (((uint64_t) -1) << (dist)));
 
         uint64_t extra = 0;
 
         if(dist == 1) {
-          uint64_t len_extra = (i - 1 + 4 <= tree.size() ? 4 : tree.size() - (i - 1));
-          uint64_t read = tree.get_int(i - 1, len_extra);
+          uint64_t len_extra = (j - 1 + 4 <= tree.size() ? 4 : tree.size() - (j - 1));
+          uint64_t read = tree.get_int(j - 1, len_extra);
           extra = 
             count(read | (((uint64_t) -1) << len_extra));
           ret += extra;
         } else if(dist == 2) {
-          uint64_t len_extra = (i - 2 + 5 <= tree.size() ? 5 : tree.size() - (i - 2));
-          uint64_t read = tree.get_int(i - 2, len_extra);
+          uint64_t len_extra = (j - 2 + 5 <= tree.size() ? 5 : tree.size() - (j - 2));
+          uint64_t read = tree.get_int(j - 2, len_extra);
           extra = 
             count(read | (((uint64_t) -1) << len_extra));
           ret += extra;
         } else {
-          uint64_t len_extra = (i + 3 <= tree.size() ? 6 : tree.size() - (i - 3));
-          uint64_t read = tree.get_int(i - 3, len_extra);
+          uint64_t len_extra = (j + 3 <= tree.size() ? 6 : tree.size() - (j - 3));
+          uint64_t read = tree.get_int(j - 3, len_extra);
           extra = 
             count(read | (((uint64_t) -1) << len_extra));
           ret += extra;
@@ -374,6 +379,84 @@ class k2_bp {
         }
       }
       size_tree = (pos - curr_pos) / 2;
+    }
+
+    inline void ultratraverse(uint64_t &pos, int64_t excess, uint64_t &size_tree, uint64_t &n_leaves) {
+      if(tree.get_int(pos, 4) == 3) {
+        pos += 4; size_tree = 2; n_leaves = 1;
+        return;
+      }
+      if(tree.get_int(pos, 2) == 1) {
+        pos += 2; size_tree = 1; n_leaves = 0;
+        return;
+      }
+
+      uint64_t curr_pos = pos;
+      int64_t obj_excess = excess;
+      pos++;
+      uint64_t obj = bexc - pos % bexc + pos;
+      for(; pos + 16 < obj; pos += 16) {
+        // found micro block
+        uint64_t bits = tree.get_int(pos, 16);
+        if(obj_excess >= excess + exc_min_micro[bits] + 1) { 
+          for(uint8_t i = 0; i < 16; bits = bits >> 1, i++) { // reading bit
+            pos++;
+            if(bits & 1) excess++;
+            else excess--;
+           
+            if(obj_excess == excess + 1) {
+              size_tree = (pos - curr_pos) / 2;
+              n_leaves = rank_leave(curr_pos, pos);
+              return;
+            }
+          }
+        }
+
+        excess += exc_micro[bits];
+      }
+
+      // read last part;
+      {
+        uint64_t extra = bexc - pos % bexc;
+        uint64_t bits = tree.get_int(pos, extra);
+        for(uint8_t i = 0; i < extra; bits = bits >> 1, i++) { // reading bit
+          pos++;
+          if(bits & 1) excess++;
+          else excess--;
+
+          if(obj_excess == excess + 1) {
+            size_tree = (pos - curr_pos) / 2;
+            n_leaves = rank_leave(curr_pos, pos);
+            return;
+          }
+        }
+      }
+
+      uint64_t block = pos / bexc;
+      for(;; pos += bexc) {
+        // found the block
+        if(excess > exc_min_samples[block]) {
+          for(;; pos += 16) {
+            uint64_t bits = tree.get_int(pos, 16);
+            // found microblock
+            if(obj_excess >= excess + exc_min_micro[bits] + 1) {
+              for(uint8_t i = 0; i < 16; bits = bits >> 1, i++) {
+                pos++;
+                if(bits & 1) excess++;
+                else excess--;
+
+                if(obj_excess == excess + 1) {
+                  size_tree = (pos - curr_pos) / 2;
+                  n_leaves = rank_leave(curr_pos, pos);
+                  return;
+                }
+              }
+            }
+            excess += exc_micro[bits];
+          }
+        }
+        excess = exc_samples[block++];
+      }
     }
 
   public:
@@ -515,6 +598,26 @@ class k2_bp {
       auto aux_l = bit_vector(pos_to_add_l, 0);
       for(const auto& bit : bv_l) aux_l[bit] = 1;
       l = bv_leaves(aux_l);
+
+      uint64_t excess = 1;
+      uint64_t min_excess = 1;
+      exc_min_samples.resize((tree.size() + bexc - 1) / bexc + 1);
+      exc_samples.resize((tree.size() + bexc - 1) / bexc + 1);
+      uint64_t block = 0;
+      for(size_t i = 1; i < tree.size(); i++) {
+        if(i % bexc == 0) {
+          exc_min_samples[block] = min_excess;
+          exc_samples[block] = excess;
+          block++;
+          min_excess = -1;
+        }
+        excess += (tree[i] ? 1 : -1);
+        if(excess < min_excess) min_excess = excess;
+      }
+      exc_min_samples[block] = min_excess;
+      exc_samples[block] = excess;
+      sdsl::util::bit_compress(exc_min_samples);
+      sdsl::util::bit_compress(exc_samples);
     }
 
     void add_child_info(uint64_t threshold_ = 0) {
@@ -566,12 +669,12 @@ class k2_bp {
       traverse_info info_b(0, 0, 0, b.tree.size() / 2, b.l.size() / 4, 1);
       dynamic_support.reserve(threshold * 3);
       b.dynamic_support.reserve(b.threshold * 3);
-      mul(msize, info_a, b, info_b, c, height_tree);
+      mul(msize, info_a, b, info_b, c, height_tree, 1);
     }
 
     void mul(uint64_t m_size, traverse_info &info_a,
                  k2_bp<k, bv_leaves> &b, traverse_info &info_b,
-                 plain_tree &c, uint64_t curr_h) {
+                 plain_tree &c, uint64_t curr_h, int64_t excess) {
       assert(tree[info_a.pos]);
       assert(b.tree[info_b.pos]);
 
@@ -653,74 +756,24 @@ class k2_bp {
                               as[2].node + GET_SKIPS(child_support[info_a.node + 2].size_tree),
                               info_a.size - (as[0].size + as[1].size + as[2].size + 1),
                               info_a.n_l - (as[0].n_l + as[1].n_l + as[2].n_l), 1);
-//      } else if(dynamic_support.size() > 0 && info_a.size >= 3) {
-//        as[0] = traverse_info(info_a.pos + 1, info_a.l,
-//                              info_a.node + 3,
-//                              GET_NODES(dynamic_support[info_a.node].size_tree),
-//                              dynamic_support[info_a.node].n_leaves, 1);
-//
-//        as[1] = traverse_info(info_a.pos + 1 + as[0].size * 2,
-//                              info_a.l + as[0].n_l,
-//                              as[0].node + GET_SKIPS(dynamic_support[info_a.node].size_tree),
-//                              GET_NODES(dynamic_support[info_a.node + 1].size_tree),
-//                              dynamic_support[info_a.node + 1].n_leaves, 1);
-//
-//        as[2] = traverse_info(info_a.pos + 1 + as[0].size * 2 + as[1].size * 2,
-//                              info_a.l + as[0].n_l + as[1].n_l,
-//                              as[1].node + GET_SKIPS(dynamic_support[info_a.node + 1].size_tree),
-//                              GET_NODES(dynamic_support[info_a.node + 2].size_tree),
-//                              dynamic_support[info_a.node + 2].n_leaves, 1);
-//
-//        as[3] = traverse_info(info_a.pos + 1 + as[0].size * 2 + as[1].size * 2 + as[2].size * 2,
-//                              info_a.l + as[0].n_l + as[1].n_l + as[2].n_l,
-//                              as[2].node + GET_SKIPS(dynamic_support[info_a.node + 2].size_tree),
-//                              info_a.size - (as[0].size + as[1].size + as[2].size + 1),
-//                              info_a.n_l - (as[0].n_l + as[1].n_l + as[2].n_l), 1);
-      } else { // traverse
-//        uint64_t curr_pos = info_a.pos;
-//        uint64_t curr_leaves = 0;
-//        assert(dynamic_support.size() == 0);
-//        init_support_child(curr_pos, dynamic_support, curr_leaves, 3);
-//        da = true;
-//        as[0] = traverse_info(info_a.pos + 1, info_a.l,
-//                              3,
-//                              GET_NODES(dynamic_support[0].size_tree),
-//                              dynamic_support[0].n_leaves, 1);
-//
-//        as[1] = traverse_info(info_a.pos + 1 + as[0].size * 2,
-//                              info_a.l + as[0].n_l,
-//                              as[0].node + GET_SKIPS(dynamic_support[0].size_tree),
-//                              GET_NODES(dynamic_support[1].size_tree),
-//                              dynamic_support[1].n_leaves, 1);
-//
-//        as[2] = traverse_info(info_a.pos + 1 + as[0].size * 2 + as[1].size * 2,
-//                              info_a.l + as[0].n_l + as[1].n_l,
-//                              as[1].node + GET_SKIPS(dynamic_support[1].size_tree),
-//                              GET_NODES(dynamic_support[2].size_tree),
-//                              dynamic_support[2].n_leaves, 1);
-//
-//        as[3] = traverse_info(info_a.pos + 1 + as[0].size * 2 + as[1].size * 2 + as[2].size * 2,
-//                              info_a.l + as[0].n_l + as[1].n_l + as[2].n_l,
-//                              as[2].node + GET_SKIPS(dynamic_support[2].size_tree),
-//                              info_a.size - (as[0].size + as[1].size + as[2].size + 1),
-//                              info_a.n_l - (as[0].n_l + as[1].n_l + as[2].n_l), 1);
+      } else {
         uint64_t curr_pos = info_a.pos + 1;
 
         as[0].pos = info_a.pos + 1;
         as[0].l = info_a.l;
-        fasttraverse(curr_pos, as[0].size, as[0].n_l);
+        ultratraverse(curr_pos, excess, as[0].size, as[0].n_l);
 
         as[1].pos = curr_pos;
         as[1].l = info_a.l + as[0].n_l;
-        fasttraverse(curr_pos, as[1].size, as[1].n_l);
+        ultratraverse(curr_pos, excess, as[1].size, as[1].n_l);
 
         as[2].pos = curr_pos;
         as[2].l = info_a.l + as[0].n_l + as[1].n_l;
-        fasttraverse(curr_pos, as[2].size, as[2].n_l);
+        ultratraverse(curr_pos, excess, as[2].size, as[2].n_l);
 
         as[3].pos = curr_pos;
         as[3].l = info_a.l + as[0].n_l + as[1].n_l + as[2].n_l;
-        fasttraverse(curr_pos, as[3].size, as[3].n_l);
+        ultratraverse(curr_pos, excess, as[3].size, as[3].n_l);
       }
 
       if(b.child_support.size() > 0 && info_b.size >= b.threshold) {
@@ -746,74 +799,24 @@ class k2_bp {
                               bs[2].node + GET_SKIPS(b.child_support[info_b.node + 2].size_tree),
                               info_b.size - (bs[0].size + bs[1].size + bs[2].size + 1),
                               info_b.n_l - (bs[0].n_l + bs[1].n_l + bs[2].n_l), 1);
-//      } else if(b.dynamic_support.size() > 0 && info_b.size >= 3) {
-//        bs[0] = traverse_info(info_b.pos + 1, info_b.l,
-//                              info_b.node + 3,
-//                              GET_NODES(b.dynamic_support[info_b.node].size_tree),
-//                              b.dynamic_support[info_b.node].n_leaves, 1);
-//
-//        bs[1] = traverse_info(info_b.pos + 1 + bs[0].size * 2,
-//                              info_b.l + bs[0].n_l,
-//                              bs[0].node + GET_SKIPS(b.dynamic_support[info_b.node].size_tree),
-//                              GET_NODES(b.dynamic_support[info_b.node + 1].size_tree),
-//                              b.dynamic_support[info_b.node + 1].n_leaves, 1);
-//
-//        bs[2] = traverse_info(info_b.pos + 1 + bs[0].size * 2 + bs[1].size * 2,
-//                              info_b.l + bs[0].n_l + bs[1].n_l,
-//                              bs[1].node + GET_SKIPS(b.dynamic_support[info_b.node + 1].size_tree),
-//                              GET_NODES(b.dynamic_support[info_b.node + 2].size_tree),
-//                              b.dynamic_support[info_b.node + 2].n_leaves, 1);
-//
-//        bs[3] = traverse_info(info_b.pos + 1 + bs[0].size * 2 + bs[1].size * 2 + bs[2].size * 2,
-//                              info_b.l + bs[0].n_l + bs[1].n_l + bs[2].n_l,
-//                              bs[2].node + GET_SKIPS(b.dynamic_support[info_b.node + 2].size_tree),
-//                              info_b.size - (bs[0].size + bs[1].size + bs[2].size + 1),
-//                              info_b.n_l - (bs[0].n_l + bs[1].n_l + bs[2].n_l), 1);
       } else { // traverse
-//        uint64_t curr_pos = info_b.pos;
-//        uint64_t curr_leaves = 0;
-//        assert(b.dynamic_support.size() == 0);
-//        b.init_support_child(curr_pos, b.dynamic_support, curr_leaves, 3);
-//        db = true;
-//        bs[0] = traverse_info(info_b.pos + 1, info_b.l,
-//                              3,
-//                              GET_NODES(b.dynamic_support[0].size_tree),
-//                              b.dynamic_support[0].n_leaves, 1);
-//
-//        bs[1] = traverse_info(info_b.pos + 1 + bs[0].size * 2,
-//                              info_b.l + bs[0].n_l,
-//                              bs[0].node + GET_SKIPS(b.dynamic_support[0].size_tree),
-//                              GET_NODES(b.dynamic_support[1].size_tree),
-//                              b.dynamic_support[1].n_leaves, 1);
-//
-//        bs[2] = traverse_info(info_b.pos + 1 + bs[0].size * 2 + bs[1].size * 2,
-//                              info_b.l + bs[0].n_l + bs[1].n_l,
-//                              bs[1].node + GET_SKIPS(b.dynamic_support[1].size_tree),
-//                              GET_NODES(b.dynamic_support[2].size_tree),
-//                              b.dynamic_support[2].n_leaves, 1);
-//
-//        bs[3] = traverse_info(info_b.pos + 1 + bs[0].size * 2 + bs[1].size * 2 + bs[2].size * 2,
-//                              info_b.l + bs[0].n_l + bs[1].n_l + bs[2].n_l,
-//                              bs[2].node + GET_SKIPS(b.dynamic_support[2].size_tree),
-//                              info_b.size - (bs[0].size + bs[1].size + bs[2].size + 1),
-//                              info_b.n_l - (bs[0].n_l + bs[1].n_l + bs[2].n_l), 1);
         uint64_t curr_pos = info_b.pos + 1;
 
         bs[0].pos = info_b.pos + 1;
         bs[0].l = info_b.l;
-        b.fasttraverse(curr_pos, bs[0].size, bs[0].n_l);
+        b.ultratraverse(curr_pos, excess, bs[0].size, bs[0].n_l);
 
         bs[1].pos = curr_pos;
         bs[1].l = info_b.l + bs[0].n_l;
-        b.fasttraverse(curr_pos, bs[1].size, bs[1].n_l);
+        b.ultratraverse(curr_pos, excess, bs[1].size, bs[1].n_l);
 
         bs[2].pos = curr_pos;
         bs[2].l = info_b.l + bs[0].n_l + bs[1].n_l;
-        b.fasttraverse(curr_pos, bs[2].size, bs[2].n_l);
+        b.ultratraverse(curr_pos, excess, bs[2].size, bs[2].n_l);
 
         bs[3].pos = curr_pos;
         bs[3].l = info_b.l + bs[0].n_l + bs[1].n_l + bs[2].n_l;
-        b.fasttraverse(curr_pos, bs[3].size, bs[3].n_l);
+        b.ultratraverse(curr_pos, excess, bs[3].size, bs[3].n_l);
       }
 
       //  C_0 | C_1
@@ -823,11 +826,11 @@ class k2_bp {
       plain_tree aux_c[2];
       traverse_info save_a, save_b;
       save_a = as[0]; save_b = bs[0];
-      mul(m_size / 2, as[0], b, bs[0], aux_c[0], curr_h - 1);
+      mul(m_size / 2, as[0], b, bs[0], aux_c[0], curr_h - 1, excess + 1);
       as[0] = save_a; bs[0] = save_b;
 
       save_a = as[1]; save_b = bs[2];
-      mul(m_size / 2, as[1], b, bs[2], aux_c[1], curr_h - 1);
+      mul(m_size / 2, as[1], b, bs[2], aux_c[1], curr_h - 1, excess + 1);
       as[1] = save_a; bs[2] = save_b;
 
       c_[0].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
@@ -838,11 +841,11 @@ class k2_bp {
       aux_c[0] = aux_c[1] = plain_tree();
 
       save_a = as[0]; save_b = bs[1];
-      mul(m_size / 2, as[0], b, bs[1], aux_c[0], curr_h - 1);
+      mul(m_size / 2, as[0], b, bs[1], aux_c[0], curr_h - 1, excess + 1);
       as[0] = save_a; bs[1] = save_b;
 
       save_a = as[1]; save_b = bs[3];
-      mul(m_size / 2, as[1], b, bs[3], aux_c[1], curr_h - 1);
+      mul(m_size / 2, as[1], b, bs[3], aux_c[1], curr_h - 1, excess + 1);
       as[1] = save_a; bs[3] = save_b;
 
       c_[1].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
@@ -853,11 +856,11 @@ class k2_bp {
       aux_c[0] = aux_c[1] = plain_tree();
 
       save_a = as[2]; save_b = bs[0];
-      mul(m_size / 2, as[2], b, bs[0], aux_c[0], curr_h - 1);
+      mul(m_size / 2, as[2], b, bs[0], aux_c[0], curr_h - 1, excess + 1);
       as[2] = save_a; bs[0] = save_b;
 
       save_a = as[3]; save_b = bs[2];
-      mul(m_size / 2, as[3], b, bs[2], aux_c[1], curr_h - 1);
+      mul(m_size / 2, as[3], b, bs[2], aux_c[1], curr_h - 1, excess + 1);
       as[3] = save_a; bs[2] = save_b;
 
       c_[2].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
@@ -868,11 +871,11 @@ class k2_bp {
       aux_c[0] = aux_c[1] = plain_tree();
 
       save_a = as[2]; save_b = bs[1];
-      mul(m_size / 2, as[2], b, bs[1], aux_c[0], curr_h - 1);
+      mul(m_size / 2, as[2], b, bs[1], aux_c[0], curr_h - 1, excess + 1);
       as[2] = save_a; bs[1] = save_b;
 
       save_a = as[3]; save_b = bs[3];
-      mul(m_size / 2, as[3], b, bs[3], aux_c[1], curr_h - 1);
+      mul(m_size / 2, as[3], b, bs[3], aux_c[1], curr_h - 1, excess + 1);
       as[3] = save_a; bs[3] = save_b;
 
 
@@ -883,13 +886,6 @@ class k2_bp {
       aux_c[1].destroy();
       aux_c[0] = aux_c[1] = plain_tree();
 
-
-      if(da) {
-        dynamic_support.clear();
-      }
-      if(db) {
-        b.dynamic_support.clear();
-      }
       if(c_[0].tree.size() == 2 &&
          c_[1].tree.size() == 2 &&
          c_[2].tree.size() == 2 &&
