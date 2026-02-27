@@ -77,7 +77,6 @@ int main(int argc, char** argv) {
   if(size == -1LL) {
     size = std::max(max_x, max_y) + 1;
   }
-  //sort(ones.begin(), ones.end());
 
   ones_txt.close();
 
@@ -90,6 +89,7 @@ int main(int argc, char** argv) {
     std::vector< std::pair< uint64_t, uint64_t > > check;
     k2tree.get_pos_ones(check);
     sort(check.begin(), check.end());
+    sort(ones.begin(), ones.end());
 
     assert(check == ones);
 
@@ -106,6 +106,7 @@ int main(int argc, char** argv) {
     std::vector< std::pair< uint64_t, uint64_t > > check;
     k2tree.get_pos_ones(check);
     sort(check.begin(), check.end());
+    sort(ones.begin(), ones.end());
 
     assert(check == ones);
 
