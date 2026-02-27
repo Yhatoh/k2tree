@@ -26,7 +26,6 @@
 #include "plaintree.hpp"
 #include "debug.hpp"
 
-
 using namespace std;
 using namespace sdsl;
 
@@ -391,13 +390,22 @@ class k2_bp {
         return;
       }
 
+      {
+        uint64_t check = pos;
+        uint64_t dummy1, dummy2;
+        fasttraverse(check, dummy1, dummy2);
+        debug(pos, check);
+      }
       uint64_t curr_pos = pos;
       int64_t obj_excess = excess;
       pos++;
       uint64_t obj = bexc - pos % bexc + pos;
+      debug(1, pos, obj, excess);
       for(; pos + 16 < obj; pos += 16) {
         // found micro block
         uint64_t bits = tree.get_int(pos, 16);
+        debug(std::bitset<16>(bits));
+        debug((int64_t) exc_min_micro[bits], (int64_t)exc_micro[bits]);
         if(obj_excess >= excess + exc_min_micro[bits] + 1) { 
           for(uint8_t i = 0; i < 16; bits = bits >> 1, i++) { // reading bit
             pos++;
@@ -405,6 +413,7 @@ class k2_bp {
             else excess--;
            
             if(obj_excess == excess + 1) {
+              debug(1.1, pos, curr_pos);
               size_tree = (pos - curr_pos) / 2;
               n_leaves = rank_leave(curr_pos, pos);
               return;
@@ -414,6 +423,7 @@ class k2_bp {
 
         excess += exc_micro[bits];
       }
+      debug(2, pos, obj);
 
       // read last part;
       {
@@ -431,14 +441,19 @@ class k2_bp {
           }
         }
       }
+      debug(3, pos, obj);
 
       uint64_t block = pos / bexc;
+      debug(block, exc_min_samples.size());
       for(;; pos += bexc) {
         // found the block
+        debug(excess, ((uint64_t) exc_min_samples[block]));
         if(excess > exc_min_samples[block]) {
+          debug(pos);
           for(;; pos += 16) {
             uint64_t bits = tree.get_int(pos, 16);
             // found microblock
+            debug(pos, obj_excess, excess, ((int32_t)exc_min_micro[bits]), ((int32_t)exc_micro[bits]));
             if(obj_excess >= excess + exc_min_micro[bits] + 1) {
               for(uint8_t i = 0; i < 16; bits = bits >> 1, i++) {
                 pos++;
@@ -447,6 +462,7 @@ class k2_bp {
 
                 if(obj_excess == excess + 1) {
                   size_tree = (pos - curr_pos) / 2;
+                  debug(curr_pos, pos);
                   n_leaves = rank_leave(curr_pos, pos);
                   return;
                 }
@@ -705,6 +721,7 @@ class k2_bp {
       }
 
       if(m_size == k) {
+        debug(l.size(), info_a.l << 2, b.l.size(), info_b.l << 2);
         uint8_t aux_l = table_mul[l.get_int(info_a.l << 2, 4)][b.l.get_int(info_b.l << 2, 4)];
         if(aux_l > 0) {
           c.reserve(4, 4);
@@ -762,18 +779,54 @@ class k2_bp {
         as[0].pos = info_a.pos + 1;
         as[0].l = info_a.l;
         ultratraverse(curr_pos, excess, as[0].size, as[0].n_l);
+        {
+          uint64_t check, dummy1, dummy2;
+          dummy2 = 0;
+          check = info_a.pos + 1;
+          traverse(m_size / 2, check, dummy1, dummy2);
+          debug(curr_pos, check, as[0].n_l, dummy2);
+          assert(check == curr_pos);
+          assert(dummy2 == as[0].n_l);
+        }
 
         as[1].pos = curr_pos;
         as[1].l = info_a.l + as[0].n_l;
         ultratraverse(curr_pos, excess, as[1].size, as[1].n_l);
+        {
+          uint64_t check, dummy1, dummy2;
+          dummy2 = 0;
+          check = as[1].pos;
+          traverse(m_size / 2, check, dummy1, dummy2);
+          debug(curr_pos, check, as[1].n_l, dummy2);
+          assert(check == curr_pos);
+          assert(dummy2 == as[1].n_l);
+        }
 
         as[2].pos = curr_pos;
         as[2].l = info_a.l + as[0].n_l + as[1].n_l;
         ultratraverse(curr_pos, excess, as[2].size, as[2].n_l);
+        {
+          uint64_t check, dummy1, dummy2;
+          dummy2 = 0;
+          check = as[2].pos;
+          traverse(m_size / 2, check, dummy1, dummy2);
+          debug(curr_pos, check, as[2].n_l, dummy2);
+          assert(check == curr_pos);
+          assert(dummy2 == as[2].n_l);
+        }
 
         as[3].pos = curr_pos;
         as[3].l = info_a.l + as[0].n_l + as[1].n_l + as[2].n_l;
         ultratraverse(curr_pos, excess, as[3].size, as[3].n_l);
+        {
+          uint64_t check, dummy1, dummy2;
+          dummy2 = 0;
+          check = as[3].pos;
+          traverse(m_size / 2, check, dummy1, dummy2);
+          debug(curr_pos, check, as[3].n_l, dummy2);
+          assert(check == curr_pos);
+          assert(dummy2 == as[3].n_l);
+        }
       }
 
       if(b.child_support.size() > 0 && info_b.size >= b.threshold) {
@@ -971,9 +1024,9 @@ class k2_bp {
       uint64_t total = sizeof(uint64_t) * 5 +
              size_in_bytes(tree) * 8 +
              child_support.size() * sizeof(child_info) * 8 +
-             size_in_bytes(l) * 8 +
-             size_in_bytes(exc_min_samples) * 8 + size_in_bytes(exc_samples) * 8
-             + 65536 * 8 + 65536 * 8;
+             size_in_bytes(l) * 8 + 
+             size_in_bytes(exc_min_samples) * 8 + size_in_bytes(exc_samples) * 8 +
+             65536 * 8 * 2;
 #ifdef INFO_SPACE
       vector< child_info > aux_leaves; uint64_t pos = 0; uint64_t leaves = 0;
       init_support_child(pos, aux_leaves, leaves, nodes() / 2);
@@ -982,6 +1035,9 @@ class k2_bp {
       cout << "  Tree        : " << (size_in_bytes(tree)) * 8 << "," << (double) (size_in_bytes(tree)) * 8 / size() << "," << (double) (size_in_bytes(tree)) * 8 / total << endl;
       cout << "  L           : " << (size_in_bytes(l)) * 8 << "," << (double) (size_in_bytes(l)) * 8 / size() << "," << (double) (size_in_bytes(l)) * 8 / total << endl;
       cout << "  child supp  : " << child_support.size() * sizeof(child_info) * 8 << "," << (double) (child_support.size() * sizeof(child_info) * 8) / size() << "," << (double) child_support.size() * sizeof(child_info) * 8 / total << endl;
+      cout << "  microtable  : " << 65536*8*2 << "," << (double) (65536*8*2) / size() << "," << (double) c65536*8*2 / total << endl;
+      cout << "  exc samples : " << size_in_bytes(exc_min_samples) * 8 + size_in_bytes(exc_samples) * 8 << "," << (double) (size_in_bytes(exc_min_samples) * 8 + size_in_bytes(exc_samples) * 8) / size() << "," << (double) (size_in_bytes(exc_min_samples) * 8 + size_in_bytes(exc_samples) * 8) / total << std::endl;
+
 #endif
       return total;
     }
