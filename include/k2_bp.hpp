@@ -846,7 +846,8 @@ class k2_bp {
       assert(b.tree[info_b.pos]);
 
       if(tree.get_int(info_a.pos, 2) == 1) { // result is 0
-        c.reserve(2, 0);
+        c.tree.reserve(2);
+        c.l.reserve(0);
         c.tree.push_back(1);
         c.tree.push_back(0);
         c.height_tree = curr_h;
@@ -859,7 +860,8 @@ class k2_bp {
       }
 
       if(b.tree.get_int(info_b.pos, 2) == 1) { // result is 0
-        c.reserve(2, 0);
+        c.tree.reserve(2);
+        c.l.reserve(0);
         c.tree.push_back(1);
         c.tree.push_back(0);
         c.height_tree = curr_h;
@@ -874,14 +876,16 @@ class k2_bp {
       if(m_size == k) {
         uint8_t aux_l = table_mul[l.get_int(info_a.l << 2, 4)][b.l.get_int(info_b.l << 2, 4)];
         if(aux_l > 0) {
-          c.reserve(4, 4);
+          c.tree.reserve(4);
+          c.l.reserve(2);
           c.tree.push_back(1);
           c.tree.push_back(1);
           c.tree.push_back(0);
           c.tree.push_back(0);
           c.l.push_back(aux_l);
         } else {
-          c.reserve(2, 0);
+          c.tree.reserve(2);
+          c.l.reserve(0);
           c.tree.push_back(1);
           c.tree.push_back(0);
         }
