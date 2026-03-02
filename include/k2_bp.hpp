@@ -886,7 +886,10 @@ class k2_bp {
           c.tree.push_back(1);
           c.tree.push_back(0);
           c.tree.push_back(0);
-          c.l.push_back(aux_l);
+          c.l.push_back((aux_l & 1) > 0);
+          c.l.push_back((aux_l & 2) > 0);
+          c.l.push_back((aux_l & 4) > 0);
+          c.l.push_back((aux_l & 8) > 0);
         } else {
           c.tree.reserve(2);
           c.l.reserve(0);
@@ -1074,23 +1077,19 @@ class k2_bp {
 
       c.tree.insert(c.tree.end(), c_[0].tree.begin(), c_[0].tree.end());
       c.l.insert(c.l.end(), c_[0].l.begin(), c_[0].l.end());
-      //c_[0].destroy();
       c_[0] = k2_bp<k, bv_leaves>();
 
       c.tree.insert(c.tree.end(), c_[1].tree.begin(), c_[1].tree.end());
       c.l.insert(c.l.end(), c_[1].l.begin(), c_[1].l.end());
-      //c_[1].destroy();
       c_[1] = k2_bp<k, bv_leaves>();
 
       c.tree.insert(c.tree.end(), c_[2].tree.begin(), c_[2].tree.end());
       c.l.insert(c.l.end(), c_[2].l.begin(), c_[2].l.end());
-      //c_[2].destroy();
       c_[2] = k2_bp<k, bv_leaves>();
 
       c.tree.insert(c.tree.end(), c_[3].tree.begin(), c_[3].tree.end());
       c.tree.push_back(0);
       c.l.insert(c.l.end(), c_[3].l.begin(), c_[3].l.end());
-      //c_[3].destroy();
       c_[3] = k2_bp<k, bv_leaves>();
 
       c.height_tree = curr_h;
