@@ -681,31 +681,44 @@ class k2_bp {
     void sum(uint64_t m_size, traverse_info &info_a,
              k2_bp<k, bv_leaves> &b, traverse_info &info_b,
              k2_bp<k, bv_leaves> &c, uint64_t curr_h, int64_t excess) {
+      debug(m_size);
+      debug(info_a.pos, tree.size(), info_b.pos, b.tree.size());
+      debug(info_a.l, info_a.l << 2, l.size(), info_b.l, info_b.l << 2, b.l.size());
+      debug(info_a.size, info_b.size);
+      assert(m_size);
       assert(tree[info_a.pos]);
       assert(b.tree[info_b.pos]);
-      if(tree.get_int(info_a.pos, 2) == 2) {// copy subtree of b
+      if(tree.get_int(info_a.pos, 2) == 1) {// copy subtree of b
         if(info_b.size == 0) {
           uint64_t curr_pos = info_b.pos;
           b.ultratraverse(curr_pos, excess, info_b.size, info_b.n_l);
         }
-        c.tree.insert(c.tree.end(), b.tree.begin() + info_b.pos, b.tree.begin() + info_b.pos + info_b.size);
-        c.l.insert(c.l.end(), b.l.begin() + info_b.l, b.l.begin() + info_b.l + info_b.n_l);
+        c.tree.insert(c.tree.end(), b.tree.begin() + info_b.pos, b.tree.begin() + info_b.pos + (info_b.size << 1));
+        c.l.insert(c.l.end(), b.l.begin() + (info_b.l << 2), b.l.begin() + ((info_b.l + info_b.n_l) << 2));
         info_a.pos += 2;
-        info_b.pos += info_b.size;
+        info_b.pos += info_b.size << 1;
         info_b.l += info_b.n_l;
+        debug("a is empty");
+        debug(info_a.pos, tree.size(), info_b.pos, b.tree.size());
+        debug(info_a.l, info_a.l << 2, l.size(), info_b.l, info_b.l << 2, b.l.size());
         return;
       }
 
-      if(b.tree.get_int(info_b.pos, 2) == 2) {// copy subtree of a
+      if(b.tree.get_int(info_b.pos, 2) == 1) {// copy subtree of a
+        debug(std::bitset<4>(tree.get_int(info_a.pos, 4)));
         if(info_a.size == 0) {
           uint64_t curr_pos = info_a.pos;
           ultratraverse(curr_pos, excess, info_a.size, info_a.n_l);
         }
-        c.tree.insert(c.tree.end(), tree.begin() + info_a.pos, tree.begin() + info_a.pos + info_a.size);
-        c.l.insert(c.l.end(), l.begin() + info_a.l, l.begin() + info_a.l + info_a.n_l);
+        c.tree.insert(c.tree.end(), tree.begin() + info_a.pos, tree.begin() + info_a.pos + (info_a.size << 1));
+        c.l.insert(c.l.end(), l.begin() + (info_a.l << 2), l.begin() + ((info_a.l + info_a.n_l) << 2));
         info_b.pos += 2;
-        info_a.pos += info_a.size;
+        info_a.pos += info_a.size << 1;
         info_a.l += info_a.n_l;
+        debug("b is empty");
+        debug(info_a.size);
+        debug(info_a.pos, tree.size(), info_b.pos, b.tree.size());
+        debug(info_a.l, info_a.l << 2, l.size(), info_b.l, info_b.l << 2, b.l.size());
         return;
       }
 
@@ -719,6 +732,10 @@ class k2_bp {
         info_a.pos += 4;
         info_b.l += 1;
         info_a.l += 1;
+        debug("both are not empty");
+        debug(info_a.pos, tree.size(), info_b.pos, b.tree.size());
+        debug(info_a.l, info_a.l << 2, l.size(), info_b.l, info_b.l << 2, b.l.size());
+        return;
       }
 
       c.tree.push_back(1);
@@ -804,16 +821,15 @@ class k2_bp {
         aux_a.node = info_a.node + 3 + GET_SKIPS(child_support[info_a.node].size_tree)
                                      + GET_SKIPS(child_support[info_a.node + 1].size_tree)
                                      + GET_SKIPS(child_support[info_a.node + 2].size_tree);
-        aux_a.size = info_a.size - accum_size_a - 1;
+        aux_a.size = info_a.size - accum_size_a / 2 - 1;
         aux_a.n_l = info_a.n_l - accum_l_a;
       }
       aux_b = traverse_info(aux_b.pos, aux_b.l, 0, 0, 0, 0);
       if(info_b.size >= b.threshold) {
-        aux_b.size = info_b.size - accum_size_b - 1;
+        aux_b.size = info_b.size - accum_size_b / 2 - 1;
         aux_b.node = info_b.node + 3 + GET_SKIPS(b.child_support[info_b.node].size_tree)
                                      + GET_SKIPS(b.child_support[info_b.node + 1].size_tree)
                                      + GET_SKIPS(b.child_support[info_b.node + 2].size_tree);
-        aux_b.n_l = b.child_support[info_b.node + 2].n_leaves;
         aux_b.n_l = info_b.n_l - accum_l_b;
       }
       sum(m_size / 2, aux_a, b, aux_b, c, curr_h - 1, excess + 1);
