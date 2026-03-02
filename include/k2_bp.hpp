@@ -1010,7 +1010,6 @@ class k2_bp {
       c_[0].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
       c_[0].l.reserve(aux_c[0].l.size() + aux_c[1].l.size());
       aux_c[0].sum(aux_c[1], c_[0]);
-      c_[0].build_exc_sample();
       //aux_c[0].destroy();
       //aux_c[1].destroy();
       aux_c[0] = aux_c[1] = k2_bp<k, bv_leaves>();
@@ -1026,7 +1025,6 @@ class k2_bp {
       c_[1].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
       c_[1].l.reserve(aux_c[0].l.size() + aux_c[1].l.size());
       aux_c[0].sum(aux_c[1], c_[1]);
-      c_[1].build_exc_sample();
       //aux_c[0].destroy();
       //aux_c[1].destroy();
       aux_c[0] = aux_c[1] = k2_bp<k, bv_leaves>();
@@ -1042,7 +1040,6 @@ class k2_bp {
       c_[2].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
       c_[2].l.reserve(aux_c[0].l.size() + aux_c[1].l.size());
       aux_c[0].sum(aux_c[1], c_[2]);
-      c_[2].build_exc_sample();
       //aux_c[0].destroy();
       //aux_c[1].destroy();
       aux_c[0] = aux_c[1] = k2_bp<k, bv_leaves>();
@@ -1059,7 +1056,6 @@ class k2_bp {
       c_[3].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
       c_[3].l.reserve(aux_c[0].l.size() + aux_c[1].l.size());
       aux_c[0].sum(aux_c[1], c_[3]);
-      c_[3].build_exc_sample();
       //aux_c[0].destroy();
       //aux_c[1].destroy();
       aux_c[0] = aux_c[1] = k2_bp<k, bv_leaves>();
@@ -1106,6 +1102,8 @@ class k2_bp {
       c.m = m;
       c.msize = msize;
       c.rmsize = rmsize;
+      c.build_exc_sample();
+
 
 
       return;
