@@ -58,9 +58,8 @@ int main(int argc, char** argv) {
     m2.load(k2_2_file);
     k2_2_file.close();
 
-    plain_tree result;
-    m1.mul(m2, result);
-    k2_bp<2, bit_vector> m3(result);
+    k2_bp<2, bit_vector> m3;
+    m1.mul(m2, m3);
     
 
     std::stringstream name_file;
@@ -79,9 +78,8 @@ int main(int argc, char** argv) {
     m2.load(k2_2_file);
     k2_2_file.close();
 
-    plain_tree result;
-    m1.mul(m2, result);
-    k2_bp<2, rrr_vector<127>> m3(result);
+    k2_bp<2, rrr_vector<127>> m3;
+    m1.mul(m2, m3);
     
 
     std::stringstream name_file;
