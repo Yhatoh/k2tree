@@ -741,10 +741,14 @@ class k2_bp {
         aux_b.n_l = b.child_support[info_b.node].n_leaves;
       }
       sum(m_size / 2, aux_a, b, aux_b, c, curr_h - 1, excess + 1);
-      accum_size_a += aux_a.size;
-      accum_size_b += aux_b.size;
-      accum_l_a += aux_a.n_l;
-      accum_l_b += aux_b.n_l;
+      accum_size_a += aux_a.pos - (info_a.pos + 1);
+      accum_size_b += aux_b.pos - (info_b.pos + 1);
+      accum_l_a += aux_a.l - info_a.l;
+      accum_l_b += aux_b.l - info_b.l;
+      info_a.pos = aux_a.pos;
+      info_b.pos = aux_b.pos;
+      info_a.l = aux_a.l;
+      info_b.l = aux_b.l;
 
       // second submatrix
       aux_a = traverse_info(aux_a.pos, aux_a.l, 0, 0, 0, 0);
@@ -760,10 +764,14 @@ class k2_bp {
         aux_b.n_l = b.child_support[info_b.node + 1].n_leaves;
       }
       sum(m_size / 2, aux_a, b, aux_b, c, curr_h - 1, excess + 1);
-      accum_size_a += aux_a.size;
-      accum_size_b += aux_b.size;
-      accum_l_a += aux_a.n_l;
-      accum_l_b += aux_b.n_l;
+      accum_size_a += aux_a.pos - info_a.pos;
+      accum_size_b += aux_b.pos - info_b.pos;
+      accum_l_a += aux_a.l - info_a.l;
+      accum_l_b += aux_b.l - info_b.l;
+      info_a.pos = aux_a.pos;
+      info_b.pos = aux_b.pos;
+      info_a.l = aux_a.l;
+      info_b.l = aux_b.l;
 
       // third submatrix
       aux_a = traverse_info(aux_a.pos, aux_a.l, 0, 0, 0, 0);
@@ -781,10 +789,14 @@ class k2_bp {
         aux_b.n_l = b.child_support[info_b.node + 2].n_leaves;
       }
       sum(m_size / 2, aux_a, b, aux_b, c, curr_h - 1, excess + 1);
-      accum_size_a += aux_a.size;
-      accum_size_b += aux_b.size;
-      accum_l_a += aux_a.n_l;
-      accum_l_b += aux_b.n_l;
+      accum_size_a += aux_a.pos - info_a.pos;
+      accum_size_b += aux_b.pos - info_b.pos;
+      accum_l_a += aux_a.l - info_a.l;
+      accum_l_b += aux_b.l - info_b.l;
+      info_a.pos = aux_a.pos;
+      info_b.pos = aux_b.pos;
+      info_a.l = aux_a.l;
+      info_b.l = aux_b.l;
 
       // fourth submatrix
       aux_a = traverse_info(aux_a.pos, aux_a.l, 0, 0, 0, 0);
@@ -806,10 +818,17 @@ class k2_bp {
       }
       sum(m_size / 2, aux_a, b, aux_b, c, curr_h - 1, excess + 1);
       c.tree.push_back(0);
+      accum_size_a += aux_a.pos - info_a.pos;
+      accum_size_b += aux_b.pos - info_b.pos;
+      accum_l_a += aux_a.l - info_a.l;
+      accum_l_b += aux_b.l - info_b.l;
+      info_a.pos = aux_a.pos;
+      info_b.pos = aux_b.pos;
+      info_a.l = aux_a.l;
+      info_b.l = aux_b.l;
+
       info_b.pos = aux_b.pos + 1;
       info_a.pos = aux_a.pos + 1;
-      info_b.l = aux_b.l;
-      info_a.l = aux_a.l;
     }
 
     void mul(k2_bp<k, bv_leaves> &b, plain_tree &c) {
