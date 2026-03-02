@@ -1005,7 +1005,7 @@ class k2_bp {
       aux_c[0].sum(aux_c[1], c_[0]);
       aux_c[0].destroy();
       aux_c[1].destroy();
-      aux_c[0] = aux_c[1] = plain_tree();
+      aux_c[0] = aux_c[1] = k2_bp<k, bv_leaves>();
 
       save_a = as[0]; save_b = bs[1];
       mul(m_size / 2, as[0], b, bs[1], aux_c[0], curr_h - 1, excess + 1);
@@ -1020,7 +1020,7 @@ class k2_bp {
       aux_c[0].sum(aux_c[1], c_[1]);
       aux_c[0].destroy();
       aux_c[1].destroy();
-      aux_c[0] = aux_c[1] = plain_tree();
+      aux_c[0] = aux_c[1] = k2_bp<k, bv_leaves>();
 
       save_a = as[2]; save_b = bs[0];
       mul(m_size / 2, as[2], b, bs[0], aux_c[0], curr_h - 1, excess + 1);
@@ -1035,7 +1035,7 @@ class k2_bp {
       aux_c[0].sum(aux_c[1], c_[2]);
       aux_c[0].destroy();
       aux_c[1].destroy();
-      aux_c[0] = aux_c[1] = plain_tree();
+      aux_c[0] = aux_c[1] = k2_bp<k, bv_leaves>();
 
       save_a = as[2]; save_b = bs[1];
       mul(m_size / 2, as[2], b, bs[1], aux_c[0], curr_h - 1, excess + 1);
@@ -1051,7 +1051,7 @@ class k2_bp {
       aux_c[0].sum(aux_c[1], c_[3]);
       aux_c[0].destroy();
       aux_c[1].destroy();
-      aux_c[0] = aux_c[1] = plain_tree();
+      aux_c[0] = aux_c[1] = k2_bp<k, bv_leaves>();
 
       if(c_[0].tree.size() == 2 &&
          c_[1].tree.size() == 2 &&
