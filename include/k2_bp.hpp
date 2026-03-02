@@ -487,6 +487,17 @@ class k2_bp {
     uint64_t size_matrix() { return rmsize; }
     uint64_t nodes() { return tree.size() / 2; }
 
+    uint64_t recount() {
+      m = 0;
+      for(size_t i = 0; i < l.size(); i += 64) {
+        if(i + 64 <= l.size()) {
+          m += __builtin_popcountll(l.get_int(i, 64));
+        } else {
+          m += __builtin_popcountll(l.get_int(i, l.size() - i));
+        }
+      }
+      return m;
+    }
     k2_bp() {threshold = 0;}
     
     k2_bp(plain_tree &pd) {
@@ -680,6 +691,7 @@ class k2_bp {
 //      if(b.exc_samples.size() == 0)
 //        b.build_exc_sample();
       sum(msize, info_a, b, info_b, c, height_tree, 1);
+      c.recount();
     }
 
     void sum(uint64_t m_size, traverse_info &info_a,
@@ -841,6 +853,7 @@ class k2_bp {
       //dynamic_support.reserve(threshold * 3);
       //b.dynamic_support.reserve(b.threshold * 3);
       mul(msize, info_a, b, info_b, c, height_tree, 1);
+      c.recount();
     }
 
     void mul(uint64_t m_size, traverse_info &info_a,
