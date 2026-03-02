@@ -958,6 +958,7 @@ class k2_bp {
 
         as[1].pos = curr_pos;
         as[1].l = info_a.l + as[0].n_l;
+        ultratraverse(curr_pos, excess + 1, as[1].size, as[1].n_l);
 
         as[2].pos = curr_pos;
         as[2].l = info_a.l + as[0].n_l + as[1].n_l;
