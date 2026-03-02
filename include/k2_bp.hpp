@@ -806,6 +806,10 @@ class k2_bp {
       }
       sum(m_size / 2, aux_a, b, aux_b, c, curr_h - 1, excess + 1);
       c.tree.push_back(0);
+      info_b.pos = aux_b.pos + 1;
+      info_a.pos = aux_a.pos + 1;
+      info_b.l = aux_b.l;
+      info_a.l = aux_a.l;
     }
 
     void mul(k2_bp<k, bv_leaves> &b, plain_tree &c) {
