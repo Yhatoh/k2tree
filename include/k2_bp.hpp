@@ -756,7 +756,7 @@ class k2_bp {
       aux_b = traverse_info(aux_b.pos, aux_b.l, 0, 0, 0, 0);
       if(info_b.size >= b.threshold) {
         aux_b.size = GET_NODES(b.child_support[info_b.node + 1].size_tree);
-        aux_b.node = info_b.node + 3 + GET_SKIPS(child_support[info_b.node].size_tree);
+        aux_b.node = info_b.node + 3 + GET_SKIPS(b.child_support[info_b.node].size_tree);
         aux_b.n_l = b.child_support[info_b.node + 1].n_leaves;
       }
       sum(m_size / 2, aux_a, b, aux_b, c, curr_h - 1, excess + 1);
@@ -776,8 +776,8 @@ class k2_bp {
       aux_b = traverse_info(aux_b.pos, aux_b.l, 0, 0, 0, 0);
       if(info_b.size >= b.threshold) {
         aux_b.size = GET_NODES(b.child_support[info_b.node + 2].size_tree);
-        aux_b.node = info_b.node + 3 + GET_SKIPS(child_support[info_b.node].size_tree)
-                                     + GET_SKIPS(child_support[info_b.node + 1].size_tree);
+        aux_b.node = info_b.node + 3 + GET_SKIPS(b.child_support[info_b.node].size_tree)
+                                     + GET_SKIPS(b.child_support[info_b.node + 1].size_tree);
         aux_b.n_l = b.child_support[info_b.node + 2].n_leaves;
       }
       sum(m_size / 2, aux_a, b, aux_b, c, curr_h - 1, excess + 1);
@@ -798,9 +798,9 @@ class k2_bp {
       aux_b = traverse_info(aux_b.pos, aux_b.l, 0, 0, 0, 0);
       if(info_b.size >= b.threshold) {
         aux_b.size = info_b.size - accum_size_b - 1;
-        aux_b.node = info_b.node + 3 + GET_SKIPS(child_support[info_b.node].size_tree)
-                                     + GET_SKIPS(child_support[info_b.node + 1].size_tree)
-                                     + GET_SKIPS(child_support[info_b.node + 2].size_tree);
+        aux_b.node = info_b.node + 3 + GET_SKIPS(b.child_support[info_b.node].size_tree)
+                                     + GET_SKIPS(b.child_support[info_b.node + 1].size_tree)
+                                     + GET_SKIPS(b.child_support[info_b.node + 2].size_tree);
         aux_b.n_l = b.child_support[info_b.node + 2].n_leaves;
         aux_b.n_l = info_b.n_l - accum_l_b;
       }
