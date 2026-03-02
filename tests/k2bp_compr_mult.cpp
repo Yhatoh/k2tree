@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  k2_cbp<2, rrr_vector<127>,
+  k2_cbp<2, bit_vector,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> m1;
   m1.load(k2_1_file);
@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
     exit(2);
   }
 
-  k2_cbp<2, rrr_vector<127>,
+  k2_cbp<2, bit_vector,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
     select_support_sd<1>, select_support_sd<0>> m2;
   m2.load(k2_2_file);
@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
 
   plain_tree result;
   m1.mul(m2, result);
-  k2_bp<2, rrr_vector<127>> m3(result);
+  k2_bp<2, bit_vector> m3(result);
   
 
   std::stringstream name_file;

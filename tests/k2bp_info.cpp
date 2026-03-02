@@ -44,19 +44,19 @@ int main(int argc, char** argv) {
     cout << " Bits/1's: " << (double) bits / k2tree.size() << endl;
     cout << " Bits/n  : " << (double) bits / k2tree.nodes() << endl;
   } else { 
-    k2_bp<2, rrr_vector<127>> k2tree;
-    k2tree.load(k2_file);
-
-    k2_file.close();
-
-
-    cout << "Information k2tree " << matrix << endl;
-    cout << " Size Matrix: " << k2tree.size_matrix() << " Amount of 1's: " << k2tree.size() << endl;
-    cout << " Amount of nodes: " << k2tree.nodes() << endl;
-    uint64_t bits = k2tree.size_in_bits();
-    cout << " Bits    : " << bits << endl;
-    cout << " Bits/1's: " << (double) bits / k2tree.size() << endl;
-    cout << " Bits/n  : " << (double) bits / k2tree.nodes() << endl;
+//    k2_bp<2, rrr_vector<127>> k2tree;
+//    k2tree.load(k2_file);
+//
+//    k2_file.close();
+//
+//
+//    cout << "Information k2tree " << matrix << endl;
+//    cout << " Size Matrix: " << k2tree.size_matrix() << " Amount of 1's: " << k2tree.size() << endl;
+//    cout << " Amount of nodes: " << k2tree.nodes() << endl;
+//    uint64_t bits = k2tree.size_in_bits();
+//    cout << " Bits    : " << bits << endl;
+//    cout << " Bits/1's: " << (double) bits / k2tree.size() << endl;
+//    cout << " Bits/n  : " << (double) bits / k2tree.nodes() << endl;
   }
 
   return 0;

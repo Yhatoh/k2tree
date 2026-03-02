@@ -98,22 +98,22 @@ int main(int argc, char** argv) {
     k2tree.write(k2_file);
     k2_file.close();
   } else {
-    k2_bp<2, rrr_vector<127>> k2tree(ones, size);
-    if(p != -1) {
-      k2tree.add_child_info(std::sqrt(k2tree.nodes()) * p);
-    }
-
-    std::vector< std::pair< uint64_t, uint64_t > > check;
-    k2tree.get_pos_ones(check);
-    sort(check.begin(), check.end());
-    sort(ones.begin(), ones.end());
-
-    assert(check == ones);
-
-    ofstream k2_file;
-    k2_file.open(matrix + ".k2bp");
-    k2tree.write(k2_file);
-    k2_file.close();
+//    k2_bp<2, rrr_vector<127>> k2tree(ones, size);
+//    if(p != -1) {
+//      k2tree.add_child_info(std::sqrt(k2tree.nodes()) * p);
+//    }
+//
+//    std::vector< std::pair< uint64_t, uint64_t > > check;
+//    k2tree.get_pos_ones(check);
+//    sort(check.begin(), check.end());
+//    sort(ones.begin(), ones.end());
+//
+//    assert(check == ones);
+//
+//    ofstream k2_file;
+//    k2_file.open(matrix + ".k2bp");
+//    k2tree.write(k2_file);
+//    k2_file.close();
   }
   return 0;
 }

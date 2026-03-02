@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 
     cerr << "Reading k2tree..." << endl;
 
-    k2_bp<2, rrr_vector<127>> k2tree;
+    k2_bp<2, bit_vector> k2tree;
     k2tree.load(k2_file);
 
     k2_file.close();
@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 
     cerr << "Compressing k2tree..." << endl;
 
-    k2_cbp<2, rrr_vector<127>,
+    k2_cbp<2, bit_vector,
       sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
       select_support_sd<1>, select_support_sd<0>> k2tree_idem(k2tree);
 

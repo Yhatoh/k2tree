@@ -70,25 +70,25 @@ int main(int argc, char** argv) {
     m3.write(result_file);
     result_file.close();
   } else {
-    k2_bp<2, rrr_vector<127>> m1;
-    m1.load(k2_1_file);
-    k2_1_file.close();
-
-    k2_bp<2, rrr_vector<127>> m2;
-    m2.load(k2_2_file);
-    k2_2_file.close();
-
-    k2_bp<2, rrr_vector<127>> m3;
-    m1.mul(m2, m3);
-    
-
-    std::stringstream name_file;
-    name_file << k2_1_path << ".mul";
-
-    std::ofstream result_file;
-    result_file.open(name_file.str());
-    m3.write(result_file);
-    result_file.close();
+//    k2_bp<2, rrr_vector<127>> m1;
+//    m1.load(k2_1_file);
+//    k2_1_file.close();
+//
+//    k2_bp<2, rrr_vector<127>> m2;
+//    m2.load(k2_2_file);
+//    k2_2_file.close();
+//
+//    k2_bp<2, rrr_vector<127>> m3;
+//    m1.mul(m2, m3);
+//    
+//
+//    std::stringstream name_file;
+//    name_file << k2_1_path << ".mul";
+//
+//    std::ofstream result_file;
+//    result_file.open(name_file.str());
+//    m3.write(result_file);
+//    result_file.close();
   }
   return 0;
 }
