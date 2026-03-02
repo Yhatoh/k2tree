@@ -675,6 +675,10 @@ class k2_bp {
       c.msize = msize;
       c.height_tree = height_tree;
       c.rmsize = rmsize;
+      if(exc_samples.size() == 0)
+        build_exc_sample();
+      if(b.exc_samples.size() == 0)
+        build_exc_sample();
       sum(msize, info_a, b, info_b, c, height_tree, 1);
     }
 
@@ -854,7 +858,6 @@ class k2_bp {
         c.m = m;
         c.msize = msize;
         c.rmsize = rmsize;
-        c.build_exc_sample();
         info_a.pos += 2;
         info_b.pos += info_b.size << 1;
         return;
@@ -869,7 +872,6 @@ class k2_bp {
         c.m = m;
         c.msize = msize;
         c.rmsize = rmsize;
-        c.build_exc_sample();
         info_b.pos += 2;
         info_a.pos += info_a.size << 1;
         return;
@@ -895,7 +897,6 @@ class k2_bp {
         c.m = m;
         c.msize = msize;
         c.rmsize = rmsize;
-        c.build_exc_sample();
 
         info_a.pos += 4;
         info_b.pos += 4;
@@ -1070,7 +1071,6 @@ class k2_bp {
         c.m = m;
         c.msize = msize;
         c.rmsize = rmsize;
-        c.build_exc_sample();
         return;
       }
 
@@ -1103,7 +1103,6 @@ class k2_bp {
       c.m = m;
       c.msize = msize;
       c.rmsize = rmsize;
-      c.build_exc_sample();
 
 
 
