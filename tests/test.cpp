@@ -145,15 +145,14 @@ bool test_multi_algorithm(uint64_t n, uint64_t m) {
   k2_bp<2, bit_vector> B(ones2);
 
   cout << "C = A * B" << endl;
-  plain_tree aux_C;
+  k2_bp<2, bit_vector> aux_C;
   A.add_child_info(std::sqrt(A.nodes()));
   B.add_child_info(std::sqrt(B.nodes()));
   A.mul(B, aux_C);
-  k2_bp<2, bit_vector> C(aux_C);
 
 #ifdef DEBUG
   vector< pair< uint64_t, uint64_t >> check;
-  C.get_pos_ones(check);
+  aux_C.get_pos_ones(check);
 
   assert(check.size() == expected.size());
 
@@ -214,13 +213,12 @@ bool test_multi_algorithm_tree_comp(uint64_t n, uint64_t m) {
     select_support_sd<1>, select_support_sd<0>> B_idem(A);
 
   cout << "C = A * B" << endl;
-  plain_tree aux_C;
+  k2_bp<2, bit_vector> aux_C;
   A.mul(B, aux_C);
-  k2_bp<2, bit_vector> C(aux_C);
   cout << "Compressing C" << endl;
   k2_cbp<2, bit_vector,
     sd_vector<>, rank_support_sd<1>, rank_support_sd<0>,
-    select_support_sd<1>, select_support_sd<0>> C_idem(C);
+    select_support_sd<1>, select_support_sd<0>> C_idem(aux_C);
 
 #ifdef DEBUG
 

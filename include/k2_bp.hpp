@@ -487,7 +487,7 @@ class k2_bp {
     uint64_t size_matrix() { return rmsize; }
     uint64_t nodes() { return tree.size() / 2; }
 
-    k2_bp() {}
+    k2_bp() {threshold = 0;}
     
     k2_bp(plain_tree &pd) {
       tree = bit_vector(pd.tree.size(), 0);
@@ -681,11 +681,6 @@ class k2_bp {
     void sum(uint64_t m_size, traverse_info &info_a,
              k2_bp<k, bv_leaves> &b, traverse_info &info_b,
              k2_bp<k, bv_leaves> &c, uint64_t curr_h, int64_t excess) {
-      debug(m_size);
-      debug(info_a.pos, tree.size(), info_b.pos, b.tree.size());
-      debug(info_a.l, info_a.l << 2, l.size(), info_b.l, info_b.l << 2, b.l.size());
-      debug(info_a.size, info_b.size);
-      assert(m_size);
       assert(tree[info_a.pos]);
       assert(b.tree[info_b.pos]);
       if(tree.get_int(info_a.pos, 2) == 1) {// copy subtree of b
@@ -698,14 +693,10 @@ class k2_bp {
         info_a.pos += 2;
         info_b.pos += info_b.size << 1;
         info_b.l += info_b.n_l;
-        debug("a is empty");
-        debug(info_a.pos, tree.size(), info_b.pos, b.tree.size());
-        debug(info_a.l, info_a.l << 2, l.size(), info_b.l, info_b.l << 2, b.l.size());
         return;
       }
 
       if(b.tree.get_int(info_b.pos, 2) == 1) {// copy subtree of a
-        debug(std::bitset<4>(tree.get_int(info_a.pos, 4)));
         if(info_a.size == 0) {
           uint64_t curr_pos = info_a.pos;
           ultratraverse(curr_pos, excess, info_a.size, info_a.n_l);
@@ -715,10 +706,6 @@ class k2_bp {
         info_b.pos += 2;
         info_a.pos += info_a.size << 1;
         info_a.l += info_a.n_l;
-        debug("b is empty");
-        debug(info_a.size);
-        debug(info_a.pos, tree.size(), info_b.pos, b.tree.size());
-        debug(info_a.l, info_a.l << 2, l.size(), info_b.l, info_b.l << 2, b.l.size());
         return;
       }
 
@@ -732,9 +719,6 @@ class k2_bp {
         info_a.pos += 4;
         info_b.l += 1;
         info_a.l += 1;
-        debug("both are not empty");
-        debug(info_a.pos, tree.size(), info_b.pos, b.tree.size());
-        debug(info_a.l, info_a.l << 2, l.size(), info_b.l, info_b.l << 2, b.l.size());
         return;
       }
 
@@ -847,7 +831,7 @@ class k2_bp {
       info_a.pos = aux_a.pos + 1;
     }
 
-    void mul(k2_bp<k, bv_leaves> &b, plain_tree &c) {
+    void mul(k2_bp<k, bv_leaves> &b, k2_bp<k, bv_leaves> &c) {
       traverse_info info_a(0, 0, 0, tree.size() / 2, l.size() / 4, 1);
       traverse_info info_b(0, 0, 0, b.tree.size() / 2, b.l.size() / 4, 1);
       //dynamic_support.reserve(threshold * 3);
@@ -857,7 +841,7 @@ class k2_bp {
 
     void mul(uint64_t m_size, traverse_info &info_a,
                  k2_bp<k, bv_leaves> &b, traverse_info &info_b,
-                 plain_tree &c, uint64_t curr_h, int64_t excess) {
+                 k2_bp<k, bv_leaves> &c, uint64_t curr_h, int64_t excess) {
       assert(tree[info_a.pos]);
       assert(b.tree[info_b.pos]);
 
@@ -1004,8 +988,9 @@ class k2_bp {
       //  C_0 | C_1
       //  ---------
       //  C_2 | C_3
-      plain_tree c_[4];
-      plain_tree aux_c[2];
+      k2_bp<k, bv_leaves> c_[4];
+      k2_bp<k, bv_leaves> aux_c[2];
+
       traverse_info save_a, save_b;
       save_a = as[0]; save_b = bs[0];
       mul(m_size / 2, as[0], b, bs[0], aux_c[0], curr_h - 1, excess + 1);
@@ -1017,7 +1002,7 @@ class k2_bp {
 
       c_[0].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
       c_[0].l.reserve(aux_c[0].l.size() + aux_c[1].l.size());
-      aux_c[0].binsum(aux_c[1], c_[0]);
+      aux_c[0].sum(aux_c[1], c_[0]);
       aux_c[0].destroy();
       aux_c[1].destroy();
       aux_c[0] = aux_c[1] = plain_tree();
@@ -1032,7 +1017,7 @@ class k2_bp {
 
       c_[1].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
       c_[1].l.reserve(aux_c[0].l.size() + aux_c[1].l.size());
-      aux_c[0].binsum(aux_c[1], c_[1]);
+      aux_c[0].sum(aux_c[1], c_[1]);
       aux_c[0].destroy();
       aux_c[1].destroy();
       aux_c[0] = aux_c[1] = plain_tree();
@@ -1047,7 +1032,7 @@ class k2_bp {
 
       c_[2].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
       c_[2].l.reserve(aux_c[0].l.size() + aux_c[1].l.size());
-      aux_c[0].binsum(aux_c[1], c_[2]);
+      aux_c[0].sum(aux_c[1], c_[2]);
       aux_c[0].destroy();
       aux_c[1].destroy();
       aux_c[0] = aux_c[1] = plain_tree();
@@ -1063,7 +1048,7 @@ class k2_bp {
 
       c_[3].tree.reserve(aux_c[0].tree.size() + aux_c[1].tree.size());
       c_[3].l.reserve(aux_c[0].l.size() + aux_c[1].l.size());
-      aux_c[0].binsum(aux_c[1], c_[3]);
+      aux_c[0].sum(aux_c[1], c_[3]);
       aux_c[0].destroy();
       aux_c[1].destroy();
       aux_c[0] = aux_c[1] = plain_tree();
@@ -1085,19 +1070,19 @@ class k2_bp {
       c.l.reserve(c_[0].l.size() + c_[1].l.size() + c_[2].l.size() + c_[3].l.size());
       c.tree.push_back(1);
 
-      c.tree.concat(c_[0].tree);
+      c.tree.insert(c.tree.begin(), c_[0].tree.begin(), c_[0].tree.end());
       c.l.insert(c.l.end(), c_[0].l.begin(), c_[0].l.end());
       c_[0].destroy();
 
-      c.tree.concat(c_[1].tree);
+      c.tree.insert(c.tree.begin(), c_[1].tree.begin(), c_[1].tree.end());
       c.l.insert(c.l.end(), c_[1].l.begin(), c_[1].l.end());
       c_[1].destroy();
 
-      c.tree.concat(c_[2].tree);
+      c.tree.insert(c.tree.begin(), c_[2].tree.begin(), c_[2].tree.end());
       c.l.insert(c.l.end(), c_[2].l.begin(), c_[2].l.end());
       c_[2].destroy();
 
-      c.tree.concat(c_[3].tree);
+      c.tree.insert(c.tree.begin(), c_[3].tree.begin(), c_[3].tree.end());
       c.tree.push_back(0);
       c.l.insert(c.l.end(), c_[3].l.begin(), c_[3].l.end());
       c_[3].destroy();
