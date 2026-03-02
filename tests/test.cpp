@@ -33,7 +33,7 @@ vector< pair< uint64_t, uint64_t > > gen_ones_matrix(uint64_t n, uint64_t m) {
     vector< pair< uint64_t, uint64_t > > ones;
     for (uint64_t i = 0; i < n; ++i) {
         for (uint64_t j = 0; j < m; ++j) {
-            if(zerone() > 300) {
+            if(zerone() > 5000) {
               ones.push_back({i, j});
             }
         }
@@ -300,17 +300,76 @@ bool test_write_load(uint64_t n, uint64_t m) {
   return true;
 }
 
+bool test_sum_matrices(uint64_t n, uint64_t m) {
+  cout << "Generating a matrix of size " << n << "x"  << m << endl;
+  vector< pair< uint64_t, uint64_t> > ones = gen_ones_matrix(n, m);
+  vector< pair< uint64_t, uint64_t> > ones2 = gen_ones_matrix(n, m);
+#ifdef DEBUG
+  vector< pair< uint64_t, uint64_t> > expected;
+
+  cout << "Brute force sum" << endl;
+  {
+    vector< vector< uint64_t > > mA(n, vector<uint64_t>(m, 0));
+    for(auto p : ones) mA[p.first][p.second] = 1;
+
+    vector< vector< uint64_t > > mB(n, vector<uint64_t>(m, 0));
+    for(auto p : ones2) mB[p.first][p.second] = 1;
+
+    vector< vector< uint64_t > > mC(n, vector< uint64_t >(m, 0));
+
+    for(uint64_t i = 0; i < n; i++) {
+      for(uint64_t j = 0; j < m; j++) {
+        mC[i][j] = mA[i][j] | mB[i][j];
+      }
+    }
+
+
+    for(uint64_t i = 0; i < n; i++) {
+      for(uint64_t j = 0; j < m; j++) {
+        if(mC[i][j]) expected.push_back({i, j});
+      }
+    }
+  }
+#endif
+
+  cout << "Generating A" << endl;
+  k2_bp<2, bit_vector> A(ones);
+  cout << "Generating B" << endl;
+  k2_bp<2, bit_vector> B(ones2);
+
+  cout << "C = A * B" << endl;
+  k2_bp<2, bit_vector> aux_C;
+  A.add_child_info(std::sqrt(A.nodes()));
+  B.add_child_info(std::sqrt(B.nodes()));
+  A.sum(B, aux_C);
+
+#ifdef DEBUG
+  vector< pair< uint64_t, uint64_t >> check;
+  aux_C.get_pos_ones(check);
+
+  assert(check.size() == expected.size());
+
+  sort(check.begin(), check.end());
+  sort(expected.begin(), expected.end());
+  for(uint64_t i = 0; i < expected.size(); i++) {
+    assert(check[i] == expected[i]);
+  }
+#endif
+  return true;
+}
+
 int main(int argc, char *argv[]) {
   bool f_compr = 0;
   bool f_multi = 0;
   bool f_multi_compr = 0;
   bool f_write_and_load = 0;
+  bool f_sum = 0;
   uint64_t amount_of_test = 10;
   if(argc == 1) {
     f_compr = f_multi = f_multi_compr = f_write_and_load = 1;
   } else {
     int c;
-    while ((c=getopt(argc, argv, "tmcw")) != -1) {
+    while ((c=getopt(argc, argv, "tmcws")) != -1) {
       switch (c) {
         case 't':
           f_compr = true; break;
@@ -320,6 +379,8 @@ int main(int argc, char *argv[]) {
           f_multi_compr = true; break;
         case 'w':
           f_write_and_load = true; break;
+        case 's':
+          f_sum = true; break;
         case '?':
           fprintf(stderr,"Unknown option: %c\n", optopt);
           exit(1);
@@ -364,6 +425,15 @@ int main(int argc, char *argv[]) {
     for(uint64_t t = 0; t < amount_of_test; t++) {
       cout << "Test " << t + 1 << endl;
       test_write_load(genmatrix(), genmatrix());
+      cout << "Passed!" << endl;
+    }
+  }
+
+  if(f_sum) {
+    cout << "Testing sum" << endl;
+    for(uint64_t t = 0; t < amount_of_test; t++) {
+      cout << "Test " << t + 1 << endl;
+      test_sum_matrices(genmatrix(), genmatrix());
       cout << "Passed!" << endl;
     }
   }

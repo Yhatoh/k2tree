@@ -458,6 +458,29 @@ class k2_bp {
       }
     }
 
+    void build_exc_sample() {
+
+      int64_t excess = 1;
+      int64_t min_excess = 1;
+      exc_min_samples.resize((tree.size() + bexc - 1) / bexc + 1);
+      exc_samples.resize((tree.size() + bexc - 1) / bexc + 1);
+      uint64_t block = 0;
+      for(size_t i = 1; i < tree.size(); i++) {
+        if(i % bexc == 0) {
+          exc_min_samples[block] = min_excess;
+          exc_samples[block] = excess;
+          block++;
+          min_excess = LLONG_MAX;
+        }
+        excess += (tree[i] ? 1 : -1);
+        if(excess < min_excess) min_excess = excess;
+      }
+      exc_min_samples[block] = min_excess;
+      exc_samples[block] = excess;
+      sdsl::util::bit_compress(exc_min_samples);
+      sdsl::util::bit_compress(exc_samples);
+    }
+
   public:
     uint64_t size() { return m; }
 
@@ -487,6 +510,7 @@ class k2_bp {
       height_tree = pd.height_tree;
       msize = pd.msize;
       rmsize = pd.rmsize;
+      build_exc_sample();
     }
 
 
@@ -597,26 +621,8 @@ class k2_bp {
       auto aux_l = bit_vector(pos_to_add_l, 0);
       for(const auto& bit : bv_l) aux_l[bit] = 1;
       l = bv_leaves(aux_l);
-
-      int64_t excess = 1;
-      int64_t min_excess = 1;
-      exc_min_samples.resize((tree.size() + bexc - 1) / bexc + 1);
-      exc_samples.resize((tree.size() + bexc - 1) / bexc + 1);
-      uint64_t block = 0;
-      for(size_t i = 1; i < tree.size(); i++) {
-        if(i % bexc == 0) {
-          exc_min_samples[block] = min_excess;
-          exc_samples[block] = excess;
-          block++;
-          min_excess = LLONG_MAX;
-        }
-        excess += (tree[i] ? 1 : -1);
-        if(excess < min_excess) min_excess = excess;
-      }
-      exc_min_samples[block] = min_excess;
-      exc_samples[block] = excess;
-      sdsl::util::bit_compress(exc_min_samples);
-      sdsl::util::bit_compress(exc_samples);
+      
+      build_exc_sample();
     }
 
     void add_child_info(uint64_t threshold_ = 0) {
@@ -663,11 +669,150 @@ class k2_bp {
       rec_get_pos_ones(msize, 0, 0, pos, n_l, res);
     }
 
+    void sum(k2_bp<k, bv_leaves> &b, k2_bp<k, bv_leaves> &c) {
+      traverse_info info_a(0, 0, 0, tree.size() / 2, l.size() / 4, 1);
+      traverse_info info_b(0, 0, 0, b.tree.size() / 2, b.l.size() / 4, 1);
+      c.msize = msize;
+      c.height_tree = height_tree;
+      c.rmsize = rmsize;
+      sum(msize, info_a, b, info_b, c, height_tree, 1);
+    }
+
+    void sum(uint64_t m_size, traverse_info &info_a,
+             k2_bp<k, bv_leaves> &b, traverse_info &info_b,
+             k2_bp<k, bv_leaves> &c, uint64_t curr_h, int64_t excess) {
+      assert(tree[info_a.pos]);
+      assert(b.tree[info_b.pos]);
+      if(tree.get_int(info_a.pos, 2) == 2) {// copy subtree of b
+        if(info_b.size == 0) {
+          uint64_t curr_pos = info_b.pos;
+          b.ultratraverse(info_b.pos, excess, info_b.size, info_b.n_l);
+        }
+        c.tree.insert(c.tree.end(), b.tree.begin() + info_b.pos, b.tree.begin() + info_b.pos + info_b.size);
+        c.l.insert(c.l.end(), b.l.begin() + info_b.l, b.l.begin() + info_b.l + info_b.n_l);
+        info_a.pos += 2;
+        info_b.pos += info_b.size;
+        info_b.l += info_b.n_l;
+        return;
+      }
+
+      if(b.tree.get_int(info_b.pos, 2) == 2) {// copy subtree of a
+        if(info_a.size == 0) {
+          uint64_t curr_pos = info_a.pos;
+          ultratraverse(info_a.pos, excess, info_a.size, info_a.n_l);
+        }
+        c.tree.insert(c.tree.end(), tree.begin() + info_a.pos, tree.begin() + info_a.pos + info_a.size);
+        c.l.insert(c.l.end(), l.begin() + info_a.l, l.begin() + info_a.l + info_a.n_l);
+        info_b.pos += 2;
+        info_a.pos += info_a.size;
+        info_a.l += info_a.n_l;
+        return;
+      }
+
+      if(tree.get_int(info_a.pos, 4) == 3 && b.tree.get_int(info_b.pos, 4) == 3) {
+        c.tree.insert(c.tree.end(), tree.begin() + info_a.pos, tree.begin() + info_a.pos + 4);
+        c.l.push_back(l[(info_a.l << 2)] | b.l[(info_b.l << 2)]);
+        c.l.push_back(l[(info_a.l << 2) + 1] | b.l[(info_b.l << 2) + 1]);
+        c.l.push_back(l[(info_a.l << 2) + 2] | b.l[(info_b.l << 2) + 2]);
+        c.l.push_back(l[(info_a.l << 2) + 3] | b.l[(info_b.l << 2) + 3]);
+        info_b.pos += 4;
+        info_a.pos += 4;
+        info_b.l += 1;
+        info_a.l += 1;
+      }
+
+      c.tree.push_back(1);
+      // first submatrix
+      uint64_t accum_size_a = 0;
+      uint64_t accum_size_b = 0;
+      uint64_t accum_l_a = 0;
+      uint64_t accum_l_b = 0;
+
+      traverse_info aux_a(info_a.pos + 1, info_a.l, 0, 0, 0, 0);
+      if(info_a.size >= threshold) {
+        aux_a.size = GET_NODES(child_support[info_a.node].size_tree);
+        aux_a.node = info_a.node + 3;
+        aux_a.n_l = child_support[info_a.node].n_leaves;
+      }
+      traverse_info aux_b(info_b.pos + 1, info_b.l, 0, 0, 0, 0);
+      if(info_b.size >= b.threshold) {
+        aux_b.size = GET_NODES(b.child_support[info_b.node].size_tree);
+        aux_b.node = info_b.node + 3;
+        aux_b.n_l = b.child_support[info_b.node].n_leaves;
+      }
+      sum(m_size / 2, aux_a, b, aux_b, c, curr_h - 1, excess + 1);
+      accum_size_a += aux_a.size;
+      accum_size_b += aux_b.size;
+      accum_l_a += aux_a.n_l;
+      accum_l_b += aux_b.n_l;
+
+      // second submatrix
+      aux_a = traverse_info(aux_a.pos, aux_a.l, 0, 0, 0, 0);
+      if(info_a.size >= threshold) {
+        aux_a.node = info_a.node + 3 + GET_SKIPS(child_support[info_a.node].size_tree);
+        aux_a.size = GET_NODES(child_support[info_a.node + 1].size_tree);
+        aux_a.n_l = child_support[info_a.node + 1].n_leaves;
+      }
+      aux_b = traverse_info(aux_b.pos, aux_b.l, 0, 0, 0, 0);
+      if(info_b.size >= b.threshold) {
+        aux_b.size = GET_NODES(b.child_support[info_b.node + 1].size_tree);
+        aux_b.node = info_b.node + 3 + GET_SKIPS(child_support[info_b.node].size_tree);
+        aux_b.n_l = b.child_support[info_b.node + 1].n_leaves;
+      }
+      sum(m_size / 2, aux_a, b, aux_b, c, curr_h - 1, excess + 1);
+      accum_size_a += aux_a.size;
+      accum_size_b += aux_b.size;
+      accum_l_a += aux_a.n_l;
+      accum_l_b += aux_b.n_l;
+
+      // third submatrix
+      aux_a = traverse_info(aux_a.pos, aux_a.l, 0, 0, 0, 0);
+      if(info_a.size >= threshold) {
+        aux_a.node = info_a.node + 3 + GET_SKIPS(child_support[info_a.node].size_tree)
+                                     + GET_SKIPS(child_support[info_a.node + 1].size_tree);
+        aux_a.size = GET_NODES(child_support[info_a.node + 2].size_tree);
+        aux_a.n_l = child_support[info_a.node + 2].n_leaves;
+      }
+      aux_b = traverse_info(aux_b.pos, aux_b.l, 0, 0, 0, 0);
+      if(info_b.size >= b.threshold) {
+        aux_b.size = GET_NODES(b.child_support[info_b.node + 2].size_tree);
+        aux_b.node = info_b.node + 3 + GET_SKIPS(child_support[info_b.node].size_tree)
+                                     + GET_SKIPS(child_support[info_b.node + 1].size_tree);
+        aux_b.n_l = b.child_support[info_b.node + 2].n_leaves;
+      }
+      sum(m_size / 2, aux_a, b, aux_b, c, curr_h - 1, excess + 1);
+      accum_size_a += aux_a.size;
+      accum_size_b += aux_b.size;
+      accum_l_a += aux_a.n_l;
+      accum_l_b += aux_b.n_l;
+
+      // fourth submatrix
+      aux_a = traverse_info(aux_a.pos, aux_a.l, 0, 0, 0, 0);
+      if(info_a.size >= threshold) {
+        aux_a.node = info_a.node + 3 + GET_SKIPS(child_support[info_a.node].size_tree)
+                                     + GET_SKIPS(child_support[info_a.node + 1].size_tree)
+                                     + GET_SKIPS(child_support[info_a.node + 2].size_tree);
+        aux_a.size = info_a.size - accum_size_a - 1;
+        aux_a.n_l = info_a.n_l - accum_l_a;
+      }
+      aux_b = traverse_info(aux_b.pos, aux_b.l, 0, 0, 0, 0);
+      if(info_b.size >= b.threshold) {
+        aux_b.size = info_b.size - accum_size_b - 1;
+        aux_b.node = info_b.node + 3 + GET_SKIPS(child_support[info_b.node].size_tree)
+                                     + GET_SKIPS(child_support[info_b.node + 1].size_tree)
+                                     + GET_SKIPS(child_support[info_b.node + 2].size_tree);
+        aux_b.n_l = b.child_support[info_b.node + 2].n_leaves;
+        aux_b.n_l = info_b.n_l - accum_l_b;
+      }
+      sum(m_size / 2, aux_a, b, aux_b, c, curr_h - 1, excess + 1);
+      c.tree.push_back(0);
+    }
+
     void mul(k2_bp<k, bv_leaves> &b, plain_tree &c) {
       traverse_info info_a(0, 0, 0, tree.size() / 2, l.size() / 4, 1);
       traverse_info info_b(0, 0, 0, b.tree.size() / 2, b.l.size() / 4, 1);
-      dynamic_support.reserve(threshold * 3);
-      b.dynamic_support.reserve(b.threshold * 3);
+      //dynamic_support.reserve(threshold * 3);
+      //b.dynamic_support.reserve(b.threshold * 3);
       mul(msize, info_a, b, info_b, c, height_tree, 1);
     }
 
@@ -940,7 +1085,6 @@ class k2_bp {
       uint64_t values = child_support.size();
       out.write((char*) &values, sizeof(uint64_t));
       out.write((char*) child_support.data(), values * sizeof(child_info));
-
 
       tree.serialize(out);
       l.serialize(out);
