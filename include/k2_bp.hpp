@@ -702,7 +702,8 @@ class k2_bp {
       if(tree.get_int(info_a.pos, 2) == 1) {// copy subtree of b
         if(info_b.size == 0) {
           uint64_t curr_pos = info_b.pos;
-          b.fasttraverse(curr_pos, excess, info_b.size, info_b.n_l);
+          //b.ultratraverse(curr_pos, excess, info_b.size, info_b.n_l);
+          b.fasttraverse(curr_pos, info_b.size, info_b.n_l);
         }
         c.tree.insert(c.tree.end(), b.tree.begin() + info_b.pos, b.tree.begin() + info_b.pos + (info_b.size << 1));
         c.l.insert(c.l.end(), b.l.begin() + (info_b.l << 2), b.l.begin() + ((info_b.l + info_b.n_l) << 2));
@@ -715,7 +716,8 @@ class k2_bp {
       if(b.tree.get_int(info_b.pos, 2) == 1) {// copy subtree of a
         if(info_a.size == 0) {
           uint64_t curr_pos = info_a.pos;
-          fasttraverse(curr_pos, excess, info_a.size, info_a.n_l);
+          //ultratraverse(curr_pos, excess, info_a.size, info_a.n_l);
+          fasttraverse(curr_pos, info_a.size, info_a.n_l);
         }
         c.tree.insert(c.tree.end(), tree.begin() + info_a.pos, tree.begin() + info_a.pos + (info_a.size << 1));
         c.l.insert(c.l.end(), l.begin() + (info_a.l << 2), l.begin() + ((info_a.l + info_a.n_l) << 2));
