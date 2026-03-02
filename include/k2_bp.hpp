@@ -1070,6 +1070,7 @@ class k2_bp {
         c.m = m;
         c.msize = msize;
         c.rmsize = rmsize;
+        c.build_exc_sample();
         return;
       }
 
