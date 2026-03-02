@@ -152,8 +152,8 @@ class k2_cbp {
     uint64_t height() { return height_tree; } 
     uint64_t size() {
       uint64_t m = 0;
-      sdsl::rank_support_rrr<1, 127> rank(&l);
-      return rank(l.size());
+      //sdsl::rank_support_rrr<1, 127> rank(&l);
+      return m;
     }
     uint64_t size_matrix() { return rmsize; }
     uint64_t size_comp_subtrees() { return P.size(); }
