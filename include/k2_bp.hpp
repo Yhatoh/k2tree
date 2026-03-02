@@ -730,13 +730,13 @@ class k2_bp {
       uint64_t accum_l_b = 0;
 
       traverse_info aux_a(info_a.pos + 1, info_a.l, 0, 0, 0, 0);
-      if(info_a.size >= threshold) {
+      if(child_support.size() > 0 && info_a.size >= threshold) {
         aux_a.size = GET_NODES(child_support[info_a.node].size_tree);
         aux_a.node = info_a.node + 3;
         aux_a.n_l = child_support[info_a.node].n_leaves;
       }
       traverse_info aux_b(info_b.pos + 1, info_b.l, 0, 0, 0, 0);
-      if(info_b.size >= b.threshold) {
+      if(b.child_support.size() > 0 && info_b.size >= b.threshold) {
         aux_b.size = GET_NODES(b.child_support[info_b.node].size_tree);
         aux_b.node = info_b.node + 3;
         aux_b.n_l = b.child_support[info_b.node].n_leaves;
@@ -753,13 +753,13 @@ class k2_bp {
 
       // second submatrix
       aux_a = traverse_info(aux_a.pos, aux_a.l, 0, 0, 0, 0);
-      if(info_a.size >= threshold) {
+      if(child_support.size() > 0 && info_a.size >= threshold) {
         aux_a.node = info_a.node + 3 + GET_SKIPS(child_support[info_a.node].size_tree);
         aux_a.size = GET_NODES(child_support[info_a.node + 1].size_tree);
         aux_a.n_l = child_support[info_a.node + 1].n_leaves;
       }
       aux_b = traverse_info(aux_b.pos, aux_b.l, 0, 0, 0, 0);
-      if(info_b.size >= b.threshold) {
+      if(b.child_support.size() > 0 && info_b.size >= b.threshold) {
         aux_b.size = GET_NODES(b.child_support[info_b.node + 1].size_tree);
         aux_b.node = info_b.node + 3 + GET_SKIPS(b.child_support[info_b.node].size_tree);
         aux_b.n_l = b.child_support[info_b.node + 1].n_leaves;
@@ -776,14 +776,14 @@ class k2_bp {
 
       // third submatrix
       aux_a = traverse_info(aux_a.pos, aux_a.l, 0, 0, 0, 0);
-      if(info_a.size >= threshold) {
+      if(child_support.size() > 0 && info_a.size >= threshold) {
         aux_a.node = info_a.node + 3 + GET_SKIPS(child_support[info_a.node].size_tree)
                                      + GET_SKIPS(child_support[info_a.node + 1].size_tree);
         aux_a.size = GET_NODES(child_support[info_a.node + 2].size_tree);
         aux_a.n_l = child_support[info_a.node + 2].n_leaves;
       }
       aux_b = traverse_info(aux_b.pos, aux_b.l, 0, 0, 0, 0);
-      if(info_b.size >= b.threshold) {
+      if(b.child_support.size() > 0 && info_b.size >= b.threshold) {
         aux_b.size = GET_NODES(b.child_support[info_b.node + 2].size_tree);
         aux_b.node = info_b.node + 3 + GET_SKIPS(b.child_support[info_b.node].size_tree)
                                      + GET_SKIPS(b.child_support[info_b.node + 1].size_tree);
@@ -801,7 +801,7 @@ class k2_bp {
 
       // fourth submatrix
       aux_a = traverse_info(aux_a.pos, aux_a.l, 0, 0, 0, 0);
-      if(info_a.size >= threshold) {
+      if(child_support.size() > 0 && info_a.size >= threshold) {
         aux_a.node = info_a.node + 3 + GET_SKIPS(child_support[info_a.node].size_tree)
                                      + GET_SKIPS(child_support[info_a.node + 1].size_tree)
                                      + GET_SKIPS(child_support[info_a.node + 2].size_tree);
@@ -809,7 +809,7 @@ class k2_bp {
         aux_a.n_l = info_a.n_l - accum_l_a;
       }
       aux_b = traverse_info(aux_b.pos, aux_b.l, 0, 0, 0, 0);
-      if(info_b.size >= b.threshold) {
+      if(b.child_support.size() > 0 && info_b.size >= b.threshold) {
         aux_b.size = info_b.size - accum_size_b / 2 - 1;
         aux_b.node = info_b.node + 3 + GET_SKIPS(b.child_support[info_b.node].size_tree)
                                      + GET_SKIPS(b.child_support[info_b.node + 1].size_tree)
