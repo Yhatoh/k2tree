@@ -106,7 +106,6 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
     quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
 
   size_t w = fwrite(&(a->msize), sizeof(size_t), 1, f);
-  printf("%zu %zu\n", w, sizeof(size_t));
   if(w != 1)
     quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
   w = fwrite(&(a->rmsize), sizeof(size_t), 1, f);
