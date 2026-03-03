@@ -84,6 +84,8 @@ int main(int argc, char* argv[]) {
         exit(1);
       }
     }
+    free(ones_matrix);
+    free(ones_k2bp);
     csr_free(&matrix);
   }
 

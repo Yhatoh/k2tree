@@ -137,8 +137,8 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
   w = fwrite(&(a->n_l), sizeof(size_t), 1, f);
   if(w != 1)
     quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
-  w = fwrite(a->l, sizeof(uint8_t), a->n_l, f);
-  if(w != a->n_l)
+  w = fwrite(a->l, sizeof(uint8_t), (a->n_l + 1)/ 2, f);
+  if(w != (a->n_l + 1) / 2)
     quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
 
   fclose(f);
@@ -233,8 +233,8 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
 
   a->l = (uint8_t*) malloc(sizeof(uint8_t) * a->n_l);
 
-  w = fread(a->l, sizeof(uint8_t), a->n_l, f);
-  if(w != a->n_l)
+  w = fread(a->l, sizeof(uint8_t), (a->n_l + 1) / 2, f);
+  if(w != (a->n_l + 1) / 2)
     quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
 
   fclose(f);
