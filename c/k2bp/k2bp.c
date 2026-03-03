@@ -370,7 +370,7 @@ static void reccreate_k2bp(uint64_t ia[], size_t n, size_t smin, size_t size, k2
 
   bv_pb(&(a->t), 1); // you know that has at least 1 one
   if(ileft > 0) { // a[00]
-    if(size == 2 * _K_) { // leaf
+    if(size == _K_) { // leaf
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 0);
@@ -386,7 +386,7 @@ static void reccreate_k2bp(uint64_t ia[], size_t n, size_t smin, size_t size, k2
   }
 
   if(ileft < imid) { // a[01]
-    if(size == 2 * _K_) { // leaf
+    if(size == _K_) { // leaf
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 0);
@@ -402,7 +402,7 @@ static void reccreate_k2bp(uint64_t ia[], size_t n, size_t smin, size_t size, k2
   }
 
   if(iright > imid) { // a[10]
-    if(size == 2 * _K_) { // leaf
+    if(size == _K_) { // leaf
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 0);
@@ -418,7 +418,7 @@ static void reccreate_k2bp(uint64_t ia[], size_t n, size_t smin, size_t size, k2
   }
 
   if(iright < n) { // a[11]
-    if(size == 2 * _K_) { // leaf
+    if(size == _K_) { // leaf
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 0);
