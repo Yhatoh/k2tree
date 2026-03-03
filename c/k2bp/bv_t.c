@@ -20,13 +20,13 @@ void print_bits(uint64_t num) {
   printf("\n");
 }
 
-void bv_t_init(bv_t* z) {
+void bv_init(bv_t* z) {
   z->n = 0;
   z->maxn = 5; // 5 * 64 elements
   z->a = (uint64_t*) malloc(sizeof(uint64_t) * z->maxn);
 }
 
-void bv_t_pb(bv_t* z, uint64_t bit) {
+void bv_pb(bv_t* z, uint64_t bit) {
   if(z->n >= z->maxn * 64) {
     z->maxn *= 2;
     z->a = (uint64_t*) realloc(z->a, sizeof(uint64_t) * z->maxn);
@@ -38,7 +38,7 @@ void bv_t_pb(bv_t* z, uint64_t bit) {
   z->n++;
 }
 
-void bv_t_append_int(bv_t* z, uint64_t num) {
+void bv_append_int(bv_t* z, uint64_t num) {
   if(z->n + 64 >= z->maxn * 64) {
     z->maxn *= 2;
     z->a = (uint64_t*) realloc(z->a, sizeof(uint64_t) * z->maxn);
@@ -56,37 +56,39 @@ void bv_t_append_int(bv_t* z, uint64_t num) {
   z->n += 64;
 }
 
-void bv_t_append(bv_t* a, bv_t* b) {
+void bv_append(bv_t* a, bv_t* b) {
   size_t i = 0;
   for(; i < b->n / 64; i++) {
-    bv_t_append_int(a, b->a[i]);
+    bv_append_int(a, b->a[i]);
   }
 
   if(b->n % 64 > 0) {
-    bv_t_append_int(a, b->a[b->n / 64]);
+    bv_append_int(a, b->a[b->n / 64]);
     a->n -= 64 - b->n % 64;
   }
 }
 
 
-void bv_t_free(bv_t* z) {
-  free(z->a); z->a = NULL;
+void bv_free(bv_t* z) {
+  if(z->a != NULL)
+    free(z->a);
+  z->a = NULL;
   z->n = 0;
   z->maxn = 0;
 }
 
-void bv_t_shrink(bv_t* z) {
+void bv_shrink(bv_t* z) {
   z->maxn = (z->n + 64 - 1) / 64;
   z->a = (uint64_t*) realloc(z->a, sizeof(uint64_t) * z->maxn);
   if(z->a == NULL) quit("realloc failed",__LINE__,__FILE__);
 }
 
-uint64_t bv_t_i(bv_t* z, size_t i) {
+uint64_t bv_i(const bv_t* z, size_t i) {
   assert(i < z->n);
   return (z->a[i / 64] & (1LL << (i % 64))) >> (i % 64);
 }
 
-uint64_t bv_t_get_int(bv_t* z, size_t i, uint8_t len) {
+uint64_t bv_get_int(const bv_t* z, size_t i, uint8_t len) {
   assert(len >= 1 && len <= 64);
   if((i % 64) + len > 64) {
     // divided in two
@@ -97,7 +99,7 @@ uint64_t bv_t_get_int(bv_t* z, size_t i, uint8_t len) {
   return (z->a[i / 64] >> (i % 64)) & ((1 << len) - 1);
 }
 
-void bv_t_reserve(bv_t* z, size_t m) {
+void bv_reserve(bv_t* z, size_t m) {
   if(z->a != NULL) {
     z->a = (uint64_t*) realloc(z->a, sizeof(uint64_t) * m);
     if(z->a == NULL) quit("realloc failed",__LINE__,__FILE__);
@@ -111,7 +113,7 @@ void bv_t_reserve(bv_t* z, size_t m) {
   z->maxn = m;
 }
 
-void bv_t_grow(bv_t* z, size_t i) {
+void bv_grow(bv_t* z, size_t i) {
   z->n += i;
   while(z->n > z->maxn * 64) {
     z->maxn *= 2;
@@ -120,8 +122,23 @@ void bv_t_grow(bv_t* z, size_t i) {
   }
 }
 
-uint64_t size_in_bits(bv_t* z) {
+uint64_t size_in_bits(const bv_t* z) {
   return sizeof(uint64_t) * z->maxn + sizeof(bv_t);
+}
+
+void bv_write(const bv_t* z, FILE* out) {
+  fwrite(&(z->n), sizeof(size_t), 1, out);
+  size_t w = fwrite(z->a, sizeof(uint64_t), (z->n + 64 - 1) / 64, out);
+  if(w != z->n) quit("Error writing bv_t to file",__LINE__,__FILE__);
+}
+
+void bv_read(bv_t* z, FILE* in) {
+  size_t w = fread(&(z->n), sizeof(size_t), 1, in);
+  if(w != sizeof(size_t)) quit("Error reading n from file", __LINE__, __FILE__);
+  z->maxn = (z->n + 64 - 1) / 64;
+  z->a = (uint64_t*) malloc(sizeof(uint64_t) * z->maxn);
+  w = fread(z->a, sizeof(size_t), z->maxn, in);
+  if(w != z->n) quit("Error reading n from file", __LINE__, __FILE__);
 }
 
 // write error message and exit

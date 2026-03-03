@@ -599,27 +599,41 @@ class k2_bp {
         size_t iright = imid < n_ia ? binsearch(ia + imid, n_ia - imid, right) + imid : n_ia;
 
         if(iright < n_ia) { // right-bot 
-          recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2, init_y + subm_size / 2, right, ia + iright, n_ia - iright, true, false));
+          recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2,
+                                    init_y + subm_size / 2, right, ia + iright,
+                                    n_ia - iright, true, false));
         } else {
-          recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2, init_y + subm_size / 2, right, ia + iright, n_ia - iright, false, false));
+          recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2,
+                                    init_y + subm_size / 2, right, ia + iright,
+                                    n_ia - iright, false, false));
         }
         
         if(iright > imid) { // left-bot 
-          recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2, init_y, mid, ia + imid, iright - imid, true, false));
+          recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2,
+                                    init_y, mid, ia + imid,
+                                    iright - imid, true, false));
         } else {
-          recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2, init_y, mid, ia + imid, iright - imid, false, false));
+          recursion.push(make_tuple(subm_size / 2, init_x + subm_size / 2,
+                                    init_y, mid, ia + imid,
+                                    iright - imid, false, false));
         }
         
         if(ileft < imid) { // right-up
-          recursion.push(make_tuple(subm_size / 2, init_x, init_y + subm_size / 2, left, ia + ileft, imid - ileft, true, false));
+          recursion.push(make_tuple(subm_size / 2, init_x, init_y + subm_size / 2,
+                                    left, ia + ileft, imid - ileft,
+                                    true, false));
         } else {
-          recursion.push(make_tuple(subm_size / 2, init_x, init_y + subm_size / 2, left, ia + ileft, imid - ileft, false, false));
+          recursion.push(make_tuple(subm_size / 2, init_x, init_y + subm_size / 2,
+                                    left, ia + ileft, imid - ileft,
+                                    false, false));
         }
 
         if(ileft > 0) { // left-up
-          recursion.push(make_tuple(subm_size / 2, init_x, init_y, smin, ia, ileft, true, false));
+          recursion.push(make_tuple(subm_size / 2, init_x, init_y, smin, ia,
+                                    ileft, true, false));
         } else {
-          recursion.push(make_tuple(subm_size / 2, init_x, init_y, smin, ia, ileft, false, false));
+          recursion.push(make_tuple(subm_size / 2, init_x, init_y, smin, ia,
+                                    ileft, false, false));
         }
       }
 
