@@ -86,6 +86,11 @@ void k2bp_free(k2bp_t* a) {
 }
 
 uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n) {
+//  for(size_t i = 0; i < a->t.n; i++) {
+//    if(bv_i(&(a->t), i)) printf("(");
+//    else printf(")");
+//  }
+//  printf("\n");
   uint32_t* arr = (uint32_t*) malloc(sizeof(uint32_t) * (a->m * 2));
   *n = 0;
   k2bp_traversal_t pos_a = {a->msize, 0, 0, 0, 0};
@@ -296,6 +301,7 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
 
 // auxiliary functions
 static void reck2bp_nonzeros(k2bp_traversal_t* pos_a, const k2bp_t* a, uint32_t* arr, size_t* n) {
+  //printf("pos %zu msize %zu x %zu y %zu\n", pos_a->i_t, pos_a->msize, pos_a->x, pos_a->y);
   assert(pos_a->i_t < a->t.n && pos_a->i_l < a->n_l);
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
   if(pos_a->i_t + 1 < a->t.n && bv_i(&(a->t), pos_a->i_t + 1) == 0) {
@@ -370,7 +376,7 @@ static void reccreate_k2bp(uint64_t ia[], size_t n, size_t smin, size_t size, k2
 
   bv_pb(&(a->t), 1); // you know that has at least 1 one
   if(ileft > 0) { // a[00]
-    if(size == _K_) { // leaf
+    if(size == 2 * _K_) { // leaf
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 0);
@@ -386,7 +392,7 @@ static void reccreate_k2bp(uint64_t ia[], size_t n, size_t smin, size_t size, k2
   }
 
   if(ileft < imid) { // a[01]
-    if(size == _K_) { // leaf
+    if(size == 2 * _K_) { // leaf
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 0);
@@ -402,7 +408,7 @@ static void reccreate_k2bp(uint64_t ia[], size_t n, size_t smin, size_t size, k2
   }
 
   if(iright > imid) { // a[10]
-    if(size == _K_) { // leaf
+    if(size == 2 * _K_) { // leaf
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 0);
@@ -418,7 +424,7 @@ static void reccreate_k2bp(uint64_t ia[], size_t n, size_t smin, size_t size, k2
   }
 
   if(iright < n) { // a[11]
-    if(size == _K_) { // leaf
+    if(size == 2 * _K_) { // leaf
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 1);
       bv_pb(&(a->t), 0);

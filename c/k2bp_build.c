@@ -67,17 +67,25 @@ int main(int argc, char* argv[]) {
 
     size_t n_matrix;
     uint32_t* ones_matrix = csr_nonzeros(&matrix, &n_matrix);
-    qsort(ones_matrix, n_matrix, sizeof(uint32_t), cmp);
+    for(size_t i = 0; i < n_matrix; i += 2) {
+      //printf("(%" PRIu32 ", %" PRIu32 ") ", ones_matrix[i], ones_matrix[i + 1]);
+    }
+    printf("\n");
+
+    qsort(ones_matrix, n_matrix, sizeof(uint32_t), &cmp);
 
     size_t n_k2bp;
     uint32_t* ones_k2bp = k2bp_nonzeros(&a, &n_k2bp);
-    qsort(ones_k2bp, n_k2bp, sizeof(uint32_t), cmp);
+    for(size_t i = 0; i < n_matrix; i += 2) {
+      //printf("(%" PRIu32 ", %" PRIu32 ") ", ones_k2bp[i], ones_k2bp[i + 1]);
+    }
+    printf("\n");
+    qsort(ones_k2bp, n_k2bp, sizeof(uint32_t), &cmp);
 
     if(n_matrix != n_k2bp) {
       fprintf(stderr, "ERROR COMPRESSION! amount of 1's doesn't match. expected: %zu got: %zu\n", n_matrix, n_k2bp);
       exit(1);
     }
-
     for(size_t i = 0; i < n_k2bp; i += 2) {
       if(ones_k2bp[i] != ones_matrix[i] || ones_k2bp[i + 1] != ones_matrix[i + 1]) {
         fprintf(stderr, "ERROR COMPRESSION! %zu-th 1 doesn't match. expected: (%" PRIu32 ", %" PRIu32 ") got: (%" PRIu32 ", %" PRIu32 ")\n", i, ones_matrix[i], ones_matrix[i + 1], ones_k2bp[i], ones_k2bp[i + 1]);
