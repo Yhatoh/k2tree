@@ -86,11 +86,6 @@ void k2bp_free(k2bp_t* a) {
 }
 
 uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n) {
-//  for(size_t i = 0; i < a->t.n; i++) {
-//    if(bv_i(&(a->t), i)) printf("(");
-//    else printf(")");
-//  }
-//  printf("\n");
   uint32_t* arr = (uint32_t*) malloc(sizeof(uint32_t) * (a->m * 2));
   *n = 0;
   k2bp_traversal_t pos_a = {a->msize, 0, 0, 0, 0};
@@ -301,8 +296,7 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
 
 // auxiliary functions
 static void reck2bp_nonzeros(k2bp_traversal_t* pos_a, const k2bp_t* a, uint32_t* arr, size_t* n) {
-  //printf("pos %zu msize %zu x %zu y %zu\n", pos_a->i_t, pos_a->msize, pos_a->x, pos_a->y);
-  assert(pos_a->i_t < a->t.n && pos_a->i_l < a->n_l);
+  assert(pos_a->i_t < a->t.n && pos_a->i_l <= a->n_l);
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
   if(pos_a->i_t + 1 < a->t.n && bv_i(&(a->t), pos_a->i_t + 1) == 0) {
     pos_a->i_t += 2;
@@ -455,7 +449,7 @@ static size_t create_k2bp(uint64_t ia[], size_t n, size_t rmsize, k2bp_t *a) {
   a->msize = k2bp_compute_height(rmsize);
   a->m = n;
 
-  reccreate_k2bp(ia, n, 0, rmsize, a);
+  reccreate_k2bp(ia, n, 0, a->msize, a);
 
   a->maxn_l = 2 * ((a->n_l + 1) / 2);
   a->l = (uint8_t*) realloc(a->l, sizeof(uint8_t) * a->maxn_l / 2);
