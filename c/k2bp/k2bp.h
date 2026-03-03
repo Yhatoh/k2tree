@@ -56,7 +56,9 @@ void k2bp_write_leaf(k2bp_t* a, uint8_t leaf);
 uint8_t k2bp_read_leaf(const k2bp_t*a, const size_t pos);
 size_t k2bp_compute_height(const size_t rmsize);
 void k2bp_free(k2bp_t* a);
-void k2bp_dfs(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz, size_t* levels, size_t curr_level);
+void k2bp_dfs(k2bp_traversal_t* pos_a, const k2bp_t* a,
+              size_t* nodes, size_t* leaves, size_t* nz, size_t* levels, size_t curr_level);
+void k2bp_build_exc_sampling(k2bp_t* a);
 
 size_t k2bp_show_stats(const k2bp_t* a, const char* fname, FILE* f);
 size_t k2bp_stats(const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz);

@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "k2bp.h"
+#include "bv_t.h"
 
 static size_t binsearch(uint64_t *ia, size_t n, uint64_t x);
 static uint64_t *create_ia(FILE *f, size_t *n, size_t *msize, size_t xsize);
@@ -423,6 +424,47 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
   size_t total_bytes = bp_bytes + l_bytes + exc_bytes + sub_bytes + mic_bytes + sizeof(size_t) * 3;
   fprintf(f, " total size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", total_bytes, total_bytes * CHAR_BIT, (double) total_bytes * CHAR_BIT / nz);
   return total_bytes;
+}
+
+// build excess sampling
+// this helps for small trees across `a`
+void k2bp_build_exc_sampling(k2bp_t* a) {
+  assert(a != NULL);
+  assert(a->t.a != NULL && a->l != NULL);
+  if(a->exc_samples != NULL) { // clean what is there
+    free(a->exc_samples);
+    free(a->exc_min_samples);
+    free(a->leaves_samples);
+    a->exc_min_samples = a->exc_samples = NULL;
+    a->leaves_samples = NULL;
+  }
+
+  a->exc_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE(a->t.n));
+  a->exc_min_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE(a->t.n));
+  a->leaves_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE(a->t.n));
+  uint16_t excess = 1;
+  uint64_t min_excess = 1;
+  uint8_t leaves = 0;
+  size_t block = 0;
+  for(size_t i = 1; i < a->t.n; i++) {
+    if(i % BLOCK_SIZE == 0) {
+      a->exc_samples[block] = excess;
+      a->exc_min_samples[block] = min_excess;
+      a->leaves_samples[block] = leaves;
+      block++;
+      min_excess = LLONG_MAX;
+      leaves = 0;
+    }
+    if(i + 3 < a->t.n) {
+      if(bv_get_int(&(a->t), i, 4) == 3) leaves++;
+    }
+    excess += ((bv_i(&(a->t), i)) ? 1 : -1);
+    if(excess < min_excess)
+      min_excess = excess;
+  }
+  a->exc_samples[block] = excess;
+  a->exc_min_samples[block] = min_excess;
+  a->leaves_samples[block] = leaves;
 }
 
 // ----------------------------------------------------------

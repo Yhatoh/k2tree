@@ -7,4 +7,7 @@ k2bp_build:
 k2bp_info:
 	gcc k2bp_info.c k2bp/bv_t.c k2bp/k2bp.c -O3 -o k2bp_info.x
 
-all: bv_test k2bp_build k2bp_info
+k2bp_addinfo:
+	gcc k2bp_addinfo.c k2bp/bv_t.c k2bp/k2bp.c -O3 -o k2bp_addinfo.x
+
+all: bv_test k2bp_build k2bp_info k2bp_addinfo
