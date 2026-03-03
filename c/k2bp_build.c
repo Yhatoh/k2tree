@@ -67,19 +67,11 @@ int main(int argc, char* argv[]) {
 
     size_t n_matrix;
     uint32_t* ones_matrix = csr_nonzeros(&matrix, &n_matrix);
-    for(size_t i = 0; i < n_matrix; i += 2) {
-      //printf("(%" PRIu32 ", %" PRIu32 ") ", ones_matrix[i], ones_matrix[i + 1]);
-    }
-    printf("\n");
 
     qsort(ones_matrix, n_matrix, sizeof(uint32_t), &cmp);
 
     size_t n_k2bp;
     uint32_t* ones_k2bp = k2bp_nonzeros(&a, &n_k2bp);
-    for(size_t i = 0; i < n_matrix; i += 2) {
-      //printf("(%" PRIu32 ", %" PRIu32 ") ", ones_k2bp[i], ones_k2bp[i + 1]);
-    }
-    printf("\n");
     qsort(ones_k2bp, n_k2bp, sizeof(uint32_t), &cmp);
 
     if(n_matrix != n_k2bp) {
@@ -103,13 +95,13 @@ int main(int argc, char* argv[]) {
 }
 
 void usage_and_exit(char* name) {
-    fprintf(stderr, "Usage:\n\t%s [options] filename \n\n", name);
-    fprintf(stderr, "Options:\n");
-    fprintf(stderr, "\t-c      compressed->decompress->check\n");
-    fprintf(stderr, "\t-s S    matrix actual size (def. largest index + 1)\n");
-    fprintf(stderr, "\t-t p    use p * sqrt(S) as threshold for subtree information (def. don't add subtree information)\n");    
-    fprintf(stderr, "\t-h      show this help message\n");    
-    fprintf(stderr, "\t-n      don't save matrix, just check\n");    
-    fprintf(stderr, "Compress filename\n\n");
-    exit(1);
+  fprintf(stderr, "Usage:\n\t%s [options] filename \n\n", name);
+  fprintf(stderr, "Options:\n");
+  fprintf(stderr, "\t-c      compressed->decompress->check\n");
+  fprintf(stderr, "\t-s S    matrix actual size (def. largest index + 1)\n");
+  fprintf(stderr, "\t-t p    use p * sqrt(S) as threshold for subtree information (def. don't add subtree information)\n");    
+  fprintf(stderr, "\t-h      show this help message\n");    
+  fprintf(stderr, "\t-n      don't save matrix, just check\n");    
+  fprintf(stderr, "Compress filename\n\n");
+  exit(1);
 }

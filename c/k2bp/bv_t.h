@@ -21,7 +21,7 @@ void bv_grow(bv_t* z, size_t i); // should be correct
 void bv_shrink(bv_t* z); // should be correct
 uint64_t bv_i(const bv_t* z, size_t i); // tested
 uint64_t bv_get_int(const bv_t* z, size_t i, uint8_t len); // tested
-uint64_t size_in_bits(const bv_t* z);
+uint64_t bv_size_in_bits(const bv_t* z);
 void bv_save_to_file(const bv_t* z, const char* fname);
 void bv_load_from_file(bv_t* z, const char* fname);
 

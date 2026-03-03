@@ -122,7 +122,7 @@ void bv_grow(bv_t* z, size_t i) {
   }
 }
 
-uint64_t size_in_bits(const bv_t* z) {
+uint64_t bv_size_in_bits(const bv_t* z) {
   return sizeof(uint64_t) * z->maxn + sizeof(bv_t);
 }
 
@@ -135,7 +135,7 @@ void bv_save_to_file(const bv_t* z, const char* fname) {
 }
 
 void bv_load_from_file(bv_t* z, const char* fname) {
-  FILE* in = fopen(fname, "w");
+  FILE* in = fopen(fname, "r");
   size_t w = fread(&(z->n), sizeof(size_t), 1, in);
   if(w != 1) quit("bv_load_from_file: error reading n from file", __LINE__, __FILE__);
   z->maxn = (z->n + 64 - 1) / 64;

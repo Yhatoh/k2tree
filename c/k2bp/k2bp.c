@@ -1,6 +1,8 @@
 #include <assert.h>
+#include <limits.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -13,7 +15,14 @@ static void quit(const char *msg, int line, char *file);
 static uint8_t encode_leaf(uint64_t ia[], size_t n, size_t smin);
 static void reck2bp_nonzeros(k2bp_traversal_t* pos_a, const k2bp_t* a, uint32_t* arr, size_t* n);
 
-size_t k2bp_build_from_textfile(k2bp_t *a, char* fname, size_t xsize) {
+// build k2 tree with BP representation
+// from file `fname`, file has to be a text file with format
+//  x1 y1
+//  x2 y2
+//  ...
+//  xm ym
+// where `m` is the amount of ones in the matrix
+size_t k2bp_build_from_textfile(k2bp_t *a, const char* fname, size_t xsize) {
   assert(a != NULL && fname != NULL);
   FILE* f = fopen(fname, "rt");
   if(f == NULL) quit("k2bp_build_from_file: cannot open input file", __LINE__, __FILE__);
@@ -30,6 +39,8 @@ size_t k2bp_build_from_textfile(k2bp_t *a, char* fname, size_t xsize) {
   return size_tree;
 }
 
+// write a leaf in array `l`
+// if there is not enough memory array is expanded by two
 void k2bp_write_leaf(k2bp_t *a, uint8_t leaf){
   if(a->n_l >= a->maxn_l) {
     a->maxn_l *= 2;
@@ -43,14 +54,15 @@ void k2bp_write_leaf(k2bp_t *a, uint8_t leaf){
   a->n_l++;
 }
 
-uint8_t k2bp_read_leaf(const k2bp_t*a, size_t pos) {
+// read leaf (4bits) from array `l`
+uint8_t k2bp_read_leaf(const k2bp_t*a, const size_t pos) {
   assert(pos < a->n_l);
   if(pos % 2 == 0)
     return a->l[pos / 2] & 15;
   return (a->l[pos / 2] >> 4) & 15;
 }
 
-size_t k2bp_compute_height(size_t rmsize) {
+size_t k2bp_compute_height(const size_t rmsize) {
   assert(rmsize > 1);
   size_t msize = 2;
   // task for future me:
@@ -59,6 +71,7 @@ size_t k2bp_compute_height(size_t rmsize) {
   return msize;
 }
 
+// free memory of a k2bp_t
 void k2bp_free(k2bp_t* a) {
   a->msize = a->rmsize = a->m = a->maxn_l = a->n_l = 0;
   bv_free(&(a->t));
@@ -85,6 +98,10 @@ void k2bp_free(k2bp_t* a) {
   a->leavesinfo = NULL;
 }
 
+// return a pointer to an array with the coordinate of the non zeros
+// the entries of the array the following format
+//  x1 y1 x2 y2 ... xm ym
+// n is the size of the array (by consequence n = 2 * m)
 uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n) {
   uint32_t* arr = (uint32_t*) malloc(sizeof(uint32_t) * (a->m * 2));
   *n = 0;
@@ -93,6 +110,16 @@ uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n) {
   return arr;
 }
 
+// save k2bp_t in files with prefix `fname`
+// it creates possibly 4 files
+//  `fname.i`  : stores just three integers that are the information of the matrix
+//               `msize`, `rmsize` and `m`
+//  `fname.t`  : stores the bit vector that represents the tree
+//  `fname.l`  : stores the array with the leaves of the last level
+//  `fname.exc`: stores the sampling information for a more efficient traversal
+//               of smalls trees, if sampling is null the file is not created
+//  `fname.r`  : stores the information of subtree information for a more
+//               efficient traversal of big subtrees
 void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
   assert(a != NULL);
   assert(a->l != NULL && a->t.a != NULL);
@@ -103,17 +130,17 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
 
   FILE* f = fopen(info_name, "w");
   if(f == NULL)
-    quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+    quit("k2bp_save_to_file: file cannot be open", __LINE__, __FILE__);
 
   size_t w = fwrite(&(a->msize), sizeof(size_t), 1, f);
   if(w != 1)
-    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
   w = fwrite(&(a->rmsize), sizeof(size_t), 1, f);
   if(w != 1)
-    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
   w = fwrite(&(a->m), sizeof(size_t), 1, f);
   if(w != 1)
-    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
 
   fclose(f);
 
@@ -128,17 +155,17 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
 
   f = fopen(l_name, "w");
   if(f == NULL)
-    quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+    quit("k2bp_save_to_file: file cannot be open", __LINE__, __FILE__);
 
   w = fwrite(&(a->maxn_l), sizeof(size_t), 1, f);
   if(w != 1)
-    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
   w = fwrite(&(a->n_l), sizeof(size_t), 1, f);
   if(w != 1)
-    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
   w = fwrite(a->l, sizeof(uint8_t), (a->n_l + 1)/ 2, f);
   if(w != (a->n_l + 1) / 2)
-    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
 
   fclose(f);
 
@@ -149,17 +176,17 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
 
     f = fopen(exc_name, "w");
     if(f == NULL)
-      quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+      quit("k2bp_save_to_file: file cannot be open", __LINE__, __FILE__);
 
-    w = fwrite(&(a->exc_min_samples), sizeof(uint16_t), (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1, f);
-    if(w != (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
-      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
-    w = fwrite(&(a->exc_samples), sizeof(uint16_t), (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1, f);
-    if(w != (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
-      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
-    w = fwrite(&(a->leaves_samples), sizeof(uint8_t), (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1, f);
-    if(w != (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
-      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->exc_min_samples), sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
+    if(w != SAMPLE_SIZE(a->t.n))
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->exc_samples), sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
+    if(w != SAMPLE_SIZE(a->t.n))
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->leaves_samples), sizeof(uint8_t), SAMPLE_SIZE(a->t.n), f);
+    if(w != SAMPLE_SIZE(a->t.n))
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
 
     fclose(f);
   }
@@ -171,22 +198,38 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
 
     f = fopen(sub_name, "w");
     if(f == NULL)
-      quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+      quit("k2bp_save_to_file: file cannot be open", __LINE__, __FILE__);
 
     w = fwrite(&(a->n_info), sizeof(size_t), 1, f);
     if(w != 1)
-      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
     w = fwrite(&(a->subtreeinfo), sizeof(uint64_t), a->n_info, f);
     if(w != a->n_info)
-      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
     w = fwrite(&(a->leavesinfo), sizeof(uint64_t), a->n_info, f);
     if(w != a->n_info)
-      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
 
     fclose(f);
   }
 }
 
+// load k2bp_t from files with prefix `fname`
+// it creates possibly 4 files
+//  `fname.i`  : load just three integers that are the information of the matrix
+//               `msize`, `rmsize` and `m`
+//  `fname.t`  : load the bit vector that represents the tree
+//  `fname.l`  : load the array with the leaves of the last level
+//  `fname.exc`: load the sampling information for a more efficient traversal
+//               of smalls trees, if sampling is null the file is not created
+//  `fname.r`  : load the information of subtree information for a more
+//               efficient traversal of big subtrees
+// NOTE:
+//   if `fname.(i|t|l)`
+//    doesn't open, this function will throw an error
+//   if `fname.(exc|r)`
+//    doesn't open, doesn't matter means that the tree
+//    doesn't has this extra information
 void k2bp_load_from_file(k2bp_t* a, const char* fname) {
   assert(a != NULL);
 
@@ -196,24 +239,24 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
 
   FILE* f = fopen(info_name, "r");
   if(f == NULL)
-    quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+    quit("k2bp_load_from_file: file cannot be open", __LINE__, __FILE__);
 
   size_t w = fread(&(a->msize), sizeof(size_t), 1, f);
   if(w != 1)
-    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    quit("k2bp_load_from_file: error writing in file", __LINE__, __FILE__);
   w = fread(&(a->rmsize), sizeof(size_t), 1, f);
   if(w != 1)
-    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    quit("k2bp_load_from_file: error writing in file", __LINE__, __FILE__);
   w = fread(&(a->m), sizeof(size_t), 1, f);
   if(w != 1)
-    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    quit("k2bp_load_from_file: error writing in file", __LINE__, __FILE__);
 
   fclose(f);
 
   char tree_name[1000];
   strcpy(tree_name, fname);
   strcat(tree_name, ".t");
-  bv_save_to_file(&(a->t), tree_name);
+  bv_load_from_file(&(a->t), tree_name);
 
   char l_name[1000];
   strcpy(l_name, fname);
@@ -221,58 +264,53 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
 
   f = fopen(l_name, "r");
   if(f == NULL)
-    quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+    quit("k2bp_load_from_file: file cannot be open", __LINE__, __FILE__);
 
   w = fread(&(a->maxn_l), sizeof(size_t), 1, f);
   if(w != 1)
-    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    quit("k2bp_load_from_file: error writing in file", __LINE__, __FILE__);
   w = fread(&(a->n_l), sizeof(size_t), 1, f);
   if(w != 1)
-    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    quit("k2bp_load_from_file: error writing in file", __LINE__, __FILE__);
 
-  a->l = (uint8_t*) malloc(sizeof(uint8_t) * a->n_l);
+  a->l = (uint8_t*) malloc(sizeof(uint8_t) * a->maxn_l / 2);
 
   w = fread(a->l, sizeof(uint8_t), (a->n_l + 1) / 2, f);
   if(w != (a->n_l + 1) / 2)
-    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    quit("k2bp_load_from_file: error writing in file", __LINE__, __FILE__);
 
   fclose(f);
 
-  if(a->exc_min_samples != NULL) {
-    char exc_name[1000];
-    strcpy(exc_name, fname);
-    strcat(exc_name, ".exc");
+  char exc_name[1000];
+  strcpy(exc_name, fname);
+  strcat(exc_name, ".exc");
 
-    f = fopen(exc_name, "r");
-    if(f == NULL)
-      quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
-
-    a->exc_min_samples = (uint16_t*) malloc(sizeof(uint16_t) * ((a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1));
-    w = fread(&(a->exc_min_samples), sizeof(uint16_t), (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1, f);
-    if(w != (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
+  f = fopen(exc_name, "r");
+  if(f != NULL) {
+    a->exc_min_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE(a->t.n));
+    w = fread(&(a->exc_min_samples), sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
+    if(w != SAMPLE_SIZE(a->t.n))
       quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
 
-    a->exc_samples = (uint16_t*) malloc(sizeof(uint16_t) * ((a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1));
-    w = fread(&(a->exc_samples), sizeof(uint16_t), (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1, f);
-    if(w != (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
+    a->exc_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE(a->t.n));
+    w = fread(&(a->exc_samples), sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
+    if(w != SAMPLE_SIZE(a->t.n))
       quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
 
-    a->leaves_samples = (uint8_t*) malloc(sizeof(uint8_t) * ((a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1));
-    w = fread(&(a->leaves_samples), sizeof(uint8_t), (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1, f);
-    if(w != (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
+    a->leaves_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE(a->t.n));
+    w = fread(&(a->leaves_samples), sizeof(uint8_t), SAMPLE_SIZE(a->t.n), f);
+    if(w != SAMPLE_SIZE(a->t.n))
       quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
 
     fclose(f);
   }
 
-  if(a->subtreeinfo != NULL) {
-    char sub_name[100];
-    strcpy(sub_name, fname);
-    strcat(sub_name, ".s");
+  char sub_name[100];
+  strcpy(sub_name, fname);
+  strcat(sub_name, ".s");
 
-    f = fopen(sub_name, "r");
-    if(f == NULL)
-      quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+  f = fopen(sub_name, "r");
+  if(f != NULL) {
 
     w = fread(&(a->n_info), sizeof(size_t), 1, f);
     if(w != 1)
@@ -290,6 +328,98 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
 
     fclose(f);
   }
+}
+
+void k2bp_dfs(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz, size_t* levels, size_t curr_level) {
+  assert(pos_a->i_t < a->t.n && pos_a->i_l <= a->n_l);
+  assert(bv_i(&(a->t), pos_a->i_t) == 1);
+  curr_level++;
+  (*nodes)++;
+  if(curr_level > *levels) *levels = curr_level;
+
+  if(pos_a->i_t + 1 < a->t.n && bv_i(&(a->t), pos_a->i_t + 1) == 0) {
+    pos_a->i_t += 2;
+    return;
+  }
+  
+  if(pos_a->msize == _K_) {
+    uint8_t leaf = k2bp_read_leaf(a, pos_a->i_l);
+    pos_a->i_l++;
+    pos_a->i_t += 4;
+    (*leaves)++;
+
+    if(leaf & 1) {
+      (*nz)++;
+    }
+    if(leaf & 2) {
+      (*nz)++;
+    }
+    if(leaf & 4) {
+      (*nz)++;
+    }
+    if(leaf & 8) {
+      (*nz)++;
+    }
+    return;
+  }
+
+  k2bp_traversal_t pos_aux = {pos_a->msize / 2, pos_a->x, pos_a->y, pos_a->i_t + 1, pos_a->i_l};
+  k2bp_dfs(&pos_aux, a, nodes, leaves, nz, levels, curr_level);
+
+  pos_aux.x = pos_a->x;
+  pos_aux.y = pos_a->y + pos_a->msize / 2;
+  k2bp_dfs(&pos_aux, a, nodes, leaves, nz, levels, curr_level);
+
+  pos_aux.x = pos_a->x + pos_a->msize / 2;
+  pos_aux.y = pos_a->y;
+  k2bp_dfs(&pos_aux, a, nodes, leaves, nz, levels, curr_level);
+
+  pos_aux.x = pos_a->x + pos_a->msize / 2;
+  pos_aux.y = pos_a->y + pos_a->msize / 2;
+  k2bp_dfs(&pos_aux, a, nodes, leaves, nz, levels, curr_level);
+  pos_a->i_t = pos_aux.i_t + 1;
+  pos_a->i_l = pos_aux.i_l;
+  
+}
+
+size_t k2bp_stats(const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz) {
+  size_t levels = 0;
+  *nodes = *nz = 0;
+  k2bp_traversal_t pos_a = {a->msize, 0, 0, 0, 0};
+  k2bp_dfs(&pos_a, a, nodes, leaves, nz, &levels, 0);
+  return levels;
+}
+
+size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
+  fprintf(f, "file: %s\n", fname);
+  fprintf(f, "matrix size: %zu, leaf size: %d, k2 internal size: %zu\n", a->rmsize, _K_, a->msize);
+
+  size_t nodes, leaves, nz;
+  nodes = leaves = nz = 0;
+  size_t levels = k2bp_stats(a, &nodes, &leaves, &nz);
+  assert(nz == a->m);
+  assert(((nodes + leaves) * 2) == a->t.n);
+
+  fprintf(f, " nonzeros: %zu, nonzeros x row: %.3lf\n", nz, (double) nz / a->rmsize);
+  fprintf(f, " levels: %zu, nodes: %zu, leaves: %zu\n", levels, nodes, leaves);
+  size_t bp_bytes = sizeof(bv_t) + (a->t.n + 64 - 1) / 64 * sizeof(uint64_t);
+  fprintf(f, " size by parts\n");
+  fprintf(f, "  bp  size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", bp_bytes, bp_bytes * CHAR_BIT, (double) bp_bytes * CHAR_BIT / nz);
+  size_t l_bytes = sizeof(size_t) * 2 + sizeof(uint8_t) * (a->n_l + 1) / 2;
+  fprintf(f, "  l   size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", l_bytes, l_bytes * CHAR_BIT, (double) l_bytes * CHAR_BIT / nz);
+  size_t exc_bytes = 0;
+  if(a->exc_min_samples != NULL) {
+    exc_bytes = SAMPLE_SIZE(a->t.n) * (sizeof(uint16_t) * 2 + sizeof(uint8_t));
+  }
+  fprintf(f, "  exc size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", exc_bytes, exc_bytes * CHAR_BIT, (double) exc_bytes * CHAR_BIT / nz);
+  size_t sub_bytes = 0;
+  if(a->subtreeinfo == NULL) {
+    sub_bytes = a->n_info * (sizeof(uint64_t) + sizeof(uint32_t)) + sizeof(size_t) * 2;
+  }
+  fprintf(f, "  sub size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", sub_bytes, sub_bytes * CHAR_BIT, (double) sub_bytes * CHAR_BIT / nz);
+  size_t total_bytes = bp_bytes + l_bytes + exc_bytes + sub_bytes + sizeof(size_t) * 3;
+  fprintf(f, " total size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", total_bytes, total_bytes * CHAR_BIT, (double) total_bytes * CHAR_BIT / nz);
+  return total_bytes;
 }
 
 // ----------------------------------------------------------
@@ -346,7 +476,6 @@ static void reck2bp_nonzeros(k2bp_traversal_t* pos_a, const k2bp_t* a, uint32_t*
   reck2bp_nonzeros(&pos_aux, a, arr, n);
   pos_a->i_t = pos_aux.i_t + 1;
   pos_a->i_l = pos_aux.i_l;
-
 }
 
 static uint8_t encode_leaf(uint64_t ia[], size_t n, size_t smin) {

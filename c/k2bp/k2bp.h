@@ -11,6 +11,7 @@
 
 #define _K_ 2
 #define BLOCK_SIZE 256
+#define SAMPLE_SIZE(n) ((n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
 
 // usefull information during traversals
 typedef struct k2bp_traversal_t {
@@ -49,13 +50,21 @@ typedef struct k2bp_t {
 
 #define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL}
 
-size_t k2bp_build_from_textfile(k2bp_t* a, char* f, size_t fsize);
+// k2 tree operations
+size_t k2bp_build_from_textfile(k2bp_t* a, const char* f, size_t fsize);
 void k2bp_write_leaf(k2bp_t* a, uint8_t leaf);
-uint8_t k2bp_read_leaf(const k2bp_t*a, size_t pos);
-size_t k2bp_compute_height(size_t rmsize);
+uint8_t k2bp_read_leaf(const k2bp_t*a, const size_t pos);
+size_t k2bp_compute_height(const size_t rmsize);
 void k2bp_free(k2bp_t* a);
-uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n);
+void k2bp_dfs(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz, size_t* levels, size_t curr_level);
+
+size_t k2bp_show_stats(const k2bp_t* a, const char* fname, FILE* f);
+size_t k2bp_stats(const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz);
+
 void k2bp_save_to_file(const k2bp_t* a, const char* fname);
 void k2bp_load_from_file(k2bp_t* a, const char* fname);
+
+// matrix operations
+uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n);
 
 #endif
