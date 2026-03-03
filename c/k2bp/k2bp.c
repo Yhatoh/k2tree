@@ -179,13 +179,13 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
     if(f == NULL)
       quit("k2bp_save_to_file: file cannot be open", __LINE__, __FILE__);
 
-    w = fwrite(&(a->exc_min_samples), sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
+    w = fwrite(a->exc_min_samples, sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
     if(w != SAMPLE_SIZE(a->t.n))
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
-    w = fwrite(&(a->exc_samples), sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
+    w = fwrite(a->exc_samples, sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
     if(w != SAMPLE_SIZE(a->t.n))
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
-    w = fwrite(&(a->leaves_samples), sizeof(uint8_t), SAMPLE_SIZE(a->t.n), f);
+    w = fwrite(a->leaves_samples, sizeof(uint8_t), SAMPLE_SIZE(a->t.n), f);
     if(w != SAMPLE_SIZE(a->t.n))
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
 
@@ -204,10 +204,10 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
     w = fwrite(&(a->n_info), sizeof(size_t), 1, f);
     if(w != 1)
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
-    w = fwrite(&(a->subtreeinfo), sizeof(uint64_t), a->n_info, f);
+    w = fwrite(a->subtreeinfo, sizeof(uint64_t), a->n_info, f);
     if(w != a->n_info)
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
-    w = fwrite(&(a->leavesinfo), sizeof(uint64_t), a->n_info, f);
+    w = fwrite(a->leavesinfo, sizeof(uint64_t), a->n_info, f);
     if(w != a->n_info)
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
 
@@ -289,19 +289,19 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
   f = fopen(exc_name, "r");
   if(f != NULL) {
     a->exc_min_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE(a->t.n));
-    w = fread(&(a->exc_min_samples), sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
+    w = fread(a->exc_min_samples, sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
     if(w != SAMPLE_SIZE(a->t.n))
-      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+      quit("k2bp_load_from_file: error writing in file", __LINE__, __FILE__);
 
     a->exc_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE(a->t.n));
-    w = fread(&(a->exc_samples), sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
+    w = fread(a->exc_samples, sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
     if(w != SAMPLE_SIZE(a->t.n))
-      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+      quit("k2bp_load_from_file: error writing in file", __LINE__, __FILE__);
 
     a->leaves_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE(a->t.n));
-    w = fread(&(a->leaves_samples), sizeof(uint8_t), SAMPLE_SIZE(a->t.n), f);
+    w = fread(a->leaves_samples, sizeof(uint8_t), SAMPLE_SIZE(a->t.n), f);
     if(w != SAMPLE_SIZE(a->t.n))
-      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+      quit("k2bp_load_from_file: error writing in file", __LINE__, __FILE__);
 
     fclose(f);
   }
@@ -315,17 +315,17 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
 
     w = fread(&(a->n_info), sizeof(size_t), 1, f);
     if(w != 1)
-      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+      quit("k2bp_load_from_file: error writing in file", __LINE__, __FILE__);
 
     a->subtreeinfo = (uint64_t*) malloc(sizeof(uint64_t) * a->n_info);
-    w = fread(&(a->subtreeinfo), sizeof(uint64_t), a->n_info, f);
+    w = fread(a->subtreeinfo, sizeof(uint64_t), a->n_info, f);
     if(w != a->n_info)
-      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+      quit("k2bp_load_from_file: error writing in file", __LINE__, __FILE__);
 
     a->leavesinfo = (uint32_t*) malloc(sizeof(uint32_t) * a->n_info);
-    w = fread(&(a->leavesinfo), sizeof(uint64_t), a->n_info, f);
+    w = fread(a->leavesinfo, sizeof(uint64_t), a->n_info, f);
     if(w != a->n_info)
-      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+      quit("k2bp_load_from_file: error writing in file", __LINE__, __FILE__);
 
     fclose(f);
   }
