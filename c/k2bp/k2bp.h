@@ -10,6 +10,7 @@
 #define ENCODE(x, y) (x << NUM_SUPPORT) | y
 
 #define _K_ 2
+#define BLOCK_SIZE 256
 
 // usefull information during traversals
 typedef struct k2bp_traversal_t {
@@ -40,11 +41,13 @@ typedef struct k2bp_t {
   uint8_t* leaves_samples; // this is specific for block 256
 
   // subtree information
+  size_t n_info;
+  size_t threshold;
   uint64_t* subtreeinfo;
   uint32_t* leavesinfo;
 } k2bp_t;
 
-#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL}
+#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL}
 
 size_t k2bp_build_from_textfile(k2bp_t* a, char* f, size_t fsize);
 void k2bp_write_leaf(k2bp_t* a, uint8_t leaf);
@@ -52,5 +55,7 @@ uint8_t k2bp_read_leaf(const k2bp_t*a, size_t pos);
 size_t k2bp_compute_height(size_t rmsize);
 void k2bp_free(k2bp_t* a);
 uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n);
+void k2bp_save_to_file(const k2bp_t* a, const char* fname);
+void k2bp_load_from_file(k2bp_t* a, const char* fname);
 
 #endif

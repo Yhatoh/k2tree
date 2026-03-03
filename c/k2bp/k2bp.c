@@ -93,6 +93,206 @@ uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n) {
   return arr;
 }
 
+void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
+  assert(a != NULL);
+  assert(a->l != NULL && a->t.a != NULL);
+
+  char info_name[1000];
+  strcpy(info_name, fname);
+  strcat(info_name, ".i");
+
+  FILE* f = fopen(info_name, "w");
+  if(f == NULL)
+    quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+
+  size_t w = fwrite(&(a->msize), sizeof(size_t), 1, f);
+  printf("%zu %zu\n", w, sizeof(size_t));
+  if(w != 1)
+    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+  w = fwrite(&(a->rmsize), sizeof(size_t), 1, f);
+  if(w != 1)
+    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+  w = fwrite(&(a->m), sizeof(size_t), 1, f);
+  if(w != 1)
+    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+
+  fclose(f);
+
+  char tree_name[1000];
+  strcpy(tree_name, fname);
+  strcat(tree_name, ".t");
+  bv_save_to_file(&(a->t), tree_name);
+
+  char l_name[1000];
+  strcpy(l_name, fname);
+  strcat(l_name, ".l");
+
+  f = fopen(l_name, "w");
+  if(f == NULL)
+    quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+
+  w = fwrite(&(a->maxn_l), sizeof(size_t), 1, f);
+  if(w != 1)
+    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+  w = fwrite(&(a->n_l), sizeof(size_t), 1, f);
+  if(w != 1)
+    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+  w = fwrite(a->l, sizeof(uint8_t), a->n_l, f);
+  if(w != a->n_l)
+    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+
+  fclose(f);
+
+  if(a->exc_min_samples != NULL) {
+    char exc_name[1000];
+    strcpy(exc_name, fname);
+    strcat(exc_name, ".exc");
+
+    f = fopen(exc_name, "w");
+    if(f == NULL)
+      quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+
+    w = fwrite(&(a->exc_min_samples), sizeof(uint16_t), (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1, f);
+    if(w != (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
+      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->exc_samples), sizeof(uint16_t), (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1, f);
+    if(w != (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
+      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->leaves_samples), sizeof(uint8_t), (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1, f);
+    if(w != (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
+      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+
+    fclose(f);
+  }
+
+  if(a->subtreeinfo != NULL) {
+    char sub_name[100];
+    strcpy(sub_name, fname);
+    strcat(sub_name, ".s");
+
+    f = fopen(sub_name, "w");
+    if(f == NULL)
+      quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+
+    w = fwrite(&(a->n_info), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->subtreeinfo), sizeof(uint64_t), a->n_info, f);
+    if(w != a->n_info)
+      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->leavesinfo), sizeof(uint64_t), a->n_info, f);
+    if(w != a->n_info)
+      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+
+    fclose(f);
+  }
+}
+
+void k2bp_load_from_file(k2bp_t* a, const char* fname) {
+  assert(a != NULL);
+
+  char info_name[1000];
+  strcpy(info_name, fname);
+  strcat(info_name, ".i");
+
+  FILE* f = fopen(info_name, "r");
+  if(f == NULL)
+    quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+
+  size_t w = fread(&(a->msize), sizeof(size_t), 1, f);
+  if(w != 1)
+    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+  w = fread(&(a->rmsize), sizeof(size_t), 1, f);
+  if(w != 1)
+    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+  w = fread(&(a->m), sizeof(size_t), 1, f);
+  if(w != 1)
+    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+
+  fclose(f);
+
+  char tree_name[1000];
+  strcpy(tree_name, fname);
+  strcat(tree_name, ".t");
+  bv_save_to_file(&(a->t), tree_name);
+
+  char l_name[1000];
+  strcpy(l_name, fname);
+  strcat(l_name, ".l");
+
+  f = fopen(l_name, "r");
+  if(f == NULL)
+    quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+
+  w = fread(&(a->maxn_l), sizeof(size_t), 1, f);
+  if(w != 1)
+    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+  w = fread(&(a->n_l), sizeof(size_t), 1, f);
+  if(w != 1)
+    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+
+  a->l = (uint8_t*) malloc(sizeof(uint8_t) * a->n_l);
+
+  w = fread(a->l, sizeof(uint8_t), a->n_l, f);
+  if(w != a->n_l)
+    quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+
+  fclose(f);
+
+  if(a->exc_min_samples != NULL) {
+    char exc_name[1000];
+    strcpy(exc_name, fname);
+    strcat(exc_name, ".exc");
+
+    f = fopen(exc_name, "r");
+    if(f == NULL)
+      quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+
+    a->exc_min_samples = (uint16_t*) malloc(sizeof(uint16_t) * ((a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1));
+    w = fread(&(a->exc_min_samples), sizeof(uint16_t), (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1, f);
+    if(w != (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
+      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+
+    a->exc_samples = (uint16_t*) malloc(sizeof(uint16_t) * ((a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1));
+    w = fread(&(a->exc_samples), sizeof(uint16_t), (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1, f);
+    if(w != (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
+      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+
+    a->leaves_samples = (uint8_t*) malloc(sizeof(uint8_t) * ((a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1));
+    w = fread(&(a->leaves_samples), sizeof(uint8_t), (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1, f);
+    if(w != (a->t.n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
+      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+
+    fclose(f);
+  }
+
+  if(a->subtreeinfo != NULL) {
+    char sub_name[100];
+    strcpy(sub_name, fname);
+    strcat(sub_name, ".s");
+
+    f = fopen(sub_name, "r");
+    if(f == NULL)
+      quit("k2bp_write_to_file: file cannot be open", __LINE__, __FILE__);
+
+    w = fread(&(a->n_info), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+
+    a->subtreeinfo = (uint64_t*) malloc(sizeof(uint64_t) * a->n_info);
+    w = fread(&(a->subtreeinfo), sizeof(uint64_t), a->n_info, f);
+    if(w != a->n_info)
+      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+
+    a->leavesinfo = (uint32_t*) malloc(sizeof(uint32_t) * a->n_info);
+    w = fread(&(a->leavesinfo), sizeof(uint64_t), a->n_info, f);
+    if(w != a->n_info)
+      quit("k2bp_write_to_file: error writing in file", __LINE__, __FILE__);
+
+    fclose(f);
+  }
+}
+
 // ----------------------------------------------------------
 
 // auxiliary functions

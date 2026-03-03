@@ -22,7 +22,7 @@ void bv_shrink(bv_t* z); // should be correct
 uint64_t bv_i(const bv_t* z, size_t i); // tested
 uint64_t bv_get_int(const bv_t* z, size_t i, uint8_t len); // tested
 uint64_t size_in_bits(const bv_t* z);
-void bv_write(const bv_t* z, FILE* out);
-void bv_read(bv_t* z, FILE* in);
+void bv_save_to_file(const bv_t* z, const char* fname);
+void bv_load_from_file(bv_t* z, const char* fname);
 
 #endif

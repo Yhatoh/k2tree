@@ -126,19 +126,23 @@ uint64_t size_in_bits(const bv_t* z) {
   return sizeof(uint64_t) * z->maxn + sizeof(bv_t);
 }
 
-void bv_write(const bv_t* z, FILE* out) {
+void bv_save_to_file(const bv_t* z, const char* fname) {
+  FILE* out = fopen(fname, "w");
   fwrite(&(z->n), sizeof(size_t), 1, out);
   size_t w = fwrite(z->a, sizeof(uint64_t), (z->n + 64 - 1) / 64, out);
-  if(w != z->n) quit("Error writing bv_t to file",__LINE__,__FILE__);
+  if(w != (z->n + 64 - 1) / 64) quit("bv_save_to_file: error writing bv_t to file",__LINE__,__FILE__);
+  fclose(out);
 }
 
-void bv_read(bv_t* z, FILE* in) {
+void bv_load_from_file(bv_t* z, const char* fname) {
+  FILE* in = fopen(fname, "w");
   size_t w = fread(&(z->n), sizeof(size_t), 1, in);
-  if(w != sizeof(size_t)) quit("Error reading n from file", __LINE__, __FILE__);
+  if(w != 1) quit("bv_load_from_file: error reading n from file", __LINE__, __FILE__);
   z->maxn = (z->n + 64 - 1) / 64;
   z->a = (uint64_t*) malloc(sizeof(uint64_t) * z->maxn);
   w = fread(z->a, sizeof(size_t), z->maxn, in);
-  if(w != z->n) quit("Error reading n from file", __LINE__, __FILE__);
+  if(w != z->maxn) quit("bv_load_from_file: error reading n from file", __LINE__, __FILE__);
+  fclose(in);
 }
 
 // write error message and exit
