@@ -557,7 +557,8 @@ static void k2bp_fastdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   size_t curr_pos = pos_a->i_t;
   int64_t obj_excess = pos_a->excess;
   pos_a->i_t++;
-  size_t obj_pos = BLOCK_SIZE - pos_a->i_t % BLOCK_SIZE + pos_a->i_t;
+  size_t obj_pos = BLOCK_SIZE * ((pos_a->i_t + BLOCK_SIZE - 1) / BLOCK_SIZE);
+  printf("%zu, %zu\n", obj_pos, pos_a->i_t);
   // micro tables
   for(; pos_a->i_t + 16 < obj_pos; pos_a->i_t += 16) {
     uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, 16);
@@ -579,24 +580,30 @@ static void k2bp_fastdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
                            (-1ULL << 19));
   }
-  size_t extra = BLOCK_SIZE - pos_a->i_t % BLOCK_SIZE;
-  uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, extra);
-  for(uint8_t i = 0; i < extra; i++) {
-    pos_a->i_t++;
-    if(bits & (1ULL << i)) pos_a->excess++;
-    else pos_a->excess--;
-    if(obj_excess == pos_a->excess + 1) {
-      pos_a->size = (pos_a->i_t - curr_pos) / 2;
-      pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-      return;
+  if(pos_a->i_t % BLOCK_SIZE != 0) {
+    size_t extra = BLOCK_SIZE - pos_a->i_t % BLOCK_SIZE;
+    uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, extra);
+    size_t save_pos = pos_a->i_t;
+    for(uint8_t i = 0; i < extra; i++) {
+      pos_a->i_t++;
+      if(bits & (1ULL << i)) pos_a->excess++;
+      else pos_a->excess--;
+      if(obj_excess == pos_a->excess + 1) {
+        pos_a->size = (pos_a->i_t - curr_pos) / 2;
+        pos_a->leaves += count(bits | (-1ULL << (i + 1)));
+        return;
+      }
     }
+    pos_a->leaves += count(bv_get_int(&(a->t), save_pos, extra + 3) | (-1ULL << (save_pos + 3)));
   }
+
+  assert(pos_a->i_t == BLOCK_SIZE);
 
   // jumps between blocks
   size_t block = pos_a->i_t / BLOCK_SIZE;
   for(;; pos_a->i_t += BLOCK_SIZE) {
     // found block
-    if(pos_a->excess > a->exc_min_samples[block]) {
+    if(obj_excess > a->exc_min_samples[block]) {
       for(;; pos_a->i_t += 16) {
         uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, 16);
         // found microblock
@@ -613,12 +620,18 @@ static void k2bp_fastdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
           }
         }
         pos_a->excess += exc_micro[bits];
-        pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
-                               (-1ULL << 19));
+        if(pos_a->i_t + 19 <= a->t.n) {
+          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
+                                 (-1ULL << 19));
+        } else {
+          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, (a->t.n - pos_a->i_t)) |
+                                 (-1ULL << (a->t.n - pos_a->i_t)));
+        }
       }
     }
     pos_a->excess = a->exc_samples[block];
     pos_a->leaves += a->leaves_samples[block];
+    block++;
   }
 }
 
