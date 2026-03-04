@@ -607,7 +607,7 @@ static void k2bp_fastdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
             else pos_a->excess--;
             if(obj_excess == pos_a->excess + 1) {
               pos_a->size = (pos_a->i_t - curr_pos) / 2;
-              pos_a->leaves += count(bits & ((1ULL << (i + 1)) - 1));
+              pos_a->leaves += count(bits | (-1ULL << (i + 1)));
               return;
             }
           }
