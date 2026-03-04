@@ -9,6 +9,7 @@
 #include "k2bp.h"
 #include "../util/bv_t.h"
 #include "../util/vu64.h"
+#include "util.h"
 
 static size_t binsearch(uint64_t *ia, size_t n, uint64_t x);
 static uint64_t *create_ia(FILE *f, size_t *n, size_t *msize, size_t xsize);
@@ -18,6 +19,9 @@ static uint8_t encode_leaf(uint64_t ia[], size_t n, size_t smin);
 static void reck2bp_nonzeros(k2bp_traversal_t* pos_a, const k2bp_t* a, uint32_t* arr, size_t* n);
 static void reck2bp_addsubtree_info(k2bp_traversal_t* pos_a, k2bp_t* a, uint32_t* leaves, vu64_t* subinfo, vu64_t *leavesinfo);
 static void reck2bp_checksubtree_info(k2bp_traversal_t* pos_a, const k2bp_t* a);
+static void reck2bp_sum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* pos_b, const k2bp_t* b, k2bp_t* c);
+static uint8_t count(const uint64_t num);
+static void k2bp_fastdfs(k2bp_traversal_t* pos_a, const k2bp_t* a);
 
 // build k2 tree with BP representation
 // from file `fname`, file has to be a text file with format
@@ -109,9 +113,12 @@ void k2bp_free(k2bp_t* a) {
 uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n) {
   uint32_t* arr = (uint32_t*) malloc(sizeof(uint32_t) * (a->m * 2));
   *n = 0;
-  k2bp_traversal_t pos_a = {a->msize, 0, 0, 0, 0, 0, 0, 0};
+  k2bp_traversal_t pos_a = {a->msize, 0, 0, 0, 0, 0, 0, 0, 0};
   reck2bp_nonzeros(&pos_a, a, arr, n);
   return arr;
+}
+
+void k2bp_sum(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
 }
 
 // save k2bp_t in files with prefix `fname`
@@ -367,7 +374,7 @@ void k2bp_dfs(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t* nodes, size_t* l
     return;
   }
 
-  k2bp_traversal_t pos_aux = {pos_a->msize / 2, pos_a->x, pos_a->y, pos_a->i_t + 1, pos_a->i_l, 0, 0, 0};
+  k2bp_traversal_t pos_aux = {pos_a->msize / 2, pos_a->x, pos_a->y, pos_a->i_t + 1, pos_a->i_l, 0, 0, 0, 0};
   k2bp_dfs(&pos_aux, a, nodes, leaves, nz, levels, curr_level);
 
   pos_aux.x = pos_a->x;
@@ -389,7 +396,7 @@ void k2bp_dfs(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t* nodes, size_t* l
 size_t k2bp_stats(const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz) {
   size_t levels = 0;
   *nodes = *nz = 0;
-  k2bp_traversal_t pos_a = {a->msize, 0, 0, 0, 0, 0, 0, 0};
+  k2bp_traversal_t pos_a = {a->msize, 0, 0, 0, 0, 0, 0, 0, 0};
   k2bp_dfs(&pos_a, a, nodes, leaves, nz, &levels, 0);
   return levels;
 }
@@ -403,6 +410,12 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
   size_t levels = k2bp_stats(a, &nodes, &leaves, &nz);
   assert(nz == a->m);
   assert(((nodes + leaves) * 2) == a->t.n);
+
+  k2bp_traversal_t pos_x = {a->msize, 0, 0, 0, 0, 0, 0, 0, 1};
+  k2bp_fastdfs(&pos_x, a);
+  assert(pos_x.i_t == (nodes + leaves) * 2);
+  assert(pos_x.size == nodes + leaves);
+  assert(pos_x.leaves == leaves);
 
   fprintf(f, " nonzeros: %zu, nonzeros x row: %.3lf\n", nz, (double) nz / a->rmsize);
   fprintf(f, " levels: %zu, nodes: %zu, leaves: %zu\n", levels, nodes, leaves);
@@ -481,7 +494,7 @@ void k2bp_addsubtree_info(k2bp_t* a, size_t threshold) {
     a->n_info = 0;
   }
 
-  k2bp_traversal_t pos_a = {a->msize, 0, 0, 0, 0, 0, 0, 0};
+  k2bp_traversal_t pos_a = {a->msize, 0, 0, 0, 0, 0, 0, 0, 0};
 
   uint32_t leaves = 0;
   vu64_t subinfo, leavesinfo;
@@ -509,7 +522,7 @@ size_t k2bp_checksubtree_info(const k2bp_t* a) {
   assert(a != NULL);
   assert(a->t.a != NULL && a->l != NULL && a->subtreeinfo != NULL && a->leavesinfo != NULL);
 
-  k2bp_traversal_t pos_a = {0, 0, 0, 0, 0, 0, a->t.n / 2, a->n_l};
+  k2bp_traversal_t pos_a = {0, 0, 0, 0, 0, 0, a->t.n / 2, a->n_l, 0};
   reck2bp_checksubtree_info(&pos_a, a);
   return 1;
 }
@@ -517,6 +530,99 @@ size_t k2bp_checksubtree_info(const k2bp_t* a) {
 // ----------------------------------------------------------
 
 // auxiliary functions
+static uint8_t count(const uint64_t num) {
+  uint64_t x = num;
+  uint64_t y = num >> 1;
+  uint64_t hi = x & y;
+  uint64_t lo = ~ (x | y);
+
+  uint64_t bits = (hi & (lo >> 2)) & 2305843009213693951;
+  return __builtin_popcountll(bits);
+}
+
+static void k2bp_fastdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
+  if(bv_get_int(&(a->t), pos_a->i_t, 4) == 3) {
+    pos_a->i_t += 4;
+    pos_a->size = 2;
+    pos_a->leaves = 1;
+    return;
+  }
+  if(bv_get_int(&(a->t), pos_a->i_t, 2) == 1) {
+    pos_a->i_t += 2;
+    pos_a->size = 1;
+    pos_a->leaves = 0;
+    return;
+  }
+
+  size_t curr_pos = pos_a->i_t;
+  int64_t obj_excess = pos_a->excess;
+  pos_a->i_t++;
+  size_t obj_pos = BLOCK_SIZE - pos_a->i_t % BLOCK_SIZE + pos_a->i_t;
+  // micro tables
+  for(; pos_a->i_t + 16 < obj_pos; pos_a->i_t += 16) {
+    uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, 16);
+    // found micro block
+    if(obj_excess >= pos_a->excess + exc_min_micro[bits] + 1) {
+      for(uint8_t i = 0; i < 16; i++) {
+        pos_a->i_t++;
+        if(bits & (1ULL << i)) pos_a->excess++;
+        else pos_a->excess--;
+
+        if(obj_excess == pos_a->excess + 1) {
+          pos_a->size = (pos_a->i_t - curr_pos) / 2;
+          pos_a->leaves += count(bits & ((1ULL << (i + 1)) - 1));
+          return;
+        }
+      }
+    }
+    pos_a->excess += exc_micro[bits];
+    pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19));
+  }
+  size_t extra = BLOCK_SIZE - pos_a->i_t % BLOCK_SIZE;
+  uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, extra);
+  for(uint8_t i = 0; i < extra; i++) {
+    pos_a->i_t++;
+    if(bits & (1ULL << i)) pos_a->excess++;
+    else pos_a->excess--;
+    if(obj_excess == pos_a->excess + 1) {
+      pos_a->size = (pos_a->i_t - curr_pos) / 2;
+      pos_a->leaves += count(bits & ((1ULL << (i + 1)) - 1));
+      return;
+    }
+  }
+
+  // jumps between blocks
+  size_t block = pos_a->i_t / BLOCK_SIZE;
+  for(;; pos_a->i_t += BLOCK_SIZE) {
+    // found block
+    if(pos_a->excess > a->exc_min_samples[block]) {
+      for(;; pos_a->i_t += 16) {
+        uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, 16);
+        // found microblock
+        if(obj_excess >= pos_a->excess + exc_min_micro[bits] + 1) {
+          for(uint8_t i = 0; i < 16; i++) {
+            pos_a->i_t++;
+            if(bits & (1ULL << i)) pos_a->excess++;
+            else pos_a->excess--;
+            if(obj_excess == pos_a->excess + 1) {
+              pos_a->size = (pos_a->i_t - curr_pos) / 2;
+              pos_a->leaves += count(bits & ((1ULL << (i + 1)) - 1));
+              return;
+            }
+          }
+        }
+        pos_a->excess += exc_micro[bits];
+        pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19));
+      }
+    }
+    pos_a->excess = a->exc_samples[block];
+    pos_a->leaves += a->leaves_samples[block];
+  }
+}
+
+static void reck2bp_sum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* pos_b, const k2bp_t* b, k2bp_t* c) {
+}
+
 static void reck2bp_checksubtree_info(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
 
@@ -545,7 +651,7 @@ static void reck2bp_checksubtree_info(k2bp_traversal_t* pos_a, const k2bp_t* a) 
   uint32_t c_leaves[4] = {0, 0, 0, 0};
 
   pos_a->i_t++;
-  k2bp_traversal_t aux_pos = {0, 0, 0, pos_a->i_t, pos_a->i_l, pos_a->node, pos_a->size, pos_a->leaves};
+  k2bp_traversal_t aux_pos = {0, 0, 0, pos_a->i_t, pos_a->i_l, pos_a->node, pos_a->size, pos_a->leaves, 0};
   pos_a->node += 3;
   pos_a->size = GET_NODES(a->subtreeinfo[aux_pos.node]);
   pos_a->leaves = a->leavesinfo[aux_pos.node];
@@ -637,7 +743,7 @@ static void reck2bp_addsubtree_info(k2bp_traversal_t* pos_a, k2bp_t* a, uint32_t
   uint32_t c_leaves[4] = {0, 0, 0, 0};
 
   pos_a->i_t++;
-  k2bp_traversal_t aux_pos = {0, 0, 0, pos_a->i_t, 0, 0, 0, 0};
+  k2bp_traversal_t aux_pos = {0, 0, 0, pos_a->i_t, 0, 0, 0, 0, 0};
   reck2bp_addsubtree_info(pos_a, a, &(c_leaves[0]), &(c_subtreeinfo[0]), &(c_leavesinfo[0]));
   c_sizes[0] = (pos_a->i_t - aux_pos.i_t) / 2;
   assert(c_subtreeinfo[0].n == c_leavesinfo[0].n);
@@ -757,7 +863,7 @@ static void reck2bp_nonzeros(k2bp_traversal_t* pos_a, const k2bp_t* a, uint32_t*
     return;
   }
 
-  k2bp_traversal_t pos_aux = {pos_a->msize / 2, pos_a->x, pos_a->y, pos_a->i_t + 1, pos_a->i_l, 0, 0, 0};
+  k2bp_traversal_t pos_aux = {pos_a->msize / 2, pos_a->x, pos_a->y, pos_a->i_t + 1, pos_a->i_l, 0, 0, 0, 0};
   reck2bp_nonzeros(&pos_aux, a, arr, n);
 
   pos_aux.x = pos_a->x;

@@ -22,6 +22,7 @@ typedef struct k2bp_traversal_t {
   size_t node;
   uint64_t size;
   uint32_t leaves;
+  int16_t excess;
 } k2bp_traversal_t;
 
 typedef struct k2bp_t {
@@ -73,5 +74,7 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname);
 
 // matrix operations
 uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n);
+void k2bp_sum(const k2bp_t* a, const k2bp_t* b, k2bp_t* c);
+void k2bp_mul(const k2bp_t* a, const k2bp_t* b, k2bp_t* c);
 
 #endif
