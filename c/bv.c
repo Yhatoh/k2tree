@@ -1,5 +1,5 @@
-#include "k2bp/bv_t.h"
-#include "k2bp/randomer_t.h"
+#include "util/bv_t.h"
+#include "util/randomer_t.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

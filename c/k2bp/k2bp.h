@@ -2,10 +2,10 @@
 #define __K2BP_H__
 
 #include <stdint.h>
-#include "bv_t.h"
+#include "../util/bv_t.h"
 
 #define NUM_SUPPORT 36
-#define GET_NODES(x) (x & ((1LL << NUM_SUPPORT) - 1))
+#define GET_NODES(x) (x & ((1ULL << NUM_SUPPORT) - 1))
 #define GET_SKIPS(x) (x >> NUM_SUPPORT)
 #define ENCODE(x, y) (x << NUM_SUPPORT) | y
 
@@ -19,6 +19,9 @@ typedef struct k2bp_traversal_t {
   size_t x, y;
   size_t i_t;
   size_t i_l;
+  size_t node;
+  uint64_t size;
+  uint32_t leaves;
 } k2bp_traversal_t;
 
 typedef struct k2bp_t {
@@ -59,6 +62,8 @@ void k2bp_free(k2bp_t* a);
 void k2bp_dfs(k2bp_traversal_t* pos_a, const k2bp_t* a,
               size_t* nodes, size_t* leaves, size_t* nz, size_t* levels, size_t curr_level);
 void k2bp_build_exc_sampling(k2bp_t* a);
+void k2bp_addsubtree_info(k2bp_t* a, size_t threshold);
+size_t k2bp_checksubtree_info(const k2bp_t* a);
 
 size_t k2bp_show_stats(const k2bp_t* a, const char* fname, FILE* f);
 size_t k2bp_stats(const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz);

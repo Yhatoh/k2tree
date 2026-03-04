@@ -1,5 +1,6 @@
 #include <getopt.h>
 #include <inttypes.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include "k2bp/k2bp.h"
@@ -43,7 +44,8 @@ int main(int argc, char* argv[]) {
   k2bp_load_from_file(&a, fname);
 
   if(subinfo) {
-    // later
+    k2bp_addsubtree_info(&a, sqrt(a.t.n / 2) * p);
+    k2bp_checksubtree_info(&a);
   }
 
   if(excinfo) {
