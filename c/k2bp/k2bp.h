@@ -67,6 +67,7 @@ void k2bp_dfs(k2bp_traversal_t* pos_a, const k2bp_t* a,
 void k2bp_build_exc_sampling(k2bp_t* a);
 void k2bp_addsubtree_info(k2bp_t* a, size_t threshold);
 size_t k2bp_checksubtree_info(const k2bp_t* a);
+uint8_t k2bp_equal(const k2bp_t* a, const k2bp_t* b);
 
 size_t k2bp_show_stats(const k2bp_t* a, const char* fname, FILE* f);
 size_t k2bp_stats(const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz);

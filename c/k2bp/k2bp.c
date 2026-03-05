@@ -25,6 +25,25 @@ static uint8_t count(const uint64_t num);
 static void k2bp_fastdfs(k2bp_traversal_t* pos_a, const k2bp_t* a);
 static void k2bp_split(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* splits);
 
+
+uint8_t k2bp_equal(const k2bp_t* a, const k2bp_t* b) {
+  if(a->t.n != b->t.n) return 0;
+  if(a->n_l != b->n_l) return 0;
+
+  for(size_t i = 0; i < a->t.n; i++) {
+    if(bv_i(&(a->t), i) != bv_i(&(b->t), i)) {
+      return 0;
+    }
+  }
+
+  for(size_t i = 0; i < a->n_l; i++) {
+    if(k2bp_read_leaf(a, i) != k2bp_read_leaf(b, i)) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
 // build k2 tree with BP representation
 // from file `fname`, file has to be a text file with format
 //  x1 y1
@@ -122,6 +141,8 @@ uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n) {
 
 void k2bp_sum(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
   assert(a != NULL && b != NULL && c != NULL);
+  c->msize = a->msize;
+  c->rmsize = a->rmsize;
 
   bv_init(&(c->t));
   c->maxn_l = 10;
@@ -138,6 +159,11 @@ void k2bp_sum(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
   pos_a.leaves = a->n_l;
   pos_b.leaves = b->n_l;
   reck2bp_sum(&pos_a, a, &pos_b, b, c);
+  printf("%zu, %zu, %zu\n", a->t.n, b->t.n, c->t.n);
+  printf("%zu, %zu, %zu\n", a->n_l, b->n_l, c->n_l);
+  assert(k2bp_equal(a, b));
+  assert(k2bp_equal(a, c));
+  assert(k2bp_equal(b, c));
   return;
 }
 
@@ -244,7 +270,7 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
   }
 
   if(a->subtreeinfo != NULL) {
-    char sub_name[100];
+    char sub_name[1000];
     strcpy(sub_name, fname);
     strcat(sub_name, ".s");
 
@@ -255,6 +281,11 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
     w = fwrite(&(a->n_info), sizeof(size_t), 1, f);
     if(w != 1)
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+
+    w = fwrite(&(a->threshold), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+
     w = fwrite(a->subtreeinfo, sizeof(uint64_t), a->n_info, f);
     if(w != a->n_info)
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
@@ -367,6 +398,9 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
     w = fread(&(a->n_info), sizeof(size_t), 1, f);
     if(w != 1)
       quit("k2bp_load_from_file: error reading from file", __LINE__, __FILE__);
+    w = fread(&(a->threshold), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_load_from_file: error reading from file", __LINE__, __FILE__);
 
     a->subtreeinfo = (uint64_t*) malloc(sizeof(uint64_t) * a->n_info);
     w = fread(a->subtreeinfo, sizeof(uint64_t), a->n_info, f);
@@ -451,12 +485,6 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
   size_t levels = k2bp_stats(a, &nodes, &leaves, &nz);
   assert(nz == a->m);
   assert(((nodes + leaves) * 2) == a->t.n);
-
-  k2bp_traversal_t pos_x = {a->msize, 0, 0, 0, 0, 0, 0, 0, 1};
-  k2bp_fastdfs(&pos_x, a);
-  assert(pos_x.i_t == (nodes + leaves) * 2);
-  assert(pos_x.size == nodes + leaves);
-  assert(pos_x.leaves == leaves);
 
   fprintf(f, " nonzeros: %zu, nonzeros x row: %.3lf\n", nz, (double) nz / a->rmsize);
   fprintf(f, " levels: %zu, nodes: %zu, leaves: %zu\n", levels, nodes, leaves);
@@ -815,40 +843,41 @@ static void reck2bp_sum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   assert(bv_i(&(b->t), pos_b->i_t) == 1);
 
   if(bv_get_int(&(a->t), pos_a->i_t, 2) == 1) {
-    if(pos_b->size == 0) {
-      k2bp_traversal_t aux_pos = *pos_b;
-      k2bp_fastdfs(&aux_pos, b);
-      pos_b->size = aux_pos.size;
-      pos_b->leaves = aux_pos.leaves;
-    }
-    size_t end_tree = pos_b->i_t + pos_b->size;
+    size_t end_tree = pos_b->i_t + pos_b->size * 2;
     for(; pos_b->i_t + 64 < end_tree; pos_b->i_t += 64) {
       bv_append_int(&(c->t), bv_get_int(&(b->t), pos_b->i_t, 64));
+      assert(bv_get_int(&(c->t), c->t.n - 64, 64) == bv_get_int(&(b->t), pos_b->i_t, 64));
     }
     for(;pos_b->i_t < end_tree; pos_b->i_t++) {
       bv_pb(&(c->t), bv_i(&(b->t), pos_b->i_t));
+      assert(bv_i(&(c->t), c->t.n - 1) == bv_i(&(b->t), pos_b->i_t));
     }
     for(size_t i = 0; i < pos_b->leaves; i++) {
       k2bp_write_leaf(c, k2bp_read_leaf(b, pos_b->i_l + i));
     }
+    pos_a->i_t += 2;
     pos_b->i_l += pos_b->leaves;
-    pos_b->i_t += pos_b->size * 2;
+    //pos_b->i_t += pos_b->size * 2;
+    assert(pos_a->i_t == pos_b->i_t);
     return;
   }
 
   if(bv_get_int(&(b->t), pos_b->i_t, 2) == 1) {
-    size_t end_tree = pos_a->i_t + pos_a->size;
+    size_t end_tree = pos_a->i_t + pos_a->size * 2;
     for(; pos_a->i_t + 64 < end_tree; pos_a->i_t += 64) {
       bv_append_int(&(c->t), bv_get_int(&(a->t), pos_a->i_t, 64));
+      assert(bv_get_int(&(c->t), c->t.n - 64, 64) == bv_get_int(&(a->t), pos_a->i_t, 64));
     }
     for(;pos_a->i_t < end_tree; pos_a->i_t++) {
       bv_pb(&(c->t), bv_i(&(a->t), pos_a->i_t));
+      assert(bv_i(&(c->t), c->t.n - 1) == bv_i(&(a->t), pos_a->i_t));
     }
     for(size_t i = 0; i < pos_a->leaves; i++) {
       k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + i));
     }
+    pos_b->i_t += 2;
     pos_a->i_l += pos_a->leaves;
-    pos_a->i_t += pos_a->size * 2;
+    //pos_a->i_t += pos_a->size * 2;
     return;
   }
 
@@ -877,9 +906,10 @@ static void reck2bp_sum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
                                K2BP_TRAVERSAL_INITIALIZER,
                                K2BP_TRAVERSAL_INITIALIZER,
                                K2BP_TRAVERSAL_INITIALIZER};
-
-  k2bp_split(pos_a, a, aux_a);
-  k2bp_split(pos_b, b, aux_b);
+  if(pos_a->size >= a->threshold)
+    k2bp_split(pos_a, a, aux_a);
+  if(pos_b->size >= b->threshold)
+    k2bp_split(pos_b, b, aux_b);
   
   if(aux_a[0].size == 0) {
     aux_a[0].i_t = pos_a->i_t + 1;
@@ -895,40 +925,40 @@ static void reck2bp_sum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   reck2bp_sum(&(aux_a[0]), a, &(aux_b[0]), b, c);
 
   if(aux_a[1].size == 0) {
-    aux_a[1].i_t = pos_a->i_t;
-    aux_a[1].i_l = pos_a->i_l;
+    aux_a[1].i_t = aux_a[0].i_t;
+    aux_a[1].i_l = aux_a[0].i_l;
     aux_a[1].excess = pos_a->excess + 1;
   }
   
   if(aux_b[1].size == 0) {
-    aux_b[1].i_t = pos_b->i_t;
-    aux_b[1].i_l = pos_b->i_l;
+    aux_b[1].i_t = aux_b[0].i_t;
+    aux_b[1].i_l = aux_b[0].i_l;
     aux_b[1].excess = pos_b->excess + 1;
   }
   reck2bp_sum(&(aux_a[1]), a, &(aux_b[1]), b, c);
 
   if(aux_a[2].size == 0) {
-    aux_a[2].i_t = pos_a->i_t + 1;
-    aux_a[2].i_l = pos_a->i_l;
+    aux_a[2].i_t = aux_a[1].i_t;
+    aux_a[2].i_l = aux_a[1].i_l;
     aux_a[2].excess = pos_a->excess + 1;
   }
   
   if(aux_b[2].size == 0) {
-    aux_b[2].i_t = pos_b->i_t + 1;
-    aux_b[2].i_l = pos_b->i_l;
+    aux_b[2].i_t = aux_b[1].i_t;
+    aux_b[2].i_l = aux_b[1].i_l;
     aux_b[2].excess = pos_b->excess + 1;
   }
   reck2bp_sum(&(aux_a[2]), a, &(aux_b[2]), b, c);
 
   if(aux_a[3].size == 0) {
-    aux_a[3].i_t = pos_a->i_t + 1;
-    aux_a[3].i_l = pos_a->i_l;
+    aux_a[3].i_t = aux_a[2].i_t;
+    aux_a[3].i_l = aux_a[2].i_l;
     aux_a[3].excess = pos_a->excess + 1;
   }
   
   if(aux_b[3].size == 0) {
-    aux_b[3].i_t = pos_b->i_t + 1;
-    aux_b[3].i_l = pos_b->i_l;
+    aux_b[3].i_t = aux_b[2].i_t;
+    aux_b[3].i_l = aux_b[2].i_l;
     aux_b[3].excess = pos_b->excess + 1;
   }
   reck2bp_sum(&(aux_a[3]), a, &(aux_b[3]), b, c);
