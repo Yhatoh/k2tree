@@ -10,6 +10,9 @@ k2bp_info:
 k2bp_addinfo:
 	gcc k2bp_addinfo.c util/bv_t.c util/vu64.c k2bp/k2bp.c -O3 -lm -o k2bp_addinfo.x
 
+k2bp_sum:
+	gcc k2bp_sum.c util/bv_t.c util/vu64.c k2bp/k2bp.c -O3 -lm -o k2bp_sum.x
+
 genrandmatrix:
 	gcc genrandmatrix.c -O3 -o genrandmatrix.x
 
