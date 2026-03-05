@@ -51,20 +51,28 @@ void bv_append_int(bv_t* z, uint64_t num) {
   }
 
   z->a[z->n / 64] = (num << z->n % 64) |
-                    (z->a[z->n / 64] & ((1LL << (64 - z->n % 64)) - 1));
+                    //(z->a[z->n / 64] & ((1LL << (64 - z->n % 64)) - 1));
+                    (z->a[z->n / 64] & ((1LL << (z->n % 64)) - 1));
   z->a[z->n / 64 + 1] = num >> (64 - z->n % 64);
   z->n += 64;
 }
 
 void bv_append(bv_t* a, bv_t* b) {
   size_t i = 0;
-  for(; i < b->n / 64; i++) {
-    bv_append_int(a, b->a[i]);
+//  for(; i < b->n / 64; i++) {
+//    bv_append_int(a, b->a[i]);
+//  }
+//
+//  if(b->n % 64 > 0) {
+//    bv_append_int(a, b->a[b->n / 64]);
+//    a->n -= 64 - b->n % 64;
+//  }
+  for(; i + 64 < b->n; i += 64) {
+    bv_append_int(a, bv_get_int(b, i, 64));
   }
 
-  if(b->n % 64 > 0) {
-    bv_append_int(a, b->a[b->n / 64]);
-    a->n -= 64 - b->n % 64;
+  for(; i < b->n; i++) {
+    bv_pb(a, bv_i(b, i));
   }
 }
 

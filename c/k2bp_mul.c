@@ -39,8 +39,8 @@ int main(int argc, char* argv[]) {
   k2bp_mul(&a, &b, &res);
 
   strcpy(fname, argv[1]);
-  strcat(fname, ".sum");
-  k2bp_show_stats(&res, fname, stdout);
+  strcat(fname, ".prod");
+  //k2bp_show_stats(&res, fname, stdout);
   k2bp_save_to_file(&res, fname);
   k2bp_free(&a);
   k2bp_free(&b);

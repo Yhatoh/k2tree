@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
   float density = 0.2;
   int c;
 
-  while((c=getopt(argc, argv, "hsd:")) != -1) {
+  while((c=getopt(argc, argv, "hs:d:")) != -1) {
     switch(c) {
       case 's':
         size = atoi(optarg); break;
@@ -44,11 +44,14 @@ int main(int argc, char* argv[]) {
     indices[i] = i;
   }
 
+  fprintf(stdout, "creating file with name %s\n", argv[1]);
+
   FILE* f;
   if(argc == 1)
     f = fopen(DEFAULTNAME, "w");
   else
     f = fopen(argv[1], "w");
+
 
   uint32_t coords[m * 2];
   uint32_t written = 0;
@@ -61,6 +64,7 @@ int main(int argc, char* argv[]) {
 
     uint32_t fila = indices[i] / size;
     uint32_t col = indices[i] % size;
+    fprintf(f, "%" PRIu32 " %" PRIu32 "\n", fila, col);
 
     assert(written < 2 * m);
     coords[written] = fila;
