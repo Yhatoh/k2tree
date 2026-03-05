@@ -702,7 +702,7 @@ static void reck2bp_sum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   }
 
 
-  if(bv_get_int(&(a->t), pos_a->i_t, 4) == 3 && bv_get_int(&(a->t), pos_a->i_t, 2) == 3) {
+  if(bv_get_int(&(a->t), pos_a->i_t, 4) == 3 && bv_get_int(&(b->t), pos_b->i_t, 4) == 3) {
     bv_pb(&(c->t), 1);
     bv_pb(&(c->t), 1);
     bv_pb(&(c->t), 0);
