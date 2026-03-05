@@ -17,4 +17,4 @@ genrandmatrix:
 	gcc genrandmatrix.c -O3 -o genrandmatrix.x
 
 
-all: bv_test k2bp_build k2bp_info k2bp_addinfo genrandmatrix
+all: bv_test k2bp_build k2bp_info k2bp_addinfo k2bp_sum genrandmatrix

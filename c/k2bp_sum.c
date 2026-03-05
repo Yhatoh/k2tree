@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
   k2bp_t b = K2BP_INITIALIZER;
   k2bp_load_from_file(&b, fname);
   k2bp_t res = K2BP_INITIALIZER;
+  k2bp_sum(&a, &b, &res);
 
   strcpy(fname, argv[1]);
   strcat(fname, ".sum");
