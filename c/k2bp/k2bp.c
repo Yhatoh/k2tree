@@ -713,7 +713,7 @@ static void reck2bp_sum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
     pos_b->i_t += 4;
     pos_b->i_l += 1;
     pos_a->i_l += 1;
-    c->m += __builtin_popcount(k2bp_read_leaf(c, pos_c->i_l - 1));
+    c->m += __builtin_popcount(k2bp_read_leaf(c, c->n_l - 1));
     return;
   }
 
