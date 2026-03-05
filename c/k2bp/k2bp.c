@@ -623,6 +623,8 @@ static void k2bp_fastdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     return;
   }
 
+  pos_a->leaves = 0;
+  pos_a->size = 0;
   size_t curr_pos = pos_a->i_t;
   int64_t obj_excess = pos_a->excess;
   pos_a->i_t++;
@@ -771,7 +773,6 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   aux_c[1].l = (uint8_t*) malloc(sizeof(uint8_t) * aux_c[1].maxn_l);
 
   
-  bv_pb(&(c->t), 1);
 
   reck2bp_mul(&(as1[0]), a, &(bs1[0]), b, &(aux_c[0]));
   reck2bp_mul(&(as1[1]), a, &(bs1[2]), b, &(aux_c[1]));
@@ -800,6 +801,7 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   k2bp_free(&(aux_c[0]));
   k2bp_free(&(aux_c[1]));
 
+  bv_pb(&(c->t), 1);
   if(c_[0].t.n == 0 && c_[1].t.n == 0 &&
      c_[2].t.n == 0 && c_[3].t.n == 0) {
     bv_pb(&(c->t), 1);
@@ -833,7 +835,6 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
     }
     k2bp_free(&(c_[3]));
   }
-
 
   bv_pb(&(c->t), 0);
 }

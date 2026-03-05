@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
   k2bp_t b = K2BP_INITIALIZER;
   k2bp_load_from_file(&b, fname);
   k2bp_t res = K2BP_INITIALIZER;
-  k2bp_sum(&a, &b, &res);
+  k2bp_mul(&a, &b, &res);
 
   strcpy(fname, argv[1]);
   strcat(fname, ".sum");
@@ -53,6 +53,6 @@ void usage_and_exit(char* name) {
   fprintf(stderr, "Usage:\n\t%s [options] filename1 filename2 \n\n", name);
   fprintf(stderr, "Options:\n");
   fprintf(stderr, "\t-h      show this help message\n");    
-  fprintf(stderr, "Sum compressed matrices in filename1 and filename2\n\n");
+  fprintf(stderr, "Multiply compressed matrices in filename1 and filename2\n\n");
   exit(1);
 }
