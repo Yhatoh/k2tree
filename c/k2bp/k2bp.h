@@ -25,6 +25,7 @@ typedef struct k2bp_traversal_t {
   int16_t excess;
 } k2bp_traversal_t;
 
+#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0}
 typedef struct k2bp_t {
   size_t msize; // pow 2 matrix size
   size_t rmsize; // real matrix size

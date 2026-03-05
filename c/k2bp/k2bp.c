@@ -22,6 +22,7 @@ static void reck2bp_checksubtree_info(k2bp_traversal_t* pos_a, const k2bp_t* a);
 static void reck2bp_sum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* pos_b, const k2bp_t* b, k2bp_t* c);
 static uint8_t count(const uint64_t num);
 static void k2bp_fastdfs(k2bp_traversal_t* pos_a, const k2bp_t* a);
+static void k2bp_split(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* splits);
 
 // build k2 tree with BP representation
 // from file `fname`, file has to be a text file with format
@@ -119,6 +120,24 @@ uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n) {
 }
 
 void k2bp_sum(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
+  assert(a != NULL && b != NULL && c != NULL);
+
+  bv_init(&(c->t));
+  c->maxn_l = 10;
+  c->n_l = 0;
+  c->l = (uint8_t*) malloc(sizeof(uint8_t) * c->maxn_l);
+
+  k2bp_traversal_t pos_a = K2BP_TRAVERSAL_INITIALIZER;
+  k2bp_traversal_t pos_b = K2BP_TRAVERSAL_INITIALIZER;
+
+  pos_a.excess = 1;
+  pos_b.excess = 1;
+  pos_a.size = a->t.n / 2;
+  pos_b.size = b->t.n / 2;
+  pos_a.leaves = a->n_l;
+  pos_b.leaves = b->n_l;
+  reck2bp_sum(&pos_a, a, &pos_b, b, c);
+  return;
 }
 
 // save k2bp_t in files with prefix `fname`
@@ -558,7 +577,6 @@ static void k2bp_fastdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   int64_t obj_excess = pos_a->excess;
   pos_a->i_t++;
   size_t obj_pos = BLOCK_SIZE * ((pos_a->i_t + BLOCK_SIZE - 1) / BLOCK_SIZE);
-  printf("%zu, %zu\n", obj_pos, pos_a->i_t);
   // micro tables
   for(; pos_a->i_t + 16 < obj_pos; pos_a->i_t += 16) {
     uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, 16);
@@ -636,6 +654,193 @@ static void k2bp_fastdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 }
 
 static void reck2bp_sum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* pos_b, const k2bp_t* b, k2bp_t* c) {
+  assert(bv_i(&(a->t), pos_a->i_t) == 1);
+  assert(bv_i(&(b->t), pos_b->i_t) == 1);
+
+  if(bv_get_int(&(a->t), pos_a->i_t, 2) == 1) {
+    if(pos_b->size == 0) {
+      k2bp_traversal_t aux_pos = *pos_b;
+      k2bp_fastdfs(&aux_pos, b);
+      pos_b->size = aux_pos.size;
+      pos_b->leaves = aux_pos.leaves;
+    }
+    size_t end_tree = pos_b->i_t + pos_b->size;
+    for(; pos_b->i_t + 64 < end_tree; pos_b->i_t += 64) {
+      bv_append_int(&(c->t), bv_get_int(&(b->t), pos_b->i_t, 64));
+    }
+    for(;pos_b->i_t < end_tree; pos_b->i_t++) {
+      bv_pb(&(c->t), bv_i(&(b->t), pos_b->i_t));
+    }
+    for(size_t i = 0; i < pos_b->leaves; i++) {
+      k2bp_write_leaf(c, k2bp_read_leaf(b, pos_b->i_l + i));
+    }
+    pos_b->i_l += pos_b->leaves;
+    pos_b->i_t += pos_b->size * 2;
+    return;
+  }
+
+  if(bv_get_int(&(b->t), pos_b->i_t, 2) == 1) {
+    if(pos_a->size == 0) {
+      k2bp_traversal_t aux_pos = *pos_a;
+      k2bp_fastdfs(&aux_pos, b);
+      pos_a->size = aux_pos.size;
+      pos_a->leaves = aux_pos.leaves;
+    }
+    size_t end_tree = pos_a->i_t + pos_a->size;
+    for(; pos_a->i_t + 64 < end_tree; pos_a->i_t += 64) {
+      bv_append_int(&(c->t), bv_get_int(&(a->t), pos_a->i_t, 64));
+    }
+    for(;pos_a->i_t < end_tree; pos_a->i_t++) {
+      bv_pb(&(c->t), bv_i(&(a->t), pos_a->i_t));
+    }
+    for(size_t i = 0; i < pos_a->leaves; i++) {
+      k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + i));
+    }
+    pos_a->i_l += pos_a->leaves;
+    pos_a->i_t += pos_a->size * 2;
+    return;
+  }
+
+
+  if(bv_get_int(&(a->t), pos_a->i_t, 4) == 3 && bv_get_int(&(a->t), pos_a->i_t, 2) == 3) {
+    bv_pb(&(c->t), 1);
+    bv_pb(&(c->t), 1);
+    bv_pb(&(c->t), 0);
+    bv_pb(&(c->t), 0);
+
+    k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l) | k2bp_read_leaf(b, pos_b->i_l));
+    pos_a->i_t += 4;
+    pos_b->i_t += 4;
+    pos_b->i_l += 1;
+    pos_a->i_l += 1;
+    c->m += __builtin_popcount(k2bp_read_leaf(c, pos_a->i_l - 1));
+    return;
+  }
+
+  bv_pb(&(c->t), 1);
+  k2bp_traversal_t aux_a[4] = {K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER};
+  k2bp_traversal_t aux_b[4] = {K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER};
+
+  k2bp_split(pos_a, a, aux_a);
+  k2bp_split(pos_b, b, aux_b);
+  
+  if(aux_a[0].size == 0) {
+    aux_a[0].i_t = pos_a->i_t + 1;
+    aux_a[0].i_l = pos_a->i_l;
+    aux_a[0].excess = pos_a->excess + 1;
+  }
+  
+  if(aux_b[0].size == 0) {
+    aux_b[0].i_t = pos_b->i_t + 1;
+    aux_b[0].i_l = pos_b->i_l;
+    aux_b[0].excess = pos_b->excess + 1;
+  }
+  reck2bp_sum(&(aux_a[0]), a, &(aux_b[0]), b, c);
+
+  if(aux_a[1].size == 0) {
+    aux_a[1].i_t = pos_a->i_t;
+    aux_a[1].i_l = pos_a->i_l;
+    aux_a[1].excess = pos_a->excess + 1;
+  }
+  
+  if(aux_b[1].size == 0) {
+    aux_b[1].i_t = pos_b->i_t;
+    aux_b[1].i_l = pos_b->i_l;
+    aux_b[1].excess = pos_b->excess + 1;
+  }
+  reck2bp_sum(&(aux_a[1]), a, &(aux_b[1]), b, c);
+
+  if(aux_a[2].size == 0) {
+    aux_a[2].i_t = pos_a->i_t + 1;
+    aux_a[2].i_l = pos_a->i_l;
+    aux_a[2].excess = pos_a->excess + 1;
+  }
+  
+  if(aux_b[2].size == 0) {
+    aux_b[2].i_t = pos_b->i_t + 1;
+    aux_b[2].i_l = pos_b->i_l;
+    aux_b[2].excess = pos_b->excess + 1;
+  }
+  reck2bp_sum(&(aux_a[2]), a, &(aux_b[2]), b, c);
+
+  if(aux_a[3].size == 0) {
+    aux_a[3].i_t = pos_a->i_t + 1;
+    aux_a[3].i_l = pos_a->i_l;
+    aux_a[3].excess = pos_a->excess + 1;
+  }
+  
+  if(aux_b[3].size == 0) {
+    aux_b[3].i_t = pos_b->i_t + 1;
+    aux_b[3].i_l = pos_b->i_l;
+    aux_b[3].excess = pos_b->excess + 1;
+  }
+  reck2bp_sum(&(aux_a[3]), a, &(aux_b[3]), b, c);
+  pos_a->i_t = aux_a[3].i_t + 1;
+  pos_a->i_l = aux_a[3].i_l;
+  
+  pos_b->i_t = aux_b[3].i_t + 1;
+  pos_b->i_l = aux_b[3].i_l;
+  bv_pb(&(c->t), 0);
+}
+
+static void k2bp_split(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* splits) {
+  if(a->subtreeinfo == NULL) return;
+
+  if(pos_a->msize != 0) { // used
+    splits[0].msize = pos_a->msize / 2;
+    splits[0].x = pos_a->x;
+    splits[0].y = pos_a->y;
+  }
+  splits[0].i_t = pos_a->i_t + 1;
+  splits[0].i_l = pos_a->i_l;
+  splits[0].node = pos_a->node + 3;
+  splits[0].size = GET_NODES(a->subtreeinfo[pos_a->node]);
+  splits[0].leaves = a->leavesinfo[pos_a->node];
+  splits[0].excess = pos_a->excess + 1;
+
+  if(pos_a->msize != 0) {
+    splits[1].msize = pos_a->msize / 2;
+    splits[1].x = pos_a->x;
+    splits[1].y = pos_a->y + pos_a->msize / 2;
+  }
+  splits[1].i_t = splits[0].i_t + splits[0].size * 2;
+  splits[1].i_l = splits[0].i_l + splits[0].leaves;
+  splits[1].node = splits[0].node + GET_SKIPS(a->subtreeinfo[pos_a->node]);
+  splits[1].size = GET_NODES(a->subtreeinfo[pos_a->node + 1]);
+  splits[1].leaves = a->leavesinfo[pos_a->node + 1];
+  splits[1].excess = pos_a->excess + 1;
+
+  if(pos_a->msize != 0) {
+    splits[2].msize = pos_a->msize / 2;
+    splits[2].x = pos_a->x + pos_a->msize / 2;
+    splits[2].y = pos_a->y;
+  }
+  splits[2].i_t = splits[1].i_t + splits[1].size * 2;
+  splits[2].i_l = splits[1].i_l + splits[1].leaves;
+  splits[2].node = splits[1].node + GET_SKIPS(a->subtreeinfo[pos_a->node + 1]);
+  splits[2].size = GET_NODES(a->subtreeinfo[pos_a->node + 2]);
+  splits[2].leaves = a->leavesinfo[pos_a->node + 2];
+  splits[2].excess = pos_a->excess + 1;
+
+  if(pos_a->msize != 0) {
+    splits[3].msize = pos_a->msize / 2;
+    splits[3].x = pos_a->x + pos_a->msize / 2;
+    splits[3].y = pos_a->y + pos_a->msize / 2;
+  }
+  splits[3].i_t = splits[2].i_t + splits[2].size * 2;
+  splits[3].i_l = splits[2].i_l + splits[2].leaves;
+  splits[3].node = splits[2].node + GET_SKIPS(a->subtreeinfo[pos_a->node + 2]);
+  splits[3].size = pos_a->size -
+                   (splits[0].size + splits[1].size + splits[2].size + 1);
+  splits[3].leaves = pos_a->leaves -
+                     (splits[0].leaves + splits[1].leaves + splits[2].leaves);
+  splits[3].excess = pos_a->excess + 1;
 }
 
 static void reck2bp_checksubtree_info(k2bp_traversal_t* pos_a, const k2bp_t* a) {
@@ -697,12 +902,12 @@ static void reck2bp_checksubtree_info(k2bp_traversal_t* pos_a, const k2bp_t* a) 
   aux_pos.i_l = pos_a->i_l;
   pos_a->node = aux_pos.node + 3 + GET_SKIPS(a->subtreeinfo[aux_pos.node])
                                  + GET_SKIPS(a->subtreeinfo[aux_pos.node + 1])
-                                 + GET_SKIPS(a->subtreeinfo[aux_pos.node + 2]);
+         + GET_SKIPS(a->subtreeinfo[aux_pos.node + 2]);
   pos_a->size = aux_pos.size - (GET_NODES(a->subtreeinfo[aux_pos.node])
                 + GET_NODES(a->subtreeinfo[aux_pos.node + 1])
                 + GET_NODES(a->subtreeinfo[aux_pos.node + 2]) + 1);
   pos_a->leaves = aux_pos.leaves - (a->leavesinfo[aux_pos.node]
-                  + a->leavesinfo[aux_pos.node + 1]
+         + a->leavesinfo[aux_pos.node + 1]
                   + a->leavesinfo[aux_pos.node + 2]);
   reck2bp_checksubtree_info(pos_a, a);
   c_sizes[3] = (pos_a->i_t - aux_pos.i_t) / 2;
