@@ -807,12 +807,18 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   }
 
   if(pos_a->msize == _K_) { // a is full of zeros
-    bv_pb(&(c->t), 1);
-    bv_pb(&(c->t), 1);
-    bv_pb(&(c->t), 0);
-    bv_pb(&(c->t), 0);
 
-    k2bp_write_leaf(c, table_mul[k2bp_read_leaf(a, pos_a->i_l)][k2bp_read_leaf(b, pos_b->i_l)]);
+    uint8_t res = table_mul[k2bp_read_leaf(a, pos_a->i_l)][k2bp_read_leaf(b, pos_b->i_l)];
+    if(res == 0) {
+      bv_pb(&(c->t), 1);
+      bv_pb(&(c->t), 0);
+    } else {
+      bv_pb(&(c->t), 1);
+      bv_pb(&(c->t), 1);
+      bv_pb(&(c->t), 0);
+      bv_pb(&(c->t), 0);
+      k2bp_write_leaf(c, res);
+    }
 
     pos_b->i_t += 4;
     pos_a->i_t += 4;
