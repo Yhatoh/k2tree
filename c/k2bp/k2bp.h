@@ -80,5 +80,6 @@ uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n);
 void k2bp_sum(const k2bp_t* a, const k2bp_t* b, k2bp_t* c);
 void k2bp_scansum(const k2bp_t* a, const k2bp_t* b, k2bp_t* c);
 void k2bp_mul(const k2bp_t* a, const k2bp_t* b, k2bp_t* c);
+void k2bp_scanmul(const k2bp_t* a, const k2bp_t* b, k2bp_t* c);
 
 #endif
