@@ -1264,8 +1264,8 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
         assert(bv_get_int(&(c->t), c->t.n - 64, 64) == bv_get_int(&(a->t), pos_a->i_t, 64));
       }
       for(;pos_a->i_t < end_tree; pos_a->i_t++) {
-        bv_pb(&(c->t), bv_i(&(b->t), pos_a->i_t));
-        assert(bv_i(&(c->t), c->t.n - 1) == bv_i(&(b->t), pos_a->i_t));
+        bv_pb(&(c->t), bv_i(&(a->t), pos_a->i_t));
+        assert(bv_i(&(c->t), c->t.n - 1) == bv_i(&(a->t), pos_a->i_t));
       }
       for(size_t i = 0; i < pos_a->leaves; i++) {
         k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + i));
