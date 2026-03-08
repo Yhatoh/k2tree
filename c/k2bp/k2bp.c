@@ -1311,7 +1311,7 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   k2bp_splitinfo(pos_a, a, as2);
   k2bp_splitinfo(pos_b, b, bs2);
 
-  k2bp_t aux_c[4] = {K2BP_INITIALIZER, K2BP_INITIALIZER};
+  k2bp_t aux_c[3] = {K2BP_INITIALIZER, K2BP_INITIALIZER, K2BP_INITIALIZER};
   k2bp_t c_[4] = {K2BP_INITIALIZER, K2BP_INITIALIZER, K2BP_INITIALIZER, K2BP_INITIALIZER};
   bv_init(&(aux_c[0].t));
   aux_c[0].maxn_l = 10;
@@ -1325,10 +1325,6 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   aux_c[2].maxn_l = 10;
   aux_c[2].n_l = 0;
   aux_c[2].l = (uint8_t*) malloc(sizeof(uint8_t) * aux_c[2].maxn_l);
-  bv_init(&(aux_c[3].t));
-  aux_c[3].maxn_l = 10;
-  aux_c[3].n_l = 0;
-  aux_c[3].l = (uint8_t*) malloc(sizeof(uint8_t) * aux_c[3].maxn_l);
 
   if(as1[0].size == 0) {
     as1[0].i_t = pos_a->i_t + 1; as1[0].i_l = pos_a->i_l;
