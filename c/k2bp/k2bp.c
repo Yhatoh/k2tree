@@ -654,12 +654,20 @@ static uint8_t count(const uint64_t num) {
 static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
   if(bv_get_int(&(a->t), pos_a->i_t, 4) == 3) {
+    bv_pb(&(c->t), 1);
+    bv_pb(&(c->t), 1);
+    bv_pb(&(c->t), 0);
+    bv_pb(&(c->t), 0);
     pos_a->i_t += 4;
     pos_a->size = 2;
     pos_a->leaves = 1;
+    k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l));
+    pos_a->i_l++;
     return;
   }
   if(bv_get_int(&(a->t), pos_a->i_t, 2) == 1) {
+    bv_pb(&(c->t), 1);
+    bv_pb(&(c->t), 0);
     pos_a->i_t += 2;
     pos_a->size = 1;
     pos_a->leaves = 0;
