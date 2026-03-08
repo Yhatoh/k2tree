@@ -1089,7 +1089,7 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
       }
       pos_a->i_l += pos_a->leaves;
     } else {
-      k2bp_scandfs_copy(pos_b, b, c);
+      k2bp_scandfs_copy(pos_a, a, c);
     }
     pos_b->i_t += 2;
     return;
