@@ -64,14 +64,16 @@ void bv_append_u16(bv_t* z, uint64_t num) {
     if(z->a == NULL) quit("realloc failed",__LINE__,__FILE__);
   }
 
-  if(z->n % 64 + 16 <= 64) {
-    z->a[z->n / 64] = (num << z->n % 64) |
-                      (z->a[z->n / 64] & ((1LL << (z->n % 64)) - 1));
-  } else {
-    z->a[z->n / 64] = (num << z->n % 64) |
-                      (z->a[z->n / 64] & ((1LL << (z->n % 64)) - 1));
-    z->a[z->n / 64 + 1] = num >> (64 - z->n % 64);
-  }
+//  if(z->n % 64 + 16 <= 64) {
+//    z->a[z->n / 64] = (num << z->n % 64) |
+//                      (z->a[z->n / 64] & ((1LL << (z->n % 64)) - 1));
+//  } else {
+//    z->a[z->n / 64] = (num << z->n % 64) |
+//                      (z->a[z->n / 64] & ((1LL << (z->n % 64)) - 1));
+//    z->a[z->n / 64 + 1] = num >> (16 - z->n % 64);
+//  }
+  bv_append_int(z, num);
+  z->n -= 64;
   z->n += 16;
 }
 

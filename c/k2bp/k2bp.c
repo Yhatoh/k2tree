@@ -31,7 +31,7 @@ static void k2bp_scandfs(k2bp_traversal_t* pos_a, const k2bp_t* a);
 static void k2bp_split(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* splits);
 static void k2bp_splitinfo(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* splits);
 
-// traverse and copy subtree in a to c
+// traverse nd copy subtree in a to c
 static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c);
 
 uint8_t k2bp_equal(const k2bp_t* a, const k2bp_t* b) {
@@ -174,6 +174,7 @@ void k2bp_sum(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
 }
 
 void k2bp_scansum(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
+  //printf("new call\n");
   assert(a != NULL && b != NULL && c != NULL);
   c->msize = a->msize;
   c->rmsize = a->rmsize;
@@ -223,10 +224,6 @@ void k2bp_mul(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
   pos_a.leaves = a->n_l;
   pos_b.leaves = b->n_l;
   reck2bp_mul(&pos_a, a, &pos_b, b, c);
-
-  for(size_t i = 0; i < c->n_l; i += 2) {
-    c->m += __builtin_popcount(c->l[i / 2]);
-  }
   return;
 }
 
@@ -662,6 +659,7 @@ static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* 
     pos_a->size = 2;
     pos_a->leaves = 1;
     k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l));
+    c->m += __builtin_popcount(k2bp_read_leaf(a, pos_a->i_l));
     pos_a->i_l++;
     return;
   }
@@ -678,6 +676,7 @@ static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* 
   pos_a->leaves = 0;
   int64_t obj_excess = pos_a->excess;
   uint64_t curr_pos = pos_a->i_t;
+  bv_pb(&(c->t), 1);
   pos_a->i_t++;
   for(; pos_a->i_t + 16 <= a->t.n; pos_a->i_t += 16) {
     uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, 16);
@@ -705,6 +704,7 @@ static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* 
       }
     }
     bv_append_u16(&(c->t), bits);
+    assert(bv_get_int(&(c->t), c->t.n - 16, 16) == bits);
     pos_a->excess += exc_micro[bits];
     if(pos_a->i_t + 19 <= a->t.n) {
       pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
@@ -981,7 +981,9 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   reck2bp_mul(&(as1[1]), a, &(bs1[2]), b, &(aux_c[1]));
   aux_c[0].threshold = aux_c[0].t.n;
   aux_c[1].threshold = aux_c[1].t.n;
+  //printf("1\n");
   k2bp_scansum(&(aux_c[0]), &(aux_c[1]), &(c_[0]));
+  //k2bp_sum(&(aux_c[0]), &(aux_c[1]), &(c_[0]));
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
 
@@ -989,7 +991,9 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   reck2bp_mul(&(as2[1]), a, &(bs1[3]), b, &(aux_c[1]));
   aux_c[0].threshold = aux_c[0].t.n;
   aux_c[1].threshold = aux_c[1].t.n;
+  //printf("2\n");
   k2bp_scansum(&(aux_c[0]), &(aux_c[1]), &(c_[1]));
+  //k2bp_sum(&(aux_c[0]), &(aux_c[1]), &(c_[1]));
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
 
@@ -997,7 +1001,9 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   reck2bp_mul(&(as1[3]), a, &(bs2[2]), b, &(aux_c[1]));
   aux_c[0].threshold = aux_c[0].t.n;
   aux_c[1].threshold = aux_c[1].t.n;
+  //printf("3\n");
   k2bp_scansum(&(aux_c[0]), &(aux_c[1]), &(c_[2]));
+  //k2bp_sum(&(aux_c[0]), &(aux_c[1]), &(c_[2]));
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
 
@@ -1005,7 +1011,9 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   reck2bp_mul(&(as2[3]), a, &(bs2[3]), b, &(aux_c[1]));
   aux_c[0].threshold = aux_c[0].t.n;
   aux_c[1].threshold = aux_c[1].t.n;
+  //printf("4\n");
   k2bp_scansum(&(aux_c[0]), &(aux_c[1]), &(c_[3]));
+  //k2bp_sum(&(aux_c[0]), &(aux_c[1]), &(c_[3]));
 
   k2bp_free(&(aux_c[0]));
   k2bp_free(&(aux_c[1]));
@@ -1052,11 +1060,11 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
 }
 
 static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* pos_b, const k2bp_t* b, k2bp_t* c) {
-
+  //printf("%zu, %zu, %zu, %zu, %zu, %zu, %zu, %zu\n", pos_a->i_t, pos_a->i_l, pos_a->size, pos_a->leaves, pos_b->i_t, pos_b->i_l, pos_b->size, pos_b->leaves);
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
   assert(bv_i(&(b->t), pos_b->i_t) == 1);
   if(bv_get_int(&(a->t), pos_a->i_t, 2) == 1) {
-    if(pos_a->size > 0) {
+    if(pos_b->size > 0) {
       size_t end_tree = pos_b->i_t + pos_b->size * 2;
       for(; pos_b->i_t + 64 < end_tree; pos_b->i_t += 64) {
         bv_append_int(&(c->t), bv_get_int(&(b->t), pos_b->i_t, 64));
@@ -1127,52 +1135,84 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
                                K2BP_TRAVERSAL_INITIALIZER,
                                K2BP_TRAVERSAL_INITIALIZER,
                                K2BP_TRAVERSAL_INITIALIZER};
+
+  k2bp_traversal_t check_a[4] = {K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER};
+  k2bp_traversal_t check_b[4] = {K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER};
   k2bp_splitinfo(pos_a, a, aux_a);
   k2bp_splitinfo(pos_b, b, aux_b);
 
-  if(a->subtreeinfo == NULL) {
+  k2bp_split(pos_a, a, check_a);
+  k2bp_split(pos_b, b, check_b);
+
+  if(a->subtreeinfo == NULL || pos_a->size < a->threshold) {
     aux_a[0].i_t = pos_a->i_t + 1;
     aux_a[0].i_l = pos_a->i_l;
   }
 
-  if(b->subtreeinfo == NULL) {
+  if(b->subtreeinfo == NULL || pos_b->size < b->threshold) {
     aux_b[0].i_t = pos_b->i_t + 1;
     aux_b[0].i_l = pos_b->i_l;
   }
 
+  assert(aux_a[0].i_t == check_a[0].i_t);
+  assert(aux_a[0].i_l == check_a[0].i_l);
+  assert(aux_b[0].i_t == check_b[0].i_t);
+  assert(aux_b[0].i_l == check_b[0].i_l);
   bv_pb(&(c->t), 1);
+  //printf("sum 1\n");
   reck2bp_scansum(&(aux_a[0]), a, &(aux_b[0]), b, c);
-  if(a->subtreeinfo == NULL) {
+  if(a->subtreeinfo == NULL || pos_a->size < a->threshold) {
     aux_a[1].i_t = aux_a[0].i_t;
     aux_a[1].i_l = aux_a[0].i_l;
   }
 
-  if(b->subtreeinfo == NULL) {
+  if(b->subtreeinfo == NULL || pos_b->size < b->threshold) {
     aux_b[1].i_t = aux_b[0].i_t;
     aux_b[1].i_l = aux_b[0].i_l;
   }
-  
+ 
+  assert(aux_a[1].i_t == check_a[1].i_t);
+  assert(aux_a[1].i_l == check_a[1].i_l);
+  assert(aux_b[1].i_t == check_b[1].i_t);
+  assert(aux_b[1].i_l == check_b[1].i_l); 
+  //printf("sum 2\n");
   reck2bp_scansum(&(aux_a[1]), a, &(aux_b[1]), b, c);
-  if(a->subtreeinfo == NULL) {
+  if(a->subtreeinfo == NULL || pos_a->size < a->threshold) {
     aux_a[2].i_t = aux_a[1].i_t;
     aux_a[2].i_l = aux_a[1].i_l;
   }
 
-  if(b->subtreeinfo == NULL) {
+  if(b->subtreeinfo == NULL || pos_b->size < b->threshold) {
     aux_b[2].i_t = aux_b[1].i_t;
     aux_b[2].i_l = aux_b[1].i_l;
   }
+  assert(aux_a[2].i_t == check_a[2].i_t);
+  assert(aux_a[2].i_l == check_a[2].i_l);
+  assert(aux_b[2].i_t == check_b[2].i_t);
+  assert(aux_b[2].i_l == check_b[2].i_l);
 
+  //printf("sum 3\n");
   reck2bp_scansum(&(aux_a[2]), a, &(aux_b[2]), b, c);
-  if(a->subtreeinfo == NULL) {
+  if(a->subtreeinfo == NULL || pos_a->size < a->threshold) {
     aux_a[3].i_t = aux_a[2].i_t;
     aux_a[3].i_l = aux_a[2].i_l;
   }
 
-  if(b->subtreeinfo == NULL) {
+  if(b->subtreeinfo == NULL || pos_b->size < b->threshold) {
     aux_b[3].i_t = aux_b[2].i_t;
     aux_b[3].i_l = aux_b[2].i_l;
   }
+  assert(aux_a[3].i_t == check_a[3].i_t);
+  assert(aux_a[3].i_l == check_a[3].i_l);
+  assert(aux_b[3].i_t == check_b[3].i_t);
+  assert(aux_b[3].i_l == check_b[3].i_l);
+  //printf("sum 4\n");
   reck2bp_scansum(&(aux_a[3]), a, &(aux_b[3]), b, c);
 
   pos_a->i_t = aux_a[3].i_t + 1;
