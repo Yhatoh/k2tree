@@ -973,7 +973,7 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   reck2bp_mul(&(as1[1]), a, &(bs1[2]), b, &(aux_c[1]));
   aux_c[0].threshold = aux_c[0].t.n;
   aux_c[1].threshold = aux_c[1].t.n;
-  k2bp_sum(&(aux_c[0]), &(aux_c[1]), &(c_[0]));
+  k2bp_scansum(&(aux_c[0]), &(aux_c[1]), &(c_[0]));
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
 
@@ -981,7 +981,7 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   reck2bp_mul(&(as2[1]), a, &(bs1[3]), b, &(aux_c[1]));
   aux_c[0].threshold = aux_c[0].t.n;
   aux_c[1].threshold = aux_c[1].t.n;
-  k2bp_sum(&(aux_c[0]), &(aux_c[1]), &(c_[1]));
+  k2bp_scansum(&(aux_c[0]), &(aux_c[1]), &(c_[1]));
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
 
@@ -989,7 +989,7 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   reck2bp_mul(&(as1[3]), a, &(bs2[2]), b, &(aux_c[1]));
   aux_c[0].threshold = aux_c[0].t.n;
   aux_c[1].threshold = aux_c[1].t.n;
-  k2bp_sum(&(aux_c[0]), &(aux_c[1]), &(c_[2]));
+  k2bp_scansum(&(aux_c[0]), &(aux_c[1]), &(c_[2]));
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
 
@@ -997,7 +997,7 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   reck2bp_mul(&(as2[3]), a, &(bs2[3]), b, &(aux_c[1]));
   aux_c[0].threshold = aux_c[0].t.n;
   aux_c[1].threshold = aux_c[1].t.n;
-  k2bp_sum(&(aux_c[0]), &(aux_c[1]), &(c_[3]));
+  k2bp_scansum(&(aux_c[0]), &(aux_c[1]), &(c_[3]));
 
   k2bp_free(&(aux_c[0]));
   k2bp_free(&(aux_c[1]));
