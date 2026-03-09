@@ -32,9 +32,11 @@ int main(int argc, char* argv[]) {
   strcpy(fname, argv[1]);
   k2bp_t a = K2BP_INITIALIZER;
   k2bp_load_from_file(&a, fname);
+  
   strcpy(fname, argv[2]);
   k2bp_t b = K2BP_INITIALIZER;
   k2bp_load_from_file(&b, fname);
+
   k2bp_t res = K2BP_INITIALIZER;
   k2bp_mul(&a, &b, &res);
 

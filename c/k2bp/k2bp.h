@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "../util/bv_t.h"
 
-#define NUM_SUPPORT 36
+#define NUM_SUPPORT 40
 #define GET_NODES(x) (x & ((1ULL << NUM_SUPPORT) - 1))
 #define GET_SKIPS(x) (x >> NUM_SUPPORT)
 #define ENCODE(x, y) (x << NUM_SUPPORT) | y
