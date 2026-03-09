@@ -596,7 +596,6 @@ void k2bp_addsubtree_info(k2bp_t* a, size_t threshold) {
   assert(a != NULL);
   assert(a->t.a != NULL && a->l != NULL);
   a->threshold = threshold;
-  printf("%zu\n", a->threshold);
   if(a->subtreeinfo != NULL) {
     free(a->subtreeinfo);
     free(a->leavesinfo);
@@ -1027,8 +1026,6 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 
   // jumps between blocks
   size_t block = pos_a->i_t / BLOCK_SIZE;
-  //printf("%zu\n", block);
-  //printf("%zu %zu\n", pos_a->excess, a->exc_samples[0]);
   for(;; pos_a->i_t += BLOCK_SIZE) {
     // found block
     if(obj_excess > a->exc_min_samples[block]) {
@@ -1221,8 +1218,6 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
 }
 
 static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* pos_b, const k2bp_t* b, k2bp_t* c) {
-  printf("mul %zu\n", pos_a->msize);
-  printf("%zu, %zu, %zu, %zu, %zu, %zu, %zu, %zu\n", pos_a->i_t, pos_a->i_l, pos_a->size, pos_a->leaves, pos_b->i_t, pos_b->i_l, pos_b->size, pos_b->leaves);
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
   assert(bv_i(&(b->t), pos_b->i_t) == 1);
 
@@ -1423,8 +1418,6 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
 }
 
 static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* pos_b, const k2bp_t* b, k2bp_t* c) {
-  printf("sum %zu\n", pos_a->msize);
-  printf("%zu, %zu, %zu, %zu, %zu, %zu, %zu, %zu\n", pos_a->i_t, pos_a->i_l, pos_a->size, pos_a->leaves, pos_b->i_t, pos_b->i_l, pos_b->size, pos_b->leaves);
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
   assert(bv_i(&(b->t), pos_b->i_t) == 1);
   if(bv_get_int(&(a->t), pos_a->i_t, 2) == 1) {
@@ -1880,7 +1873,7 @@ static void reck2bp_checksubtree_info(k2bp_traversal_t* pos_a, const k2bp_t* a) 
   c_leaves[3] = pos_a->i_l - aux_pos.i_l;
 
   pos_a->i_t++;
-  if(c_sizes[0] + c_sizes[1] + c_sizes[2] + c_sizes[3] >= a->threshold) {
+  if(c_sizes[0] + c_sizes[1] + c_sizes[2] + c_sizes[3] + 1 >= a->threshold) {
     uint64_t accum_size = GET_NODES(a->subtreeinfo[aux_pos.node]);
     uint32_t leaves = a->leavesinfo[aux_pos.node];
     
@@ -1950,7 +1943,7 @@ static void reck2bp_addsubtree_info(k2bp_traversal_t* pos_a, k2bp_t* a, uint32_t
   assert(c_subtreeinfo[3].n == c_leavesinfo[3].n);
 
   pos_a->i_t++;
-  if(c_sizes[0] + c_sizes[1] + c_sizes[2] + c_sizes[3] >= a->threshold) {
+  if(c_sizes[0] + c_sizes[1] + c_sizes[2] + c_sizes[3] + 1 >= a->threshold) {
     size_t curr_i = subinfo->n;
     vu64_grow(subinfo, 3 + c_subtreeinfo[0].n + c_subtreeinfo[1].n +
                            c_subtreeinfo[2].n + c_subtreeinfo[3].n);
