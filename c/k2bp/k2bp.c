@@ -876,13 +876,13 @@ static void reck2bp_decompress_subtrees(k2bp_traversal_t* pos_c, const k2bp_t* c
     return;
   }
 
-  k2bp_pb(&(a->t), 1);
+  bv_pb(&(a->t), 1);
   pos_c->i_t++;
   reck2bp_decompress_subtrees(pos_c, c, a);
   reck2bp_decompress_subtrees(pos_c, c, a);
   reck2bp_decompress_subtrees(pos_c, c, a);
   reck2bp_decompress_subtrees(pos_c, c, a);
-  k2bp_pb(&(a->t), 0);
+  bv_pb(&(a->t), 0);
   pos_c->i_t++;
 }
 
