@@ -14,14 +14,14 @@ int main(int argc, char* argv[]) {
   extern char *optarg;
   extern int optind, opterr, optopt;
 
-  int p = 0;
-  int check = 32;
+  int p = 32;
+  int check = 0;
   int c;
 
   while((c=getopt(argc, argv, "hcp:")) != -1) {
     switch(c) {
       case 'c':
-        c = 1; break;
+        check = 1; break;
       case 'p':
         p = atoi(optarg); break;
       case 'h':

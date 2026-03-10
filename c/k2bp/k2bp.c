@@ -703,8 +703,6 @@ void k2bp_compress_subtrees(const k2bp_t* a, k2bp_t* c, size_t limit) {
   if(libsais64_lcp(plcp, csa, lcp, a->t.n) != 0)
     quit("k2bp_compress_subtrees: error building plcp", __LINE__, __FILE__);
 
-  free(text);
-  free(plcp);
 
   dsu groups;
   dsu_init(&groups, a->t.n);
@@ -712,6 +710,7 @@ void k2bp_compress_subtrees(const k2bp_t* a, k2bp_t* c, size_t limit) {
   for(size_t i = 1; i < a->t.n; i++) { // This can be optimized to t.n/2 I think
                                        // test it later
     if(bv_i(&(a->t), csa[i]) == 0) continue; // not real tree
+    if(bv_i(&(a->t), csa[i - 1]) == 0) continue; // cannot compared against no real tree
 
     k2bp_traversal_t pos_a_i = K2BP_TRAVERSAL_INITIALIZER;
     k2bp_traversal_t pos_a_i_1 = K2BP_TRAVERSAL_INITIALIZER;
@@ -726,6 +725,9 @@ void k2bp_compress_subtrees(const k2bp_t* a, k2bp_t* c, size_t limit) {
       }
     }
   }
+
+  free(text);
+  free(plcp);
   free(csa);
   free(lcp);
 
@@ -745,7 +747,7 @@ void k2bp_compress_subtrees(const k2bp_t* a, k2bp_t* c, size_t limit) {
       pos_a_i.excess = 1;
       k2bp_scandfs(&pos_a_i, a);
       
-      if(left != i && limit + 6 <= pos_a_i.size) {
+      if(left != i && limit + 6 <= pos_a_i.size * 2) {
         vu64_grow(&pointers, 1);
         pointers.v[pointers.n - 1] = left - prefix_help[left - 1];
         bv_pb(&(c->t), 1);
@@ -754,11 +756,11 @@ void k2bp_compress_subtrees(const k2bp_t* a, k2bp_t* c, size_t limit) {
         bv_pb(&(c->t), 0);
         bv_pb(&(c->t), 0);
 
-        for(size_t j = i; j < pos_a_i.i_t + pos_a_i.size * 2; j++) {
+        for(size_t j = i; j < i + pos_a_i.size * 2; j++) {
           prefix_help[j] = prefix_help[j - 1] + 1;
         }
-        prefix_help[pos_a_i.i_t + pos_a_i.size * 2 - 1] -= 6;
-        i = pos_a_i.i_t + pos_a_i.size * 2 - 1;
+        prefix_help[i + pos_a_i.size * 2 - 1] -= 6;
+        i = i + pos_a_i.size * 2 - 1;
       } else {
         if(i > 0) prefix_help[i] = prefix_help[i - 1];
       }
@@ -834,12 +836,14 @@ void k2bp_decompress_subtrees(const k2bp_t *c, k2bp_t *a) {
   }
 
   reck2bp_decompress_subtrees(&pos_c, c, a);
+  free(pos_c.rank);
 }
 
 // ----------------------------------------------------------
 
 // auxiliary functions
 static void reck2bp_decompress_subtrees(k2bp_traversal_t* pos_c, const k2bp_t* c, k2bp_t* a) {
+  printf("%zu %zu %zu\n", pos_c->msize, pos_c->i_t, pos_c->i_l);
   assert(bv_i(&(c->t), pos_c->i_t) == 1);
 
   if(bv_get_int(&(c->t), pos_c->i_t, 2) == LEAF_0) {
@@ -873,17 +877,24 @@ static void reck2bp_decompress_subtrees(k2bp_traversal_t* pos_c, const k2bp_t* c
     pos_c->i_l = new_pos.i_l;
     pos_c->i_t += 6;
     pos_c->i_p++;
+    pos_c->rank[pos_c->i_t / BLOCK_SIZE]++;
     return;
   }
 
   bv_pb(&(a->t), 1);
+  size_t curr_msize = pos_c->msize;
   pos_c->i_t++;
+  pos_c->msize = curr_msize / 2;
   reck2bp_decompress_subtrees(pos_c, c, a);
+  pos_c->msize = curr_msize / 2;
   reck2bp_decompress_subtrees(pos_c, c, a);
+  pos_c->msize = curr_msize / 2;
   reck2bp_decompress_subtrees(pos_c, c, a);
+  pos_c->msize = curr_msize / 2;
   reck2bp_decompress_subtrees(pos_c, c, a);
   bv_pb(&(a->t), 0);
   pos_c->i_t++;
+  pos_c->msize = curr_msize;
 }
 
 static uint8_t count(const uint64_t num) {
