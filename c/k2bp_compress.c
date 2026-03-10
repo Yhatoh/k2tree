@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
   extern int optind, opterr, optopt;
 
   int p = 0;
-  int check = 0;
+  int check = 32;
   int c;
 
   while((c=getopt(argc, argv, "hcp:")) != -1) {
@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
       case 'c':
         c = 1; break;
       case 'p':
-        p = atof(optarg); break;
+        p = atoi(optarg); break;
       case 'h':
         usage_and_exit(argv[0]);
       case '?':
