@@ -13,6 +13,10 @@
 #define BLOCK_SIZE 256
 #define SAMPLE_SIZE(n) ((n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
 
+#define LEAF_0 1
+#define LEAF_1 3
+#define LEAF_P 11
+
 // usefull information during traversals
 typedef struct k2bp_traversal_t {
   size_t msize;
@@ -23,9 +27,11 @@ typedef struct k2bp_traversal_t {
   uint64_t size;
   uint32_t leaves;
   int16_t excess;
+  size_t i_p;
+  uint64_t* rank;
 } k2bp_traversal_t;
 
-#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL}
 
 typedef struct k2bp_t {
   size_t msize; // pow 2 matrix size
@@ -45,16 +51,21 @@ typedef struct k2bp_t {
   //  amount of leaves for a subtree
   uint16_t* exc_min_samples;
   uint16_t* exc_samples;
-  uint8_t* leaves_samples; // this is specific for block 256
+  uint8_t* leaves_samples; // this is specific for block <= 256
+                           // if you want bigger blocks you should change this type
 
   // subtree information
   size_t n_info;
   size_t threshold;
   uint64_t* subtreeinfo;
   uint32_t* leavesinfo;
+
+  // pointers info
+  size_t n_p;
+  size_t* pointers;
 } k2bp_t;
 
-#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL}
+#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, 0, NULL}
 
 // k2 tree operations
 size_t k2bp_build_from_textfile(k2bp_t* a, const char* f, size_t fsize);
@@ -68,10 +79,14 @@ void k2bp_build_exc_sampling(k2bp_t* a);
 void k2bp_addsubtree_info(k2bp_t* a, size_t threshold);
 size_t k2bp_checksubtree_info(const k2bp_t* a);
 uint8_t k2bp_equal(const k2bp_t* a, const k2bp_t* b);
+void k2bp_compress_subtrees(const k2bp_t* a, k2bp_t* c, size_t limit);
+void k2bp_decompress_subtrees(const k2bp_t* c, k2bp_t* a);
 
+// k2 tree information
 size_t k2bp_show_stats(const k2bp_t* a, const char* fname, FILE* f);
 size_t k2bp_stats(const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz);
 
+// io k2 tree
 void k2bp_save_to_file(const k2bp_t* a, const char* fname);
 void k2bp_load_from_file(k2bp_t* a, const char* fname);
 
