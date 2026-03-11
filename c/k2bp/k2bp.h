@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "../util/bv_t.h"
+#include "../util/iv.h"
 
 #define NUM_SUPPORT 40
 #define GET_NODES(x) (x & ((1ULL << NUM_SUPPORT) - 1))

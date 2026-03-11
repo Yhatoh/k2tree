@@ -9,6 +9,7 @@
 #include "k2bp.h"
 #include "util.h"
 #include "../util/bv_t.h"
+#include "../util/iv.h"
 #include "../util/vu64.h"
 #include "../util/dsu.h"
 #include "../../libsais/include/libsais64.h"
@@ -637,6 +638,15 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
   printf("%zu\n", max);
   printf("%.3lf\n", (double) max * a->n_p / nz);
   printf("%.3lf\n", (double) (total_bytes * CHAR_BIT - pointer_bytes * CHAR_BIT + max * a->n_p)/nz);
+
+  iv_t z;
+  iv_init(&z, a->n_p, max);
+  for(size_t i = 0; i < a->n_p; i++) {
+    iv_set(&z, i, a->pointers[i]);
+  }
+  for(size_t i = 0; i < a->n_p; i++) {
+    assert(iv_get(&z, i) == a->pointers[i]);
+  }
   return total_bytes;
 }
 
