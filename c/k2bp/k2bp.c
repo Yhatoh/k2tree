@@ -138,8 +138,8 @@ void k2bp_free(k2bp_t* a) {
   if(a->leavesinfo != NULL)
     free(a->leavesinfo);
 
-  if(a->pointers != NULL)
-    free(a->pointers);
+  if(a->pointers.data != NULL)
+    iv_free(&(a->pointers));
 
   a->l = NULL;
   a->exc_min_samples = NULL;
@@ -348,7 +348,7 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
     fclose(f);
   }
 
-  if(a->pointers != NULL) {
+  if(a->pointers.data != NULL) {
     char sub_name[1000];
     strcpy(sub_name, fname);
     strcat(sub_name, ".p");
@@ -360,8 +360,11 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
     w = fwrite(&(a->n_p), sizeof(size_t), 1, f);
     if(w != 1)
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
-    w = fwrite(a->pointers, sizeof(size_t), a->n_p, f);
-    if(w != a->n_p)
+    w = fwrite(&(a->pointers.w), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(a->pointers.data, sizeof(uint64_t), (a->n_p + 64 - 1) / 64, f);
+    if(w != (a->n_p + 64 - 1) / 64)
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
   }
 }
@@ -494,9 +497,13 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
     w = fread(&(a->n_p), sizeof(size_t), 1, f);
     if(w != 1)
       quit("k2bp_save_to_file: error reading in file", __LINE__, __FILE__);
-    a->pointers = (size_t*) malloc(sizeof(size_t) * a->n_p);
-    w = fread(a->pointers, sizeof(size_t), a->n_p, f);
-    if(w != a->n_p)
+    w = fread(&(a->pointers.w), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_save_to_file: error reading in file", __LINE__, __FILE__);
+    a->pointers.n = a->n_p;
+    a->pointers.data = (uint64_t*) malloc(sizeof(uint64_t) * (a->n_p + 64 - 1) / 64);
+    w = fread(a->pointers.data, sizeof(uint64_t), (a->n_p + 64 - 1) / 64, f);
+    if(w != (a->n_p + 64 - 1) / 64)
       quit("k2bp_save_to_file: error reading in file", __LINE__, __FILE__);
   }
 }
@@ -537,7 +544,7 @@ void k2bp_dfs(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t* nodes, size_t* l
   }
 
   if(bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
-    size_t det = a->pointers[pos_a->i_p];
+    size_t det = iv_get(&(a->pointers), pos_a->i_p);
     k2bp_traversal_t new_pos = K2BP_TRAVERSAL_INITIALIZER;
     k2bp_init_traversalinfo(pos_a, &(new_pos));
     new_pos.i_t = det;
@@ -584,7 +591,7 @@ size_t k2bp_stats(const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz) {
   *nodes = *nz = *leaves = 0;
   k2bp_traversal_t pos_a = K2BP_TRAVERSAL_INITIALIZER;
   pos_a.msize = a->msize;
-  if(a->pointers != NULL)
+  if(a->pointers.data != NULL)
     build_rank_p(&pos_a, a);
   k2bp_dfs(&pos_a, a, nodes, leaves, nz, &levels, 0);
   if(pos_a.rank_pointers != NULL)
@@ -623,33 +630,14 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
   }
   fprintf(f, "  sub size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", sub_bytes, sub_bytes * CHAR_BIT, (double) sub_bytes * CHAR_BIT / nz);
   size_t pointer_bytes = 0;
-  if(a->pointers != NULL) {
-    pointer_bytes = a->n_p * sizeof(size_t);
+  if(a->pointers.data != NULL) {
+    pointer_bytes = ((a->pointers.n + 64 - 1) / 64) * sizeof(uint64_t) + sizeof(iv_t);
   }
   fprintf(f, "  ptr size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", pointer_bytes, pointer_bytes * CHAR_BIT, (double) pointer_bytes * CHAR_BIT / nz);
   size_t total_bytes = bp_bytes + l_bytes + exc_bytes + sub_bytes + mic_bytes + sizeof(size_t) * 3 + pointer_bytes;
   fprintf(f, " total size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", total_bytes, total_bytes * CHAR_BIT, (double) total_bytes * CHAR_BIT / nz);
 
   printf("%zu\n", a->n_p);
-  size_t max = 0;
-  for(size_t i = 0; i < a->n_p; i++) {
-    if(ceil_log2(a->pointers[i]) > max) max = ceil_log2(a->pointers[i]);
-  }
-  printf("%zu\n", max);
-  printf("%.3lf\n", (double) max * a->n_p / nz);
-
-  iv_t z;
-  iv_init(&z, a->n_p, max);
-  for(size_t i = 0; i < a->n_p; i++) {
-    iv_set(&z, i, a->pointers[i]);
-  }
-  for(size_t i = 0; i < a->n_p; i++) {
-    assert(iv_get(&z, i) == a->pointers[i]);
-  }
-
-  printf("%.3lf\n", (double) ((max * a->n_p + 63) / 64) * 64 / nz);
-  iv_free(&z);
-  printf("%.3lf\n", (double) (total_bytes * CHAR_BIT - pointer_bytes * CHAR_BIT + ((max * a->n_p + 63) / 64) * 64)/nz);
   return total_bytes;
 }
 
@@ -830,10 +818,19 @@ void k2bp_compress_subtrees(const k2bp_t* a, k2bp_t* c, size_t limit) {
   }
   bv_shrink(&(c->t));
   
+  size_t max = 0;
+  for(size_t i = 0; i < a->n_p; i++) {
+    if(ceil_log2(pointers.v[i]) > max) max = ceil_log2(pointers.v[i]);
+  }
+//  c->n_p = pointers.n;
+//  c->pointers = (size_t*) malloc(sizeof(size_t) * pointers.n);
+//  for(size_t i = 0; i < pointers.n; i++) {
+//    c->pointers[i] = pointers.v[i];
+//  }
   c->n_p = pointers.n;
-  c->pointers = (size_t*) malloc(sizeof(size_t) * pointers.n);
-  for(size_t i = 0; i < pointers.n; i++) {
-    c->pointers[i] = pointers.v[i];
+  iv_init(&(c->pointers), c->n_p, max);
+  for(size_t i = 0; i < c->n_p; i++) {
+    iv_set(&(c->pointers), i, pointers.v[i]);
   }
 
   vu64_free(&pointers);
@@ -926,7 +923,7 @@ static void reck2bp_decompress_subtrees(k2bp_traversal_t* pos_c, const k2bp_t* c
   }
 
   if(bv_get_int(&(c->t), pos_c->i_t, 6) == LEAF_P) {
-    size_t det = c->pointers[pos_c->i_p];
+    size_t det = iv_get(&(c->pointers), pos_c->i_p);
     k2bp_traversal_t new_pos = K2BP_TRAVERSAL_INITIALIZER;
     k2bp_init_traversalinfo(pos_c, &(new_pos));
     new_pos.i_t = det;

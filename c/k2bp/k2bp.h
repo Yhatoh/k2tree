@@ -64,7 +64,7 @@ typedef struct k2bp_t {
 
   // pointers info
   size_t n_p;
-  size_t* pointers;
+  iv_t pointers;
 
 } k2bp_t;
 
