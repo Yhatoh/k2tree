@@ -10,6 +10,7 @@
 #include "util.h"
 #include "../util/bv_t.h"
 #include "../util/iv.h"
+#include "../util/dacs.h"
 #include "../util/vu64.h"
 #include "../util/dsu.h"
 #include "../../libsais/include/libsais64.h"
@@ -640,6 +641,13 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
   size_t total_bytes = bp_bytes + l_bytes + exc_bytes + sub_bytes + mic_bytes + sizeof(size_t) * 3 + pointer_bytes;
   fprintf(f, " total size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", total_bytes, total_bytes * CHAR_BIT, (double) total_bytes * CHAR_BIT / nz);
 
+  uint64_t leaves__[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+  for(size_t i = 0; i < a->n_l; i++) {
+    leaves__[k2bp_read_leaf(a, i)]++;
+  }
+  for(size_t i = 0; i < 16; i++) {
+    printf("%" PRIu64 "\n", leaves__[i]);
+  }
   return total_bytes;
 }
 
