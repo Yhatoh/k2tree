@@ -68,7 +68,7 @@ typedef struct k2bp_t {
 
 } k2bp_t;
 
-#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, 0, NULL}
+#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, 0, {0, 0, NULL}}
 
 // k2 tree operations
 size_t k2bp_build_from_textfile(k2bp_t* a, const char* f, size_t fsize);
