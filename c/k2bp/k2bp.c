@@ -503,7 +503,7 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
     a->pointers.n = a->n_p;
     a->pointers.data = (uint64_t*) malloc(sizeof(uint64_t) * ((a->n_p * a->pointers.w) + 64 - 1) / 64);
     w = fread(a->pointers.data, sizeof(uint64_t), ((a->n_p * a->pointers.w) + 64 - 1) / 64, f);
-    if(w != ((a->n_p * w) + 64 - 1) / 64)
+    if(w != ((a->n_p * a->pointers.w) + 64 - 1) / 64)
       quit("k2bp_save_to_file: error reading in file", __LINE__, __FILE__);
   }
 }
