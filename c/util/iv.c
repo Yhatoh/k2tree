@@ -9,7 +9,7 @@ void iv_init(iv_t* z, size_t n, uint8_t w) {
 
   z->n = n;
   z->w = w;
-  z->data = (uint64_t*) malloc(sizeof(uint64_t) * ((n + 64 - 1) / 64));
+  z->data = (uint64_t*) malloc(sizeof(uint64_t) * (((n * w) + 64 - 1) / 64 + 2));
 }
 
 uint64_t iv_get(const iv_t* z, size_t i) {
