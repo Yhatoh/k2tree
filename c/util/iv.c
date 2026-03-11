@@ -21,7 +21,7 @@ uint64_t iv_get(const iv_t* z, size_t i) {
 
   size_t ret = z->data[block] >> offset;
   if(offset + z->w > 64) {
-    ret |= z->data[block] << (64 - offset);
+    ret |= z->data[block + 1] << (64 - offset);
   }
 
   return ret & ((1ULL << z->w) - 1);
