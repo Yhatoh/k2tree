@@ -628,6 +628,15 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
   fprintf(f, "  ptr size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", pointer_bytes, pointer_bytes * CHAR_BIT, (double) pointer_bytes * CHAR_BIT / nz);
   size_t total_bytes = bp_bytes + l_bytes + exc_bytes + sub_bytes + mic_bytes + sizeof(size_t) * 3 + pointer_bytes;
   fprintf(f, " total size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", total_bytes, total_bytes * CHAR_BIT, (double) total_bytes * CHAR_BIT / nz);
+
+  printf("%zu\n", a->n_p);
+  size_t max = 0;
+  for(size_t i = 0; i < a->n_p; i++) {
+    if(ceil_log2(a->pointers[i]) > max) max = ceil_log2(a->pointers[i]);
+  }
+  printf("%zu\n", max);
+  printf("%.3lf\n", (double) max * a->n_p / nz);
+  printf("%.3lf\n", (double) (total_bytes * CHAR_BIT - pointer_bytes * CHAR_BIT + max * a->n_p)/nz);
   return total_bytes;
 }
 
