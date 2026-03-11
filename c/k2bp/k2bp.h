@@ -28,10 +28,11 @@ typedef struct k2bp_traversal_t {
   uint32_t leaves;
   int16_t excess;
   size_t i_p;
-  uint64_t* rank;
+  uint8_t flag_p;
+  uint64_t* rank_pointers;
 } k2bp_traversal_t;
 
-#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL}
+#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL}
 
 typedef struct k2bp_t {
   size_t msize; // pow 2 matrix size
@@ -63,6 +64,7 @@ typedef struct k2bp_t {
   // pointers info
   size_t n_p;
   size_t* pointers;
+
 } k2bp_t;
 
 #define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, 0, NULL}

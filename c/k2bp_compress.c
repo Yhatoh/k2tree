@@ -45,13 +45,16 @@ int main(int argc, char* argv[]) {
   if(check) {
     k2bp_t da = K2BP_INITIALIZER;
     k2bp_decompress_subtrees(&ca, &da);
-    assert(k2bp_equal(&da, &ca) == 1);
+    assert(k2bp_equal(&da, &a) == 1);
     k2bp_free(&da);
   }
+
 
   char fname_save[1000];
   strcpy(fname_save, argv[1]);
   strcat(fname_save, ".c");
+  k2bp_show_stats(&a, fname, stdout);
+  k2bp_show_stats(&ca, fname_save, stdout);
   k2bp_save_to_file(&ca, fname_save);
 
   k2bp_free(&ca);
