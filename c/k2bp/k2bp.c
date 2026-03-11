@@ -10,7 +10,6 @@
 #include "util.h"
 #include "../util/bv_t.h"
 #include "../util/iv.h"
-#include "../util/dacs.h"
 #include "../util/vu64.h"
 #include "../util/dsu.h"
 #include "../../libsais/include/libsais64.h"
