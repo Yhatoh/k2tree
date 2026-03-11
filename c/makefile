@@ -1,33 +1,45 @@
-CC = gcc
-CFLAGS = -O3
+CC      = gcc
+CFLAGS  = -O3
 LDFLAGS =
+UTIL_DIR = util
+K2BP_DIR = k2bp
+CSR_DIR  = csr
+LIBSAIS  = ../libsais/liblibsais.a
 
-bv_test:
-	$(CC) bv.c util/bv_t.c util/randomer_t.c $(CFLAGS) -o bv.x
+# Collect common source groups
+UTIL_SRC   = $(wildcard $(UTIL_DIR)/*.c)
+K2BP_SRC   = $(wildcard $(K2BP_DIR)/*.c)
+CSR_SRC    = $(wildcard $(CSR_DIR)/*.c)
 
-k2bp_build:
-	$(CC) k2bp_build.c util/bv_t.c util/iv.c util/dsu.c util/vu64.c k2bp/k2bp.c csr/csr.c util/cmp.c ../libsais/liblibsais.a $(CFLAGS) -o k2bp_build.x
+# Rules for each tool
+bv_test: bv.c $(UTIL_SRC)
+	$(CC) $^ $(CFLAGS) -o bv.x
 
-k2bp_info:
-	$(CC) k2bp_info.c util/bv_t.c util/iv.c util/dsu.c util/vu64.c k2bp/k2bp.c ../libsais/liblibsais.a $(CFLAGS) -o k2bp_info.x
+k2bp_build: k2bp_build.c $(UTIL_SRC) $(K2BP_SRC) $(CSR_SRC) $(LIBSAIS)
+	$(CC) $^ $(CFLAGS) -o k2bp_build.x
 
-k2bp_addinfo:
-	$(CC) k2bp_addinfo.c util/bv_t.c util/iv.c util/dsu.c util/vu64.c k2bp/k2bp.c ../libsais/liblibsais.a $(CFLAGS) -lm -o k2bp_addinfo.x
+k2bp_info: k2bp_info.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
+	$(CC) $^ $(CFLAGS) -o k2bp_info.x
 
-k2bp_sum:
-	$(CC) k2bp_sum.c util/bv_t.c util/iv.c util/dsu.c util/vu64.c k2bp/k2bp.c ../libsais/liblibsais.a $(CFLAGS) -lm -o k2bp_sum.x
+k2bp_addinfo: k2bp_addinfo.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
+	$(CC) $^ $(CFLAGS) -lm -o k2bp_addinfo.x
 
-k2bp_mul:
-	$(CC) k2bp_mul.c util/bv_t.c util/iv.c util/dsu.c util/vu64.c k2bp/k2bp.c ../libsais/liblibsais.a $(CFLAGS) -lm -o k2bp_mul.x
+k2bp_sum: k2bp_sum.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
+	$(CC) $^ $(CFLAGS) -lm -o k2bp_sum.x
 
-k2bp_compress:
-	$(CC) k2bp_compress.c util/bv_t.c util/iv.c util/dsu.c util/vu64.c k2bp/k2bp.c ../libsais/liblibsais.a $(CFLAGS) -lm -o k2bp_compress.x
+k2bp_mul: k2bp_mul.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
+	$(CC) $^ $(CFLAGS) -lm -o k2bp_mul.x
 
-genrandmatrix:
-	$(CC) genrandmatrix.c $(CFLAGS) -o genrandmatrix.x
+k2bp_compress: k2bp_compress.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
+	$(CC) $^ $(CFLAGS) -lm -o k2bp_compress.x
 
+genrandmatrix: genrandmatrix.c
+	$(CC) $^ $(CFLAGS) -o genrandmatrix.x
 
 all: bv_test k2bp_build k2bp_info k2bp_addinfo k2bp_sum k2bp_mul genrandmatrix k2bp_compress
 
 release: CFLAGS += -DNDEBUG
 release: all
+
+clean:
+	rm -f *.x
