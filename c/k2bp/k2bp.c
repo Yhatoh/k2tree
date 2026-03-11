@@ -822,11 +822,6 @@ void k2bp_compress_subtrees(const k2bp_t* a, k2bp_t* c, size_t limit) {
   for(size_t i = 0; i < a->n_p; i++) {
     if(ceil_log2(pointers.v[i]) > max) max = ceil_log2(pointers.v[i]);
   }
-//  c->n_p = pointers.n;
-//  c->pointers = (size_t*) malloc(sizeof(size_t) * pointers.n);
-//  for(size_t i = 0; i < pointers.n; i++) {
-//    c->pointers[i] = pointers.v[i];
-//  }
   c->n_p = pointers.n;
   iv_init(&(c->pointers), c->n_p, max);
   for(size_t i = 0; i < c->n_p; i++) {
