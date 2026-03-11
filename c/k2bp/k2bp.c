@@ -611,6 +611,9 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
 
   fprintf(f, " nonzeros: %zu, nonzeros x row: %.3lf\n", nz, (double) nz / a->rmsize);
   fprintf(f, " levels: %zu, nodes: %zu, leaves: %zu\n", levels, nodes, leaves);
+  if(a->pointers.data != NULL) {
+    fprintf(f, " pointers: %zu\n", a->n_p);
+  }
   size_t bp_bytes = sizeof(bv_t) + (a->t.n + 64 - 1) / 64 * sizeof(uint64_t);
   fprintf(f, " size by parts\n");
   fprintf(f, "  bp  size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", bp_bytes, bp_bytes * CHAR_BIT, (double) bp_bytes * CHAR_BIT / nz);
