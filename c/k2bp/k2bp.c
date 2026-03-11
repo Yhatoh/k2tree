@@ -637,7 +637,6 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
   }
   printf("%zu\n", max);
   printf("%.3lf\n", (double) max * a->n_p / nz);
-  printf("%.3lf\n", (double) (total_bytes * CHAR_BIT - pointer_bytes * CHAR_BIT + max * a->n_p)/nz);
 
   iv_t z;
   iv_init(&z, a->n_p, max);
@@ -647,6 +646,10 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
   for(size_t i = 0; i < a->n_p; i++) {
     assert(iv_get(&z, i) == a->pointers[i]);
   }
+
+  printf("%.3lf\n", (double) ((max * a->n_p + 63) / 64) * 64 / nz);
+  iv_free(&z);
+  printf("%.3lf\n", (double) (total_bytes * CHAR_BIT - pointer_bytes * CHAR_BIT + ((max * a->n_p + 63) / 64) * 64)/nz);
   return total_bytes;
 }
 
