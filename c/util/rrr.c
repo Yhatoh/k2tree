@@ -33,7 +33,7 @@ void rrr_compress(rrr_t* rrr, uint8_t b, uint8_t* bits, size_t n) {
       j++;
     }
     iv_set(&(rrr->c), curr_pair, class);
-    bv_append_uw(&(rrr->o), offset, l[class]);
+    bv_append_uw(&(rrr->o), offset, l[class] + 1);
     curr_pair++;
   }
   bv_shrink(&(rrr->o));
@@ -53,7 +53,7 @@ void rrr_decompress(rrr_t* rrr, uint8_t** bits, size_t* n) {
   size_t curr_bit = 0;
   for(size_t i = 0; i < rrr->c.n; i++) {
     size_t class = iv_get(&(rrr->c), i);
-    size_t offset = bv_get_int(&(rrr->o), curr_bit_o, l[class]);
+    size_t offset = bv_get_int(&(rrr->o), curr_bit_o, l[class] + 1);
     curr_bit_o += l[class];
 
     size_t j = 0;
