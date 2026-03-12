@@ -54,6 +54,9 @@ int main(int argc, char* argv[]) {
   strcpy(fname, argv[1]);
   k2bp_t a = K2BP_INITIALIZER;
   k2bp_build_from_textfile(&a, fname, size);
+  if(cleaves) {
+    k2bp_compress_leaves(&a);
+  }
 
   if(not_save == 0) {
     char k2fname[1000];
