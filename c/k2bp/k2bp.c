@@ -12,6 +12,7 @@
 #include "../util/iv.h"
 #include "../util/vu64.h"
 #include "../util/dsu.h"
+#include "../util/rrr.h"
 #include "../../libsais/include/libsais64.h"
 
 static size_t binsearch(uint64_t *ia, size_t n, uint64_t x);
@@ -647,9 +648,12 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
   for(size_t i = 0; i < 16; i++) {
     printf("%" PRIu64 "\n", leaves__[i]);
   }
-
-  printf("%zu %zu %.3lf\n", nz, a->n_l * 4, (double) nz / (a->n_l * 4));
-
+  rrr_t rrr;
+  rrr_compress(&rrr, 63, a->l, a->n_l * 4);
+  size_t rrrbytes = sizeof(size_t) + sizeof(uint8_t) + sizeof(uint64_t) +
+                    sizeof(size_t) + sizeof(uint8_t) + sizeof(uint64_t) * (rrr.c.n + 63) / 64 +
+                    sizeof(size_t) + sizeof(size_t) + sizeof(uint64_t) * (rrr.o.n + 64 - 1) / 64;
+  printf("%zu %.3lf\n", rrrbytes, (double) rrrbytes * CHAR_BIT / nz);
   return total_bytes;
 }
 
