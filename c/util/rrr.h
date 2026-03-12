@@ -16,6 +16,6 @@ typedef struct rrr_t {
 
 void rrr_compress(rrr_t* rrr, uint8_t b, uint8_t* bits, size_t n);
 void rrr_free(rrr_t* rrr);
-void rrr_decompress(rrr_t* rrr, uint8_t* bits, size_t* n);
+void rrr_decompress(rrr_t* rrr, uint8_t** bits, size_t* n);
 
 #endif

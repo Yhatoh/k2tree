@@ -15,6 +15,8 @@
 #include "../util/rrr.h"
 #include "../../libsais/include/libsais64.h"
 
+#include <time.h> // remove this later
+
 static size_t binsearch(uint64_t *ia, size_t n, uint64_t x);
 static uint64_t *create_ia(FILE *f, size_t *n, size_t *msize, size_t xsize);
 static size_t create_k2bp(uint64_t ia[], size_t n, size_t msize, k2bp_t *a);
@@ -654,6 +656,20 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
                     sizeof(size_t) + sizeof(uint8_t) + sizeof(uint64_t) * (rrr.c.n + 63) / 64 +
                     sizeof(size_t) + sizeof(size_t) + sizeof(uint64_t) * (rrr.o.n + 64 - 1) / 64;
   printf("%zu %.3lf\n", rrrbytes, (double) rrrbytes * CHAR_BIT / nz);
+
+  uint8_t* bits;
+  size_t n_check;
+  clock_t start = clock();
+  rrr_decompress(&rrr, &bits, &n_check);
+  clock_t end = clock();
+  float seconds = (float)(end - start) / CLOCKS_PER_SEC;
+  printf("%f\n", seconds / 60);
+  printf("%zu\n", n_check);
+  for(size_t i = 0; i < n_check; i++) {
+    if((a->l[i/8] & (1 << (i % 8))) != (bits[i/8] & (1 << (i % 8)))) {
+      exit(1);
+    }
+  }
   return total_bytes;
 }
 

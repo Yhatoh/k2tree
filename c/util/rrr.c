@@ -45,5 +45,25 @@ void rrr_free(rrr_t* rrr) {
   bv_free(&(rrr->o));
 }
 
-void rrr_decompress(rrr_t* rrr, uint8_t* bits, size_t* n) {
+void rrr_decompress(rrr_t* rrr, uint8_t** bits, size_t* n) {
+  *n = rrr->n;
+  *bits = (uint8_t*) calloc((rrr->n + 8 - 1) / 8, sizeof(uint8_t));
+
+  size_t curr_bit_o = 0;
+  size_t curr_bit = 0;
+  for(size_t i = 0; i < rrr->c.n; i++) {
+    size_t class = iv_get(&(rrr->c), i);
+    size_t offset = bv_get_int(&(rrr->o), curr_bit_o, l[class]);
+    curr_bit_o += l[class];
+
+    size_t j = 0;
+    while(class > 0) {
+      if(offset >= comb[rrr->b - j - 1][class]) {
+        (*bits)[(curr_bit + j) / 8] |= (1 << ((curr_bit + j) % 8));
+        offset -= comb[rrr->b - j - 1][class];
+        class--;
+      }
+      j++;
+    }
+  }
 }
