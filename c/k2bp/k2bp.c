@@ -647,18 +647,9 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
   for(size_t i = 0; i < 16; i++) {
     printf("%" PRIu64 "\n", leaves__[i]);
   }
-  size_t rle = 0;
-  size_t run = 0;
-  size_t symb = 16;
-  for(size_t i = 0; i < a->n_l; i++) {
-    if(symb != a->l[i]) {
-      rle += 32 + 4;
-      symb = a->l[i];
-      run = 1;
-    }
-  }
 
-  printf("%.3lf\n", (double) rle / nz);
+  printf("%zu %zu %.3lf\n", nz, a->n_l * 4, (double) nz / (a->n_l * 4));
+
   return total_bytes;
 }
 
