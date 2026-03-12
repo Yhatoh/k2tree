@@ -48,7 +48,19 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
 
 static void reck2bp_decompress_subtrees(k2bp_traversal_t* pos_c, const k2bp_t* c, k2bp_t* a);
 
-uint8_t k2bp_equal(const k2bp_t* a, const k2bp_t* b) {
+void k2bp_compress_leaves(k2bp_t* a) {
+  rrr_compress(&(a->cl), 64, a->l, a->n_l * 4);
+  free(a->l);
+}
+
+void k2bp_decompress_leaves(k2bp_t* a) {
+  rrr_decompress(&(a->cl), &(a->l), &a->n_l);
+  a->n_l /= 4;
+  a->maxn_l = (a->n_l + 2 - 1) / 2;
+  rrr_free(&(a->cl));
+}
+
+uint8_t k2bp_equal(k2bp_t* a, k2bp_t* b) {
   if(a->t.n != b->t.n) return 0;
 
   for(size_t i = 0; i < a->t.n; i++) {
@@ -56,12 +68,28 @@ uint8_t k2bp_equal(const k2bp_t* a, const k2bp_t* b) {
       return 0;
     }
   }
+  size_t flag_a = 0;
+  if(a->l == NULL) {
+    flag_a = 1;
+    k2bp_decompress_leaves(a);
+  }
+  size_t flag_b = 0;
+  if(b->l == NULL) {
+    flag_b = 1;
+    k2bp_decompress_leaves(b);
+  }
 
   if(a->n_l != b->n_l) return 0;
   for(size_t i = 0; i < a->n_l; i++) {
     if(k2bp_read_leaf(a, i) != k2bp_read_leaf(b, i)) {
       return 0;
     }
+  }
+  if(flag_a) {
+    k2bp_decompress_leaves(a);
+  }
+  if(flag_b) {
+    k2bp_decompress_leaves(b);
   }
   return 1;
 }
@@ -129,6 +157,10 @@ void k2bp_free(k2bp_t* a) {
   if(a->l != NULL)
     free(a->l);
 
+  if(a->cl.c.data != NULL) {
+    rrr_free(&(a->cl));
+  }
+
   if(a->exc_min_samples != NULL)
     free(a->exc_min_samples);
   if(a->exc_samples != NULL)
@@ -156,15 +188,23 @@ void k2bp_free(k2bp_t* a) {
 // the entries of the array the following format
 //  x1 y1 x2 y2 ... xm ym
 // n is the size of the array (by consequence n = 2 * m)
-uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n) {
+uint32_t* k2bp_nonzeros(k2bp_t* a, size_t* n) {
   uint32_t* arr = (uint32_t*) malloc(sizeof(uint32_t) * (a->m * 2));
   *n = 0;
   k2bp_traversal_t pos_a = {a->msize, 0, 0, 0, 0, 0, 0, 0, 0};
+  size_t flag_a = 0;
+  if(a->l == NULL) {
+    flag_a = 1;
+    k2bp_decompress_leaves(a);
+  }
   reck2bp_nonzeros(&pos_a, a, arr, n);
+  if(flag_a) {
+    k2bp_compress_leaves(a);
+  }
   return arr;
 }
 
-void k2bp_sum(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
+void k2bp_sum(k2bp_t *a, k2bp_t *b, k2bp_t *c) {
   assert(a != NULL && b != NULL && c != NULL);
   c->msize = a->msize;
   c->rmsize = a->rmsize;
@@ -177,6 +217,16 @@ void k2bp_sum(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
 
   k2bp_traversal_t pos_a = K2BP_TRAVERSAL_INITIALIZER;
   k2bp_traversal_t pos_b = K2BP_TRAVERSAL_INITIALIZER;
+  size_t flag_a = 0;
+  if(a->l == NULL) {
+    flag_a = 1;
+    k2bp_decompress_leaves(a);
+  }
+  size_t flag_b = 0;
+  if(b->l == NULL) {
+    flag_b = 1;
+    k2bp_decompress_leaves(b);
+  }
 
   pos_a.msize = a->msize;
   pos_b.msize = b->msize;
@@ -187,10 +237,16 @@ void k2bp_sum(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
   pos_a.leaves = a->n_l;
   pos_b.leaves = b->n_l;
   reck2bp_sum(&pos_a, a, &pos_b, b, c);
+  if(flag_a) {
+    k2bp_compress_leaves(a);
+  }
+  if(flag_b) {
+    k2bp_compress_leaves(b);
+  }
   return;
 }
 
-void k2bp_scansum(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
+void k2bp_scansum(k2bp_t *a, k2bp_t *b, k2bp_t *c) {
   assert(a != NULL && b != NULL && c != NULL);
   c->msize = a->msize;
   c->rmsize = a->rmsize;
@@ -204,6 +260,16 @@ void k2bp_scansum(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
   k2bp_traversal_t pos_a = K2BP_TRAVERSAL_INITIALIZER;
   k2bp_traversal_t pos_b = K2BP_TRAVERSAL_INITIALIZER;
 
+  size_t flag_a = 0;
+  if(a->l == NULL) {
+    flag_a = 1;
+    k2bp_decompress_leaves(a);
+  }
+  size_t flag_b = 0;
+  if(b->l == NULL) {
+    flag_b = 1;
+    k2bp_decompress_leaves(b);
+  }
   pos_a.msize = a->msize;
   pos_b.msize = b->msize;
   pos_a.excess = 1;
@@ -213,10 +279,16 @@ void k2bp_scansum(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
   pos_a.leaves = a->n_l;
   pos_b.leaves = b->n_l;
   reck2bp_scansum(&pos_a, a, &pos_b, b, c);
+  if(flag_a) {
+    k2bp_compress_leaves(a);
+  }
+  if(flag_b) {
+    k2bp_compress_leaves(b);
+  }
   return;
 }
 
-void k2bp_mul(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
+void k2bp_mul(k2bp_t *a, k2bp_t *b, k2bp_t *c) {
   assert(a != NULL && b != NULL && c != NULL);
 
   c->msize = a->msize;
@@ -230,6 +302,17 @@ void k2bp_mul(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
 
   k2bp_traversal_t pos_a = K2BP_TRAVERSAL_INITIALIZER;
   k2bp_traversal_t pos_b = K2BP_TRAVERSAL_INITIALIZER;
+  size_t flag_a = 0;
+  if(a->l == NULL) {
+    flag_a = 1;
+    k2bp_decompress_leaves(a);
+  }
+  size_t flag_b = 0;
+  if(b->l == NULL) {
+    flag_b = 1;
+    k2bp_decompress_leaves(b);
+  }
+
 
   pos_a.msize = a->msize;
   pos_b.msize = b->msize;
@@ -240,6 +323,12 @@ void k2bp_mul(const k2bp_t *a, const k2bp_t *b, k2bp_t *c) {
   pos_a.leaves = a->n_l;
   pos_b.leaves = b->n_l;
   reck2bp_mul(&pos_a, a, &pos_b, b, c);
+  if(flag_a) {
+    k2bp_compress_leaves(a);
+  }
+  if(flag_b) {
+    k2bp_compress_leaves(b);
+  }
   return;
 }
 
@@ -290,15 +379,52 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
   if(f == NULL)
     quit("k2bp_save_to_file: file cannot be open", __LINE__, __FILE__);
 
-  w = fwrite(&(a->maxn_l), sizeof(size_t), 1, f);
-  if(w != 1)
-    quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
-  w = fwrite(&(a->n_l), sizeof(size_t), 1, f);
-  if(w != 1)
-    quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
-  w = fwrite(a->l, sizeof(uint8_t), (a->n_l + 1)/ 2, f);
-  if(w != (a->n_l + 1) / 2)
-    quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+  if(a->l != NULL) {
+    size_t flag = 0;
+    w = fwrite(&(flag), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->maxn_l), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->n_l), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(a->l, sizeof(uint8_t), (a->n_l + 1)/ 2, f);
+    if(w != (a->n_l + 1) / 2)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+  } else {
+    size_t flag = 0;
+    w = fwrite(&(flag), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->cl.n), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->cl.b), sizeof(uint8_t), 1, f);
+    if(w != 1)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->cl.logb), sizeof(uint64_t), 1, f);
+    if(w != 1)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+
+    w = fwrite(&(a->cl.c.n), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->cl.c.w), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->cl.c.data), sizeof(uint64_t), (a->cl.c.n + 64 - 1) / 64, f);
+    if(w != (a->cl.c.n + 64 - 1) / 64)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+
+    w = fwrite(&(a->cl.o.n), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+    w = fwrite(&(a->cl.o.a), sizeof(uint64_t), (a->cl.c.n + 64 - 1) / 64, f);
+    if(w != (a->cl.o.n + 64 - 1) / 64)
+      quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
+  }
 
   fclose(f);
 
@@ -424,18 +550,54 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
   if(f == NULL)
     quit("k2bp_load_from_file: file cannot be open", __LINE__, __FILE__);
 
-  w = fread(&(a->maxn_l), sizeof(size_t), 1, f);
-  if(w != 1)
-    quit("k2bp_load_from_file: error reading from file", __LINE__, __FILE__);
-  w = fread(&(a->n_l), sizeof(size_t), 1, f);
-  if(w != 1)
-    quit("k2bp_load_from_file: error reading from file", __LINE__, __FILE__);
+  size_t flag = 0;
+  w = fread(&(flag), sizeof(size_t), 1, f);
+  if(w != 1) 
+      quit("k2bp_load_from_file: error reading from file", __LINE__, __FILE__);
 
-  a->l = (uint8_t*) malloc(sizeof(uint8_t) * a->maxn_l / 2);
+  if(flag == 0) {
+    w = fread(&(a->maxn_l), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
+    w = fread(&(a->n_l), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
+    a->l = (uint8_t*) malloc(sizeof(uint8_t) * (a->n_l + 1) / 2);
+    w = fread(a->l, sizeof(uint8_t), (a->n_l + 1)/ 2, f);
+    if(w != (a->n_l + 1) / 2)
+      quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
+  } else {
+    w = fread(&(a->cl.n), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
+    a->n_l = a->cl.n / 4;
+    w = fread(&(a->cl.b), sizeof(uint8_t), 1, f);
+    if(w != 1)
+      quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
+    w = fread(&(a->cl.logb), sizeof(uint64_t), 1, f);
+    if(w != 1)
+      quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
 
-  w = fread(a->l, sizeof(uint8_t), (a->n_l + 1) / 2, f);
-  if(w != (a->n_l + 1) / 2)
-    quit("k2bp_load_from_file: error reading from file", __LINE__, __FILE__);
+    w = fread(&(a->cl.c.n), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
+    w = fread(&(a->cl.c.w), sizeof(size_t), 1, f);
+    if(w != 1)
+      quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
+    a->cl.c.data = (uint64_t*) malloc(sizeof(uint64_t) * (a->cl.c.n + 64 - 1) / 64);
+    w = fread(&(a->cl.c.data), sizeof(uint64_t), (a->cl.c.n + 64 - 1) / 64, f);
+    if(w != (a->cl.c.n + 64 - 1) / 64)
+      quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
+
+    w = fread(&(a->cl.o.n), sizeof(size_t), 1, f);
+    a->cl.o.maxn = (a->cl.o.n + 64 - 1) / 64;
+    if(w != 1)
+      quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
+    a->cl.o.a = (uint64_t*) malloc(sizeof(uint64_t) * (a->cl.o.n + 64 - 1) / 64);
+    w = fread(&(a->cl.o.a), sizeof(uint64_t), (a->cl.c.n + 64 - 1) / 64, f);
+    if(w != (a->cl.o.n + 64 - 1) / 64)
+      quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
+  }
 
   fclose(f);
 
@@ -596,21 +758,30 @@ size_t k2bp_stats(const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz) {
   pos_a.msize = a->msize;
   if(a->pointers.data != NULL)
     build_rank_p(&pos_a, a);
+
   k2bp_dfs(&pos_a, a, nodes, leaves, nz, &levels, 0);
   if(pos_a.rank_pointers != NULL)
     free(pos_a.rank_pointers);
   return levels;
 }
 
-size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
+size_t k2bp_show_stats(k2bp_t *a, const char *fname, FILE *f) {
   fprintf(f, "file: %s\n", fname);
   fprintf(f, "matrix size: %zu, leaf size: %d, k2 internal size: %zu\n", a->rmsize, _K_, a->msize);
 
+  size_t flag = 0;
+  if(a->l == NULL) {
+    flag = 1;
+    k2bp_decompress_leaves(a);
+  }
   size_t nodes, leaves, nz;
   nodes = leaves = nz = 0;
   size_t levels = k2bp_stats(a, &nodes, &leaves, &nz);
   assert(nz == a->m);
   assert(((nodes + leaves) * 2) == a->t.n);
+  if(flag) {
+    k2bp_compress_leaves(a);
+  }
 
   fprintf(f, " nonzeros: %zu, nonzeros x row: %.3lf\n", nz, (double) nz / a->rmsize);
   fprintf(f, " levels: %zu, nodes: %zu, leaves: %zu\n", levels, nodes, leaves);
@@ -620,7 +791,14 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
   size_t bp_bytes = sizeof(bv_t) + (a->t.n + 64 - 1) / 64 * sizeof(uint64_t);
   fprintf(f, " size by parts\n");
   fprintf(f, "  bp  size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", bp_bytes, bp_bytes * CHAR_BIT, (double) bp_bytes * CHAR_BIT / nz);
-  size_t l_bytes = sizeof(size_t) * 2 + sizeof(uint8_t) * (a->n_l + 1) / 2;
+  size_t l_bytes = 0;
+  if(a->l != NULL) {
+    l_bytes = sizeof(size_t) * 2 + sizeof(uint8_t) * (a->n_l + 1) / 2;
+  } else {
+    l_bytes = sizeof(size_t) + sizeof(uint8_t) + sizeof(uint64_t) +
+      sizeof(size_t) + sizeof(uint8_t) + sizeof(uint64_t) * (a->cl.c.n + 63) / 64 +
+      sizeof(size_t) + sizeof(size_t) + sizeof(uint64_t) * (a->cl.o.n + 64 - 1) / 64;
+  }
   fprintf(f, "  l   size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", l_bytes, l_bytes * CHAR_BIT, (double) l_bytes * CHAR_BIT / nz);
   size_t exc_bytes = 0;
   size_t mic_bytes = 0;
@@ -643,33 +821,6 @@ size_t k2bp_show_stats(const k2bp_t *a, const char *fname, FILE *f) {
   size_t total_bytes = bp_bytes + l_bytes + exc_bytes + sub_bytes + mic_bytes + sizeof(size_t) * 3 + pointer_bytes;
   fprintf(f, " total size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", total_bytes, total_bytes * CHAR_BIT, (double) total_bytes * CHAR_BIT / nz);
 
-  uint64_t leaves__[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  for(size_t i = 0; i < a->n_l; i++) {
-    leaves__[k2bp_read_leaf(a, i)]++;
-  }
-  for(size_t i = 0; i < 16; i++) {
-    printf("%" PRIu64 "\n", leaves__[i]);
-  }
-  rrr_t rrr;
-  rrr_compress(&rrr, 63, a->l, a->n_l * 4);
-  size_t rrrbytes = sizeof(size_t) + sizeof(uint8_t) + sizeof(uint64_t) +
-                    sizeof(size_t) + sizeof(uint8_t) + sizeof(uint64_t) * (rrr.c.n + 63) / 64 +
-                    sizeof(size_t) + sizeof(size_t) + sizeof(uint64_t) * (rrr.o.n + 64 - 1) / 64;
-  printf("%zu %.3lf\n", rrrbytes, (double) rrrbytes * CHAR_BIT / nz);
-
-  uint8_t* bits;
-  size_t n_check;
-  clock_t start = clock();
-  rrr_decompress(&rrr, &bits, &n_check);
-  clock_t end = clock();
-  float seconds = (float)(end - start) / CLOCKS_PER_SEC;
-  printf("%f\n", seconds / 60);
-  printf("%zu\n", n_check);
-  for(size_t i = 0; i < n_check; i++) {
-    if((a->l[i/8] & (1 << (i % 8))) != (bits[i/8] & (1 << (i % 8)))) {
-      exit(1);
-    }
-  }
   return total_bytes;
 }
 
@@ -749,16 +900,25 @@ void k2bp_addsubtree_info(k2bp_t* a, size_t threshold) {
   vu64_free(&leavesinfo);
 }
 
-size_t k2bp_checksubtree_info(const k2bp_t* a) {
+size_t k2bp_checksubtree_info(k2bp_t* a) {
   assert(a != NULL);
   assert(a->t.a != NULL && a->l != NULL && a->subtreeinfo != NULL && a->leavesinfo != NULL);
 
   k2bp_traversal_t pos_a = {0, 0, 0, 0, 0, 0, a->t.n / 2, a->n_l, 0};
+  size_t flag = 0;
+  if(a->l == NULL) {
+    flag = 1;
+    k2bp_decompress_leaves(a);
+  }
   reck2bp_checksubtree_info(&pos_a, a);
+  if(flag) {
+    flag = 1;
+    k2bp_compress_leaves(a);
+  }
   return 1;
 }
 
-void k2bp_compress_subtrees(const k2bp_t* a, k2bp_t* c, size_t limit) {
+void k2bp_compress_subtrees(k2bp_t* a, k2bp_t* c, size_t limit) {
   assert(a != NULL && c != NULL);
   assert(limit > 0);
 
@@ -862,12 +1022,22 @@ void k2bp_compress_subtrees(const k2bp_t* a, k2bp_t* c, size_t limit) {
 
   vu64_free(&pointers);
 
+  size_t flag = 0;
+  if(a->l == NULL) {
+    flag = 1;
+    k2bp_decompress_leaves(a);
+  }
+
   free(prefix_help);
   c->n_l = 0;
   c->maxn_l = a->maxn_l;
   c->l = (uint8_t*) malloc(sizeof(uint8_t) * (a->maxn_l + 1) / 2);
   for(size_t i = 0; i < a->n_l; i++) {
     k2bp_write_leaf(c, k2bp_read_leaf(a, i));
+  }
+
+  if(flag) {
+    k2bp_compress_leaves(a);
   }
 
   if(a->subtreeinfo != NULL) {
@@ -886,7 +1056,7 @@ void k2bp_compress_subtrees(const k2bp_t* a, k2bp_t* c, size_t limit) {
   }
 }
 
-void k2bp_decompress_subtrees(const k2bp_t *c, k2bp_t *a) {
+void k2bp_decompress_subtrees(k2bp_t *c, k2bp_t *a) {
   a->msize = c->msize;
   a->rmsize = c->rmsize;
   a->m = c->m;
@@ -912,7 +1082,15 @@ void k2bp_decompress_subtrees(const k2bp_t *c, k2bp_t *a) {
 
   build_rank_p(&pos_c, c);
 
+  size_t flag = 0;
+  if(c->l == NULL) {
+    flag = 1;
+    k2bp_decompress_leaves(c);
+  }
   reck2bp_decompress_subtrees(&pos_c, c, a);
+  if(flag) {
+    k2bp_compress_leaves(c);
+  }
   free(pos_c.rank_pointers);
   assert(a->n_l == c->n_l);
 }

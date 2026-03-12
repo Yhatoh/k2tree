@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "../util/bv_t.h"
 #include "../util/iv.h"
+#include "../util/rrr.h"
 
 #define NUM_SUPPORT 40
 #define GET_NODES(x) (x & ((1ULL << NUM_SUPPORT) - 1))
@@ -48,6 +49,8 @@ typedef struct k2bp_t {
   size_t n_l;
   uint8_t* l;
 
+  rrr_t cl;
+
   // tree support helper
   //  child support
   //  amount of leaves for a subtree
@@ -68,7 +71,7 @@ typedef struct k2bp_t {
 
 } k2bp_t;
 
-#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, 0, {0, 0, NULL}}
+#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, {0, 0, 0, {0, 0, NULL}, {0, 0, NULL}}, NULL, NULL, NULL, 0, 0, NULL, NULL, 0, {0, 0, NULL}}
 
 // k2 tree operations
 size_t k2bp_build_from_textfile(k2bp_t* a, const char* f, size_t fsize);
@@ -80,13 +83,15 @@ void k2bp_dfs(k2bp_traversal_t* pos_a, const k2bp_t* a,
               size_t* nodes, size_t* leaves, size_t* nz, size_t* levels, size_t curr_level);
 void k2bp_build_exc_sampling(k2bp_t* a);
 void k2bp_addsubtree_info(k2bp_t* a, size_t threshold);
-size_t k2bp_checksubtree_info(const k2bp_t* a);
-uint8_t k2bp_equal(const k2bp_t* a, const k2bp_t* b);
-void k2bp_compress_subtrees(const k2bp_t* a, k2bp_t* c, size_t limit);
-void k2bp_decompress_subtrees(const k2bp_t* c, k2bp_t* a);
+size_t k2bp_checksubtree_info(k2bp_t* a);
+uint8_t k2bp_equal(k2bp_t* a, k2bp_t* b);
+void k2bp_compress_subtrees(k2bp_t* a, k2bp_t* c, size_t limit);
+void k2bp_decompress_subtrees(k2bp_t* c, k2bp_t* a);
+void k2bp_compress_leaves(k2bp_t* a);
+void k2bp_decompress_leaves(k2bp_t* a);
 
 // k2 tree information
-size_t k2bp_show_stats(const k2bp_t* a, const char* fname, FILE* f);
+size_t k2bp_show_stats(k2bp_t* a, const char* fname, FILE* f);
 size_t k2bp_stats(const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz);
 
 // io k2 tree
@@ -94,10 +99,10 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname);
 void k2bp_load_from_file(k2bp_t* a, const char* fname);
 
 // matrix operations
-uint32_t* k2bp_nonzeros(const k2bp_t* a, size_t* n);
-void k2bp_sum(const k2bp_t* a, const k2bp_t* b, k2bp_t* c);
-void k2bp_scansum(const k2bp_t* a, const k2bp_t* b, k2bp_t* c);
-void k2bp_mul(const k2bp_t* a, const k2bp_t* b, k2bp_t* c);
-void k2bp_scanmul(const k2bp_t* a, const k2bp_t* b, k2bp_t* c);
+uint32_t* k2bp_nonzeros(k2bp_t* a, size_t* n);
+void k2bp_sum(k2bp_t* a, k2bp_t* b, k2bp_t* c);
+void k2bp_scansum(k2bp_t* a, k2bp_t* b, k2bp_t* c);
+void k2bp_mul(k2bp_t* a, k2bp_t* b, k2bp_t* c);
+void k2bp_scanmul(k2bp_t* a, k2bp_t* b, k2bp_t* c);
 
 #endif

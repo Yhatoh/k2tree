@@ -17,13 +17,14 @@ int main(int argc, char* argv[]) {
   float p = -1LL;
   size_t size = 0;
   int check = 0;
+  int cleaves = 0;
   int not_save = 0;
   int c;
 
   while((c=getopt(argc, argv, "t:cs:hn")) != -1) {
     switch(c) {
-      case 't':
-        p = atof(optarg); break;
+      case 'l':
+        cleaves = 1; break;
       case 'c':
         check = 1; break;
       case 's':
@@ -98,8 +99,8 @@ void usage_and_exit(char* name) {
   fprintf(stderr, "Usage:\n\t%s [options] filename \n\n", name);
   fprintf(stderr, "Options:\n");
   fprintf(stderr, "\t-c      compressed->decompress->check\n");
+  fprintf(stderr, "\t-l      compress leaves using rrr vector for better space\n");
   fprintf(stderr, "\t-s S    matrix actual size (def. largest index + 1)\n");
-  fprintf(stderr, "\t-t p    use p * sqrt(S) as threshold for subtree information (def. don't add subtree information)\n");    
   fprintf(stderr, "\t-h      show this help message\n");    
   fprintf(stderr, "\t-n      don't save matrix, just check\n");    
   fprintf(stderr, "Compress filename\n\n");
