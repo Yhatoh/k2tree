@@ -15,6 +15,7 @@ void bv_init(bv_t* z);
 void bv_pb(bv_t* z, uint64_t bit); // tested
 void bv_append(bv_t* a, bv_t* b); // tested
 void bv_append_int(bv_t* z, uint64_t num); // tested
+void bv_append_uw(bv_t* z, uint64_t num, uint64_t w); // tested
 void bv_append_u16(bv_t* z, uint64_t num);
 void bv_free(bv_t* z); // should be correct
 void bv_reserve(bv_t* z, size_t m); // should be correct
