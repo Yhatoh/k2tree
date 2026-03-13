@@ -54,7 +54,7 @@ void rrr_decompress(rrr_t* rrr, uint8_t** bits, size_t* n) {
   for(size_t i = 0; i < rrr->c.n; i++) {
     size_t class = iv_get(&(rrr->c), i);
     size_t offset = bv_get_int(&(rrr->o), curr_bit_o, l[class] + 1);
-    curr_bit_o += l[class];
+    curr_bit_o += l[class] + 1;
 
     size_t j = 0;
     while(class > 0) {
@@ -65,5 +65,6 @@ void rrr_decompress(rrr_t* rrr, uint8_t** bits, size_t* n) {
       }
       j++;
     }
+    curr_bit += 63;
   }
 }

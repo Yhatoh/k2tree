@@ -20,8 +20,9 @@ int main(int argc, char* argv[]) {
   int cleaves = 0;
   int not_save = 0;
   int c;
+  int v = 0;
 
-  while((c=getopt(argc, argv, "t:cs:hn")) != -1) {
+  while((c=getopt(argc, argv, "lcs:hnv")) != -1) {
     switch(c) {
       case 'l':
         cleaves = 1; break;
@@ -30,7 +31,9 @@ int main(int argc, char* argv[]) {
       case 's':
         size = atoll(optarg); break;
       case 'n':
-        not_save = 1;
+        not_save = 1; break;
+      case 'v':
+        v = 1; break;
       case 'h':
         usage_and_exit(argv[0]);
       case '?':
@@ -50,15 +53,22 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  if(v)
+    printf("building K2-BP\n");
   char fname[1000];
   strcpy(fname, argv[1]);
   k2bp_t a = K2BP_INITIALIZER;
   k2bp_build_from_textfile(&a, fname, size);
+  if(v)
+    printf("finish building\n");
   if(cleaves) {
+    if(v)
+      printf("compressing leaves\n");
     k2bp_compress_leaves(&a);
   }
-
   if(not_save == 0) {
+    if(v)
+      printf("saving K2-BP in file\n");
     char k2fname[1000];
     strcpy(k2fname, fname);
     strcat(k2fname, EXT);
@@ -66,6 +76,8 @@ int main(int argc, char* argv[]) {
   }
 
   if(check) {
+    if(v)
+      printf("checking compression\n");
     csr_t matrix;
     csr_read_from_textfile(&matrix, argv[1], size);
 
@@ -92,6 +104,8 @@ int main(int argc, char* argv[]) {
     free(ones_k2bp);
     csr_free(&matrix);
   }
+  if(v)
+    printf("freeing memory\n");
 
   k2bp_free(&a);
 

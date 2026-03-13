@@ -49,13 +49,14 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
 static void reck2bp_decompress_subtrees(k2bp_traversal_t* pos_c, const k2bp_t* c, k2bp_t* a);
 
 void k2bp_compress_leaves(k2bp_t* a) {
-  rrr_compress(&(a->cl), 64, a->l, a->n_l * 4);
+  rrr_compress(&(a->cl), 63, a->l, a->n_l * 4);
   free(a->l);
+  a->l = NULL;
 }
 
 void k2bp_decompress_leaves(k2bp_t* a) {
-  rrr_decompress(&(a->cl), &(a->l), &a->n_l);
-  a->n_l /= 4;
+  size_t n;
+  rrr_decompress(&(a->cl), &(a->l), &n);
   a->maxn_l = (a->n_l + 2 - 1) / 2;
   rrr_free(&(a->cl));
 }
@@ -344,7 +345,7 @@ void k2bp_mul(k2bp_t *a, k2bp_t *b, k2bp_t *c) {
 //               efficient traversal of big subtrees
 void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
   assert(a != NULL);
-  assert(a->l != NULL && a->t.a != NULL);
+  assert((a->l != NULL || a->cl.c.data != NULL) && a->t.a != NULL);
 
   char info_name[1000];
   strcpy(info_name, fname);
@@ -394,7 +395,7 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
     if(w != (a->n_l + 1) / 2)
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
   } else {
-    size_t flag = 0;
+    size_t flag = 1;
     w = fwrite(&(flag), sizeof(size_t), 1, f);
     if(w != 1)
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
@@ -414,14 +415,14 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
     w = fwrite(&(a->cl.c.w), sizeof(size_t), 1, f);
     if(w != 1)
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
-    w = fwrite(&(a->cl.c.data), sizeof(uint64_t), (a->cl.c.n + 64 - 1) / 64, f);
-    if(w != (a->cl.c.n + 64 - 1) / 64)
+    w = fwrite(a->cl.c.data, sizeof(uint64_t), (a->cl.c.n * a->cl.c.w + 64 - 1) / 64, f);
+    if(w != (a->cl.c.n * a->cl.c.w + 64 - 1) / 64)
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
 
     w = fwrite(&(a->cl.o.n), sizeof(size_t), 1, f);
     if(w != 1)
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
-    w = fwrite(&(a->cl.o.a), sizeof(uint64_t), (a->cl.c.n + 64 - 1) / 64, f);
+    w = fwrite(a->cl.o.a, sizeof(uint64_t), (a->cl.o.n + 64 - 1) / 64, f);
     if(w != (a->cl.o.n + 64 - 1) / 64)
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
   }
@@ -584,9 +585,9 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
     w = fread(&(a->cl.c.w), sizeof(size_t), 1, f);
     if(w != 1)
       quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
-    a->cl.c.data = (uint64_t*) malloc(sizeof(uint64_t) * (a->cl.c.n + 64 - 1) / 64);
-    w = fread(&(a->cl.c.data), sizeof(uint64_t), (a->cl.c.n + 64 - 1) / 64, f);
-    if(w != (a->cl.c.n + 64 - 1) / 64)
+    a->cl.c.data = (uint64_t*) malloc(sizeof(uint64_t) * (a->cl.c.n * a->cl.c.w + 64 - 1) / 64);
+    w = fread(a->cl.c.data, sizeof(uint64_t), (a->cl.c.n * a->cl.c.w + 64 - 1) / 64, f);
+    if(w != (a->cl.c.n * a->cl.c.w + 64 - 1) / 64)
       quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
 
     w = fread(&(a->cl.o.n), sizeof(size_t), 1, f);
@@ -594,7 +595,7 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
     if(w != 1)
       quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
     a->cl.o.a = (uint64_t*) malloc(sizeof(uint64_t) * (a->cl.o.n + 64 - 1) / 64);
-    w = fread(&(a->cl.o.a), sizeof(uint64_t), (a->cl.c.n + 64 - 1) / 64, f);
+    w = fread(a->cl.o.a, sizeof(uint64_t), (a->cl.o.n + 64 - 1) / 64, f);
     if(w != (a->cl.o.n + 64 - 1) / 64)
       quit("k2bp_load_from_file: error reading in file", __LINE__, __FILE__);
   }
@@ -796,7 +797,7 @@ size_t k2bp_show_stats(k2bp_t *a, const char *fname, FILE *f) {
     l_bytes = sizeof(size_t) * 2 + sizeof(uint8_t) * (a->n_l + 1) / 2;
   } else {
     l_bytes = sizeof(size_t) + sizeof(uint8_t) + sizeof(uint64_t) +
-      sizeof(size_t) + sizeof(uint8_t) + sizeof(uint64_t) * (a->cl.c.n + 63) / 64 +
+      sizeof(size_t) + sizeof(uint8_t) + sizeof(uint64_t) * (a->cl.c.n * a->cl.c.w + 63) / 64 +
       sizeof(size_t) + sizeof(size_t) + sizeof(uint64_t) * (a->cl.o.n + 64 - 1) / 64;
   }
   fprintf(f, "  l   size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", l_bytes, l_bytes * CHAR_BIT, (double) l_bytes * CHAR_BIT / nz);

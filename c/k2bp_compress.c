@@ -16,10 +16,13 @@ int main(int argc, char* argv[]) {
 
   int p = 32;
   int check = 0;
+  int cleaves = 0;
   int c;
 
-  while((c=getopt(argc, argv, "hcp:")) != -1) {
+  while((c=getopt(argc, argv, "lhcp:")) != -1) {
     switch(c) {
+      case 'l':
+        cleaves = 1; break;
       case 'c':
         check = 1; break;
       case 'p':
@@ -49,7 +52,9 @@ int main(int argc, char* argv[]) {
     k2bp_free(&da);
   }
 
-
+  if(cleaves) {
+    k2bp_compress_leaves(&ca);
+  }
   char fname_save[1000];
   strcpy(fname_save, argv[1]);
   strcat(fname_save, ".c");
