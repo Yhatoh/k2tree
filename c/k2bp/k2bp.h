@@ -32,9 +32,12 @@ typedef struct k2bp_traversal_t {
   size_t i_p;
   uint8_t flag_p;
   uint64_t* rank_pointers;
+  uint64_t* leaves_pointers;
+  uint64_t* size_sub_pointers;
+  uint8_t flag_cl;
 } k2bp_traversal_t;
 
-#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL}
+#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, 0}
 
 typedef struct k2bp_t {
   size_t msize; // pow 2 matrix size
@@ -89,10 +92,11 @@ void k2bp_compress_subtrees(k2bp_t* a, k2bp_t* c, size_t limit);
 void k2bp_decompress_subtrees(k2bp_t* c, k2bp_t* a);
 void k2bp_compress_leaves(k2bp_t* a);
 void k2bp_decompress_leaves(k2bp_t* a);
+void k2bp_copy(k2bp_traversal_t* pos_src, const k2bp_t* src, k2bp_t* dest);
 
 // k2 tree information
 size_t k2bp_show_stats(k2bp_t* a, const char* fname, FILE* f);
-size_t k2bp_stats(const k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz);
+size_t k2bp_stats(k2bp_t* a, size_t* nodes, size_t* leaves, size_t* nz);
 
 // io k2 tree
 void k2bp_save_to_file(const k2bp_t* a, const char* fname);
