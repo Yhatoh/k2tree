@@ -39,7 +39,7 @@ typedef struct k2bp_traversal_t {
   uint8_t flag_cl;
 } k2bp_traversal_t;
 
-#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, 0}
+#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0}
 
 typedef struct k2bp_t {
   size_t msize; // pow 2 matrix size

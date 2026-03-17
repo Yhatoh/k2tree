@@ -35,24 +35,28 @@ echo "====================================="
 # 1. Build
 # ----------------------------
 echo "[1] k2bp_build..."
-./k2bp_build.x -s "$SIZE" "$INDEX0_FILE" || exit 1
+echo "./k2bp_build.x -s "$SIZE" "$INDEX0_FILE" -l"
+./k2bp_build.x -s "$SIZE" "$INDEX0_FILE" -l || exit 1
 
 # ----------------------------
 # 2. Add info
 # ----------------------------
 echo "[2] k2bp_addinfo (.k2bp)..."
+echo "./k2bp_addinfo.x "$K2BP_FILE" -se -p 0.2"
 ./k2bp_addinfo.x "$K2BP_FILE" -se -p 0.2 || exit 1
 
 # ----------------------------
 # 3. Compress
 # ----------------------------
 echo "[3] k2bp_compress..."
-./k2bp_compress.x "$K2BP_FILE" || exit 1
+echo "./k2bp_compress.x "$K2BP_FILE" -l"
+./k2bp_compress.x "$K2BP_FILE" -l || exit 1
 
 # ----------------------------
 # 4. Add info compressed
 # ----------------------------
 echo "[4] k2bp_addinfo (.k2bp.c)..."
+echo "./k2bp_addinfo.x "$K2BP_C_FILE" -se -p 0.2"
 ./k2bp_addinfo.x "$K2BP_C_FILE" -se -p 0.2 || exit 1
 
 # ----------------------------
@@ -65,13 +69,23 @@ echo "[5] k2bp_info..."
 # ----------------------------
 # 6. Multiplication benchmark
 # ----------------------------
-echo "[6] Multiplication benchmark..."
+echo "[6] Multiplication BP"
 
 /usr/bin/time -f "Command: %C\nS:%S U:%U E:%e Mem(kb):%M\n" \
 ./k2bp_mul.x "$K2BP_FILE" "$K2BP_FILE"
 
+echo "[7] Info resulting matrix"
+
+./k2bp_info.x "$K2BP_FILE".prod
+
+echo "[8] Multiplication CBP"
+
 /usr/bin/time -f "Command: %C\nS:%S U:%U E:%e Mem(kb):%M\n" \
 ./k2bp_mul.x "$K2BP_C_FILE" "$K2BP_C_FILE"
+
+echo "[9] Info resulting matrix"
+
+./k2bp_info.x "$K2BP_C_FILE".prod
 
 echo "====================================="
 echo "Pipeline finished."

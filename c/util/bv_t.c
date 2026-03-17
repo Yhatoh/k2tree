@@ -76,14 +76,6 @@ void bv_append_u16(bv_t* z, uint64_t num) {
 
 void bv_append(bv_t* a, bv_t* b) {
   size_t i = 0;
-//  for(; i < b->n / 64; i++) {
-//    bv_append_int(a, b->a[i]);
-//  }
-//
-//  if(b->n % 64 > 0) {
-//    bv_append_int(a, b->a[b->n / 64]);
-//    a->n -= 64 - b->n % 64;
-//  }
   for(; i + 64 < b->n; i += 64) {
     bv_append_int(a, bv_get_int(b, i, 64));
   }
@@ -121,7 +113,7 @@ uint64_t bv_get_int(const bv_t* z, size_t i, uint8_t len) {
       ((z->a[(i / 64) + 1] & ((1LL << (len - (64 - (i % 64)))) - 1)) << (64 - (i % 64)));
   }
   if(len == 64) return z->a[i / 64];
-  return (z->a[i / 64] >> (i % 64)) & ((1 << len) - 1);
+  return (z->a[i / 64] >> (i % 64)) & ((1LL << len) - 1);
 }
 
 void bv_reserve(bv_t* z, size_t m) {
