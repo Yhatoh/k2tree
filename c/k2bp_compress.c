@@ -17,14 +17,17 @@ int main(int argc, char* argv[]) {
   int p = 32;
   int check = 0;
   int cleaves = 0;
+  int v = 0;
   int c;
 
-  while((c=getopt(argc, argv, "lhcp:")) != -1) {
+  while((c=getopt(argc, argv, "lhcvp:")) != -1) {
     switch(c) {
       case 'l':
         cleaves = 1; break;
       case 'c':
         check = 1; break;
+      case 'v':
+        v = 1; break;
       case 'p':
         p = atoi(optarg); break;
       case 'h':
@@ -58,8 +61,10 @@ int main(int argc, char* argv[]) {
   char fname_save[1000];
   strcpy(fname_save, argv[1]);
   strcat(fname_save, ".c");
-  k2bp_show_stats(&a, fname, stdout);
-  k2bp_show_stats(&ca, fname_save, stdout);
+  if(v) {
+    k2bp_show_stats(&a, fname, stdout);
+    k2bp_show_stats(&ca, fname_save, stdout);
+  }
   k2bp_save_to_file(&ca, fname_save);
 
   k2bp_free(&ca);

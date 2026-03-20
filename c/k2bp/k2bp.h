@@ -6,7 +6,7 @@
 #include "../util/iv.h"
 #include "../util/rrr.h"
 
-#define NUM_SUPPORT 40
+#define NUM_SUPPORT 32
 #define GET_NODES(x) (x & ((1ULL << NUM_SUPPORT) - 1))
 #define GET_SKIPS(x) (x >> NUM_SUPPORT)
 #define ENCODE(x, y) (x << NUM_SUPPORT) | y
