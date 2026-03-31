@@ -320,10 +320,14 @@ void k2bp_mul(k2bp_t *a, k2bp_t *b, k2bp_t *c) {
   pos_a.leaves = a->n_l;
   pos_b.leaves = b->n_l;
 
+  //printf("precompute a\n");
   precompute_info(&pos_a, a);
+  //printf("precompute b\n");
   precompute_info(&pos_b, b);
 
+  //printf("multiplication time\n");
   reck2bp_scanmul(&pos_a, a, &pos_b, b, c);
+  //printf("end multiplication time\n");
 
   free_precompute_info(&pos_a, a);
   free_precompute_info(&pos_b, b);
@@ -1238,10 +1242,9 @@ static void get_node(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t *node, siz
 static void build_leaves_pointers(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   assert(pos_a->rank_pointers != NULL);
 
-  pos_a->leaves_pointers = (uint64_t*) malloc(sizeof(uint64_t) * a->n_p);
+  pos_a->leaves_pointers = (uint32_t*) malloc(sizeof(uint32_t) * a->n_p);
   pos_a->node_pointers = (uint64_t*) malloc(sizeof(uint64_t) * a->n_p);
   pos_a->size_sub_pointers = (uint64_t*) malloc(sizeof(uint64_t) * a->n_p);
-  pos_a->leaves_sub_pointers = (uint64_t*) malloc(sizeof(uint64_t) * a->n_p);
 
   for(size_t i = 0; i < a->n_p; i++) {
     size_t start = iv_get(&(a->pointers), i);
@@ -1278,7 +1281,6 @@ static void build_leaves_pointers(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 
     pos_a->node_pointers[i] = p_node;
     pos_a->size_sub_pointers[i] = pos_start.size;
-    pos_a->leaves_sub_pointers[i] = pos_start.leaves;
   }
 }
 
@@ -1420,13 +1422,16 @@ static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* 
 
 static void precompute_info(k2bp_traversal_t* pos_a, k2bp_t* a) {
   if(a->l == NULL) {
+    //printf("decompress leaves\n");
     pos_a->flag_cl = 1;
     k2bp_decompress_leaves(a);
   }
 
   if(a->pointers.data != NULL) {
+    //printf("building rank\n");
     build_rank_p(pos_a, a);
     pos_a->flag_p = 1;
+    //printf("building leaves\n");
     build_leaves_pointers(pos_a, a);
     pos_a->leaves -= pos_a->leaves_pointers[a->n_p - 1];
     pos_a->flag_p = 0;
@@ -1434,15 +1439,17 @@ static void precompute_info(k2bp_traversal_t* pos_a, k2bp_t* a) {
 }
 
 static void free_precompute_info(k2bp_traversal_t* pos_a, k2bp_t* a) {
-  if(pos_a->flag_cl == 1)
+  if(pos_a->flag_cl == 1) {
+    //printf("compress leaves\n");
     k2bp_compress_leaves(a);
+  }
 
   if(a->pointers.data != NULL) {
+    //printf("free info\n");
     free(pos_a->rank_pointers);
     free(pos_a->leaves_pointers);
     free(pos_a->node_pointers);
     free(pos_a->size_sub_pointers);
-    free(pos_a->leaves_sub_pointers);
   }
 }
 
@@ -1999,12 +2006,14 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
 }
 
 static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* pos_b, const k2bp_t* b, k2bp_t* c) {
+  //printf("%zu, %zu, %zu, %zu, %zu, %zu, %zu, %zu, %zu, %zu, %zu\n", pos_a->i_t, pos_a->i_l, pos_a->leaves, pos_a->size, pos_a->i_p, pos_b->i_t, pos_b->i_l, pos_b->leaves, pos_b->size, pos_b->i_p, pos_a->msize);
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
   assert(bv_i(&(b->t), pos_b->i_t) == 1);
   assert(pos_a->i_l <= a->n_l);
   assert(pos_b->i_l <= b->n_l);
 
   if(bv_get_int(&(a->t), pos_a->i_t, 2) == 1) { // a is full of zeros
+    //printf("copy b\n");
     bv_pb(&(c->t), 1);
     bv_pb(&(c->t), 0);
 
@@ -2021,6 +2030,7 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   }
 
   if(bv_get_int(&(b->t), pos_b->i_t, 2) == 1) { // a is full of zeros
+    //printf("copy a\n");
     bv_pb(&(c->t), 1);
     bv_pb(&(c->t), 0);
 
@@ -2037,6 +2047,7 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   }
 
   if(pos_a->msize == _K_) { // a is full of zeros
+    //printf("solve multiplication\n");
     size_t r_a, r_b;
     
     r_a = r_b = 0;
@@ -2068,6 +2079,7 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   }
 
   if(a->pointers.data != NULL || b->pointers.data != NULL) {
+    //printf("found pointer\n");
     k2bp_traversal_t new_pos_a = K2BP_TRAVERSAL_INITIALIZER;
     k2bp_traversal_t new_pos_b = K2BP_TRAVERSAL_INITIALIZER;
 
@@ -2222,9 +2234,11 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
 }
 
 static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* pos_b, const k2bp_t* b, k2bp_t* c) {
+  //printf("%zu, %zu, %zu, %zu, %zu, %zu, %zu, %zu, %zu, %zu, %zu\n", pos_a->i_t, pos_a->i_l, pos_a->leaves, pos_a->size, pos_a->i_p, pos_b->i_t, pos_b->i_l, pos_b->leaves, pos_b->size, pos_b->i_p, pos_a->msize);
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
   assert(bv_i(&(b->t), pos_b->i_t) == 1);
   if(bv_get_int(&(a->t), pos_a->i_t, 2) == LEAF_0) {
+    //printf("copy b\n");
     if(pos_b->size > 0) {
       k2bp_copy(pos_b, b, c);
     } else {
@@ -2235,6 +2249,7 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   }
 
   if(bv_get_int(&(b->t), pos_b->i_t, 2) == LEAF_0) {
+    //printf("copy a\n");
     if(pos_a->size > 0) {
       k2bp_copy(pos_a, a, c);
     } else {
@@ -2246,6 +2261,7 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
 
 
   if(pos_a->msize == _K_) {
+    //printf("solve sum\n");
     bv_pb(&(c->t), 1);
     bv_pb(&(c->t), 1);
     bv_pb(&(c->t), 0);
@@ -2270,6 +2286,7 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   }
 
   if(a->pointers.data != NULL || b->pointers.data != NULL) {
+    //printf("possible pointer found\n");
 
     k2bp_traversal_t new_pos_a = K2BP_TRAVERSAL_INITIALIZER;
     k2bp_traversal_t new_pos_b = K2BP_TRAVERSAL_INITIALIZER;
@@ -2365,7 +2382,6 @@ static uint8_t k2bp_check_and_move(k2bp_traversal_t* pos_a, const k2bp_t* a, k2b
     new_pos_a->i_p = rank_p(new_pos_a, a);
     new_pos_a->i_l = pos_a->i_l + k2bp_leaves_between_pointers(pos_a, pos_a->i_p, new_pos_a->i_p);
     new_pos_a->node = pos_a->node_pointers[pos_a->i_p];
-    new_pos_a->leaves = pos_a->leaves_sub_pointers[pos_a->i_p];
     new_pos_a->size = pos_a->size_sub_pointers[pos_a->i_p];
     new_pos_a->excess = pos_a->excess;
     new_pos_a->flag_p = 1;
@@ -2453,7 +2469,6 @@ static void k2bp_copy_traversalinfo(const k2bp_traversal_t* pos_a, k2bp_traversa
   copy_a->leaves_pointers = pos_a->leaves_pointers;
   copy_a->node_pointers = pos_a->node_pointers;
   copy_a->size_sub_pointers = pos_a->size_sub_pointers;
-  copy_a->leaves_sub_pointers = pos_a->leaves_sub_pointers;
 }
 
 static void k2bp_init_traversalinfo(const k2bp_traversal_t* pos_a, k2bp_traversal_t* copy_a) {
@@ -2474,7 +2489,6 @@ static void k2bp_init_traversalinfo(const k2bp_traversal_t* pos_a, k2bp_traversa
   copy_a->leaves_pointers = pos_a->leaves_pointers;
   copy_a->node_pointers = pos_a->node_pointers;
   copy_a->size_sub_pointers = pos_a->size_sub_pointers;
-  copy_a->leaves_sub_pointers = pos_a->leaves_sub_pointers;
 }
 
 static void k2bp_splitinfo(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* splits) {
@@ -2521,10 +2535,6 @@ static void k2bp_splitinfo(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_
   splits[2].size_sub_pointers = pos_a->size_sub_pointers;
   splits[3].size_sub_pointers = pos_a->size_sub_pointers;
 
-  splits[0].leaves_sub_pointers = pos_a->leaves_sub_pointers;
-  splits[1].leaves_sub_pointers = pos_a->leaves_sub_pointers;
-  splits[2].leaves_sub_pointers = pos_a->leaves_sub_pointers;
-  splits[3].leaves_sub_pointers = pos_a->leaves_sub_pointers;
 
   splits[0].flag_p = pos_a->flag_p;
   splits[1].flag_p = pos_a->flag_p;
@@ -2616,11 +2626,6 @@ static void k2bp_split(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trav
   splits[1].size_sub_pointers = pos_a->size_sub_pointers;
   splits[2].size_sub_pointers = pos_a->size_sub_pointers;
   splits[3].size_sub_pointers = pos_a->size_sub_pointers;
-
-  splits[0].leaves_sub_pointers = pos_a->leaves_sub_pointers;
-  splits[1].leaves_sub_pointers = pos_a->leaves_sub_pointers;
-  splits[2].leaves_sub_pointers = pos_a->leaves_sub_pointers;
-  splits[3].leaves_sub_pointers = pos_a->leaves_sub_pointers;
 
   splits[0].flag_p = pos_a->flag_p;
   splits[1].flag_p = pos_a->flag_p;
