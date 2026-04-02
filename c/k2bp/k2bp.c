@@ -55,7 +55,15 @@ static void reck2bp_decompress_subtrees(k2bp_traversal_t* pos_c, const k2bp_t* c
 static void k2bp_traverse(k2bp_traversal_t* pos_a, const k2bp_t* a);
 static void k2bp_traverse_and_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c);
 
-#define COUNT_PPCC(a, pos_a_i_t, l) count(bv_get_int(&(a->t), pos_a_i_t, l) | (-1ULL << l))
+#define COUNT_PPCC(a, pos_a_i_t, l) \
+  (pos_a_i_t + l <= a->t.n ? count(bv_get_int(&(a->t), pos_a_i_t, l) | (-1ULL << l)) : \
+   count(bv_get_int(&(a->t), pos_a_i_t, (a->t.n - pos_a_i_t)) | (-1ULL << (a->t.n - pos_a_i_t))))
+
+#define COUNT_PPCPCC(a, pos_a_i_t, l) \
+  (a->pointers.data == NULL ? 0 : \
+   (pos_a_i_t + l <= a->t.n ? count_p(bv_get_int(&(a->t), pos_a_i_t, l) | (-1ULL << l)) : \
+    count_p(bv_get_int(&(a->t), pos_a_i_t, (a->t.n - pos_a_i_t)) | (-1ULL << (a->t.n - pos_a_i_t)))) \
+   )
 
 void k2bp_compress_leaves(k2bp_t* a) {
   rrr_compress(&(a->cl), 63, a->l, a->n_l * 4);
@@ -1383,15 +1391,8 @@ static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* 
     bv_append_u16(&(c->t), bits);
     assert(bv_get_int(&(c->t), c->t.n - 16, 16) == bits);
     pos_a->excess += exc_micro[bits];
-    if(pos_a->i_t + 19 <= a->t.n) {
-//      pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
-//          (-1ULL << 19));
-      pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
-    } else {
-//      pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, (a->t.n - pos_a->i_t)) |
-//          (-1ULL << (a->t.n - pos_a->i_t)));
-      pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
-    }
+    pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
+    pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
   }
   for(;;) {
     if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
@@ -1479,6 +1480,13 @@ static void k2bp_scandfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     pos_a->leaves = 0;
     return;
   }
+  if(bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
+    pos_a->i_t += 2;
+    pos_a->size = 1;
+    pos_a->leaves = 0;
+    pos_a->i_p++;
+    return;
+  }
 
   pos_a->size = 0;
   pos_a->leaves = 0;
@@ -1497,25 +1505,22 @@ static void k2bp_scandfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         if(obj_excess == pos_a->excess + 1) {
           pos_a->size = (pos_a->i_t - curr_pos) / 2;
           pos_a->leaves += count(bits | (-1ULL << (i + 1)));
+          pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
           pos_a->i_l += pos_a->leaves;
           return;
         }
       }
     }
     pos_a->excess += exc_micro[bits];
-    if(pos_a->i_t + 19 <= a->t.n) {
-//      pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
-//          (-1ULL << 19));
-      pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
-    } else {
-//      pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, (a->t.n - pos_a->i_t)) |
-//          (-1ULL << (a->t.n - pos_a->i_t)));
-      pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, (a->t.n - pos_a->i_t));
-    }
+    pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
+    pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
   }
   for(;;) {
     if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
       pos_a->leaves++;
+    }
+    if(pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
+      pos_a->i_p++;
     }
     if(bv_i(&(a->t), pos_a->i_t)) pos_a->excess++;
     else pos_a->excess--;
@@ -1552,6 +1557,7 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
     pos_a->i_t += 6;
     pos_a->size = 6;
     pos_a->leaves = 0;
+    pos_a->i_p++;
     return;
   }
 
@@ -1580,10 +1586,7 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
         if(obj_excess == pos_a->excess + 1) {
           pos_a->size = (pos_a->i_t - curr_pos) / 2;
           pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-          if(a->pointers.data != NULL) {
-            pos_a->i_p = rank_p(pos_a, a);
-            assert(pos_a->leaves <= a->n_l);
-          }
+          pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
           for(size_t i = 0; i < pos_a->leaves; i++) {
             k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + i));
             c->m += __builtin_popcount(k2bp_read_leaf(a, pos_a->i_l + i));
@@ -1595,9 +1598,8 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
     }
     bv_append_u16(&(c->t), bits);
     pos_a->excess += exc_micro[bits];
-//    pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
-//                           (-1ULL << 19));
     pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
+    pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
   }
   if(pos_a->i_t % BLOCK_SIZE != 0) {
     size_t extra = BLOCK_SIZE - pos_a->i_t % BLOCK_SIZE;
@@ -1615,10 +1617,7 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
       if(obj_excess == pos_a->excess + 1) {
         pos_a->size = (pos_a->i_t - curr_pos) / 2;
         pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-        if(a->pointers.data != NULL) {
-          pos_a->i_p = rank_p(pos_a, a);
-          assert(pos_a->leaves <= a->n_l);
-        }
+        pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
         for(size_t i = 0; i < pos_a->leaves; i++) {
           k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + i));
           c->m += __builtin_popcount(k2bp_read_leaf(a, pos_a->i_l + i));
@@ -1627,8 +1626,8 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
         return;
       }
     }
-//    pos_a->leaves += count(bv_get_int(&(a->t), save_pos, extra + 3) | (-1ULL << (extra + 3)));
-    pos_a->leaves += COUNT_PPCC(a, save_pos, extra + 3);
+    pos_a->leaves += COUNT_PPCC(a, save_pos, (extra + 3));
+    pos_a->i_p += COUNT_PPCPCC(a, save_pos, (extra + 6));
   }
 
   assert(pos_a->i_t % BLOCK_SIZE == 0);
@@ -1654,10 +1653,7 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
             if(obj_excess == pos_a->excess + 1) {
               pos_a->size = (pos_a->i_t - curr_pos) / 2;
               pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-              if(a->pointers.data != NULL) {
-                pos_a->i_p = rank_p(pos_a, a);
-                assert(pos_a->leaves <= a->n_l);
-              }
+              pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
               for(size_t i = 0; i < pos_a->leaves; i++) {
                 k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + i));
                 c->m += __builtin_popcount(k2bp_read_leaf(a, pos_a->i_l + i));
@@ -1669,21 +1665,17 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
         }
         bv_append_u16(&(c->t), bits);
         pos_a->excess += exc_micro[bits];
-        if(pos_a->i_t + 19 <= a->t.n) {
-//          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
-//                                 (-1ULL << 19));
-          pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
-        } else {
-//          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, (a->t.n - pos_a->i_t)) |
-//                                 (-1ULL << (a->t.n - pos_a->i_t)));
-          pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, (a->t.n - pos_a->i_t));
-        }
+        pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
+        pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
       }
 
       // is in the last bits of the tree
       for(;;) {
         if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
           pos_a->leaves++;
+        }
+        if(pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
+          pos_a->i_p++;
         }
         if(bv_i(&(a->t), pos_a->i_t)) {
           pos_a->excess++;
@@ -1695,10 +1687,6 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
         pos_a->i_t++;
         if(obj_excess == pos_a->excess + 1) {
           pos_a->size = (pos_a->i_t - curr_pos) / 2;
-          if(a->pointers.data != NULL) {
-            pos_a->i_p = rank_p(pos_a, a);
-            assert(pos_a->leaves <= a->n_l);
-          }
           for(size_t i = 0; i < pos_a->leaves; i++) {
             k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + i));
             c->m += __builtin_popcount(k2bp_read_leaf(a, pos_a->i_l + i));
@@ -1713,6 +1701,7 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
     }
     pos_a->excess = a->exc_samples[block];
     pos_a->leaves += a->leaves_samples[block];
+    pos_a->i_p = rank_p(pos_a, a);
     block++;
   }
 }
@@ -1736,6 +1725,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     pos_a->i_t += 6;
     pos_a->size = 6;
     pos_a->leaves = 0;
+    pos_a->i_p++;
     return;
   }
 
@@ -1759,15 +1749,15 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         if(obj_excess == pos_a->excess + 1) {
           pos_a->size = (pos_a->i_t - curr_pos) / 2;
           pos_a->leaves += count(bits | (-1ULL << (i + 1)));
+          pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
           pos_a->i_l += pos_a->leaves;
           return;
         }
       }
     }
     pos_a->excess += exc_micro[bits];
-//    pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
-//                           (-1ULL << 19));
     pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
+    pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
   }
   if(pos_a->i_t % BLOCK_SIZE != 0) {
     size_t extra = BLOCK_SIZE - pos_a->i_t % BLOCK_SIZE;
@@ -1780,12 +1770,13 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
       if(obj_excess == pos_a->excess + 1) {
         pos_a->size = (pos_a->i_t - curr_pos) / 2;
         pos_a->leaves += count(bits | (-1ULL << (i + 1)));
+        pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
         pos_a->i_l += pos_a->leaves;
         return;
       }
     }
-//    pos_a->leaves += count(bv_get_int(&(a->t), save_pos, extra + 3) | (-1ULL << (extra + 3)));
-    pos_a->leaves += COUNT_PPCC(a, save_pos, extra + 3);
+    pos_a->leaves += COUNT_PPCC(a, save_pos, (extra + 3));
+    pos_a->leaves += COUNT_PPCPCC(a, save_pos, (extra + 6));
   }
 
   assert(pos_a->i_t % BLOCK_SIZE == 0);
@@ -1806,27 +1797,24 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
             if(obj_excess == pos_a->excess + 1) {
               pos_a->size = (pos_a->i_t - curr_pos) / 2;
               pos_a->leaves += count(bits | (-1ULL << (i + 1)));
+              pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
               pos_a->i_l += pos_a->leaves;
               return;
             }
           }
         }
         pos_a->excess += exc_micro[bits];
-        if(pos_a->i_t + 19 <= a->t.n) {
-//          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
-//                                 (-1ULL << 19));
-          pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
-        } else {
-//          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, (a->t.n - pos_a->i_t)) |
-//                                 (-1ULL << (a->t.n - pos_a->i_t)));
-          pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, (a->t.n - pos_a->i_t));
-        }
+        pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
+        pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
       }
 
       // is in the last bits of the tree
       for(;;) {
         if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
           pos_a->leaves++;
+        }
+        if(pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
+          pos_a->i_p++;
         }
         if(bv_i(&(a->t), pos_a->i_t)) pos_a->excess++;
         else pos_a->excess--;
@@ -1840,6 +1828,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     }
     pos_a->excess = a->exc_samples[block];
     pos_a->leaves += a->leaves_samples[block];
+    pos_a->i_p = rank_p(pos_a, a);
     block++;
   }
 }
@@ -2251,10 +2240,6 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
     size_t r_a, r_b;
     
     r_a = r_b = 0;
-//    if(a->pointers.data != NULL)
-//      r_a = rank_p(pos_a, a);
-//    if(b->pointers.data != NULL)
-//      r_b = rank_p(pos_b, b);
 
     k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? pos_a->leaves_pointers[r_a - 1] : 0)) |
                        k2bp_read_leaf(b, pos_b->i_l + (r_b > 0 ? pos_b->leaves_pointers[r_b - 1] : 0)));
