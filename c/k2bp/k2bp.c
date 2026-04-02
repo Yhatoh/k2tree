@@ -1862,13 +1862,11 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   if(pos_a->msize == _K_) { // a is full of zeros
     size_t r_a, r_b;
     r_a = r_b = 0;
+    if(a->pointers.data != NULL) r_a = pos_a->i_p;
+    if(b->pointers.data != NULL) r_b = pos_b->i_p;
 
-    if(a->pointers.data != NULL)
-      r_a = rank_p(pos_a, a);
-    if(b->pointers.data != NULL)
-      r_b = rank_p(pos_b, b);
-
-    uint8_t res = table_mul[k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? pos_a->leaves_pointers[r_a - 1] : 0))][k2bp_read_leaf(b, pos_b->i_l + (r_b > 0 ? pos_b->leaves_pointers[r_b - 1] : 0))];
+    uint8_t res = table_mul[k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? pos_a->leaves_pointers[r_a - 1] : 0))]
+                           [k2bp_read_leaf(b, pos_b->i_l + (r_b > 0 ? pos_b->leaves_pointers[r_b - 1] : 0))];
     if(res == 0) {
       bv_pb(&(c->t), 1);
       bv_pb(&(c->t), 0);
@@ -2036,12 +2034,12 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
     size_t r_a, r_b;
     
     r_a = r_b = 0;
-//    if(a->pointers.data != NULL)
-//      r_a = rank_p(pos_a, a);
-//    if(b->pointers.data != NULL)
-//      r_b = rank_p(pos_b, b);
+    if(a->pointers.data != NULL) r_a = pos_a->i_p;
+    if(b->pointers.data != NULL) r_b = pos_b->i_p;
 
-    uint8_t res = table_mul[k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? pos_a->leaves_pointers[r_a - 1] : 0))][k2bp_read_leaf(b, pos_b->i_l + (r_b > 0 ? pos_b->leaves_pointers[r_b - 1] : 0))];
+
+    uint8_t res = table_mul[k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? pos_a->leaves_pointers[r_a - 1] : 0))]
+                           [k2bp_read_leaf(b, pos_b->i_l + (r_b > 0 ? pos_b->leaves_pointers[r_b - 1] : 0))];
     if(res == 0) {
       bv_pb(&(c->t), 1);
       bv_pb(&(c->t), 0);
@@ -2242,6 +2240,8 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
     size_t r_a, r_b;
     
     r_a = r_b = 0;
+    if(a->pointers.data != NULL) r_a = pos_a->i_p;
+    if(b->pointers.data != NULL) r_b = pos_b->i_p;
 
     k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? pos_a->leaves_pointers[r_a - 1] : 0)) |
                        k2bp_read_leaf(b, pos_b->i_l + (r_b > 0 ? pos_b->leaves_pointers[r_b - 1] : 0)));
