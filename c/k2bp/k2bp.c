@@ -1803,7 +1803,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
       }
     }
     for(size_t i = 0; i < extra + 6; i++)
-      if(bv_get_int(&(a->t), pos_a->i_t, extra + 6) & (1ULL << i)) printf("(");
+      if(bv_get_int(&(a->t), save_pos, extra + 6) & (1ULL << i)) printf("(");
       else printf(")");
     printf("\n");
     printf("%" PRIu8 "\n", COUNT_PPCPCC(a, save_pos, (extra + 6)));
