@@ -1815,7 +1815,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 
   // jumps between blocks
   size_t block = pos_a->i_t / BLOCK_SIZE;
-  for(;; pos_a->i_t += BLOCK_SIZE) {
+  for(;;) {
     // found block
     if(obj_excess > a->exc_min_samples[block]) {
       for(; pos_a->i_t + 16 <= a->t.n; pos_a->i_t += 16) {
@@ -1870,6 +1870,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     }
     pos_a->excess = a->exc_samples[block];
     pos_a->leaves += a->leaves_samples[block];
+    pos_a->i_t += BLOCK_SIZE;
     pos_a->i_p = rank_p(pos_a, a);
     block++;
   }
