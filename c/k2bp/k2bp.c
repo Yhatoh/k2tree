@@ -2043,12 +2043,12 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
     if(b->pointers.data != NULL) r_b = pos_b->i_p;
 
     if(pos_a->i_p != rank_p(pos_a, a)) {
-      printf("%zu %" PRIu64 "\n", pos_a->i_p, rank_p(pos_a, a));
+      printf("a %zu %" PRIu64 "\n", pos_a->i_p, rank_p(pos_a, a));
       exit(1);
     }
 
     if(pos_b->i_p != rank_p(pos_b, b)) {
-      printf("%zu %" PRIu64 "\n", pos_b->i_p, rank_p(pos_b, b));
+      printf("b %zu %" PRIu64 "\n", pos_b->i_p, rank_p(pos_b, b));
       exit(1);
     }
 
