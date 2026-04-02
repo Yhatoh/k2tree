@@ -2128,8 +2128,8 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   }
 
   if(bs1[0].size == 0) {
-    bs1[0].i_t = pos_a->i_t + 1; bs1[0].i_l = pos_a->i_l; bs1[0].i_p = pos_a->i_p;
-    bs2[0].i_t = pos_a->i_t + 1; bs2[0].i_l = pos_a->i_l; bs2[0].i_p = pos_a->i_p;
+    bs1[0].i_t = pos_b->i_t + 1; bs1[0].i_l = pos_b->i_l; bs1[0].i_p = pos_b->i_p;
+    bs2[0].i_t = pos_b->i_t + 1; bs2[0].i_l = pos_b->i_l; bs2[0].i_p = pos_b->i_p;
   }
   reck2bp_scanmul(&(as1[0]), a, &(bs1[0]), b, &(aux_c[0])); // X[0] = A0*B0
   as2[0].size = as1[0].size; as2[0].leaves = as1[0].leaves;
