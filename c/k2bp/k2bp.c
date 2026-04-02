@@ -1761,6 +1761,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
           for(size_t i = 0; i < i + 1; i++)
             if(bits & (1ULL << i)) printf("(");
             else printf(")");
+          printf("\n");
           printf("%" PRIu8 "\n", count_p(bits | (-1ULL << (i + 1))));
           pos_a->size = (pos_a->i_t - curr_pos) / 2;
           pos_a->leaves += count(bits | (-1ULL << (i + 1)));
@@ -1773,6 +1774,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     for(size_t i = 0; i < 21; i++)
       if(bits & (1ULL << i)) printf("(");
       else printf(")");
+    printf("\n");
     printf("%" PRIu8 "\n", COUNT_PPCPCC(a, pos_a->i_t, 21));
 
     pos_a->excess += exc_micro[bits];
@@ -1794,6 +1796,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         for(size_t i = 0; i < i + 1; i++)
           if(bits & (1ULL << i)) printf("(");
           else printf(")");
+        printf("\n");
         printf("%" PRIu8 "\n", count_p(bits | (-1ULL << (i + 1))));
         pos_a->i_l += pos_a->leaves;
         return;
@@ -1802,6 +1805,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     for(size_t i = 0; i < extra + 6; i++)
       if(bits & (1ULL << i)) printf("(");
       else printf(")");
+    printf("\n");
     printf("%" PRIu8 "\n", COUNT_PPCPCC(a, save_pos, (extra + 6)));
     pos_a->leaves += COUNT_PPCC(a, save_pos, (extra + 3));
     pos_a->i_p += COUNT_PPCPCC(a, save_pos, (extra + 6));
@@ -1829,6 +1833,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
               for(size_t i = 0; i < i + 1; i++)
                 if(bits & (1ULL << i)) printf("(");
                 else printf(")");
+              printf("\n");
               printf("%" PRIu8 "\n", count_p(bits | (-1ULL << (i + 1))));
               pos_a->i_l += pos_a->leaves;
               return;
@@ -1838,6 +1843,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         for(size_t i = 0; i < 21; i++)
           if(bits & (1ULL << i)) printf("(");
           else printf(")");
+        printf("\n");
         printf("%" PRIu8 "\n", COUNT_PPCPCC(a, pos_a->i_t, 21));
         pos_a->excess += exc_micro[bits];
         pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
