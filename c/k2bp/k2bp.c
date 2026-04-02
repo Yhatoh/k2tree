@@ -1456,6 +1456,7 @@ static void k2bp_traverse(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   if(pos_a->size > 0) {
     pos_a->i_t += pos_a->size * 2;
     pos_a->i_l += pos_a->leaves;
+    pos_a->i_p += rank_p(pos_a, a);
     return;
   }
 
@@ -2136,32 +2137,21 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
 
   k2bp_traversal_copy_pos(&(as1[0]), &(as1[1]));
   k2bp_traversal_copy_pos(&(bs1[0]), &(bs1[1]));
-//  as1[1].i_t = as1[0].i_t; as1[1].i_l = as1[0].i_l; as1[1].i_p = as1[0].i_p;
-//  bs1[1].i_t = bs1[0].i_t; bs1[1].i_l = bs1[0].i_l; bs1[1].i_p = bs1[0].i_p;
-
   k2bp_traversal_copy_pos(&(as1[0]), &(as2[1]));
   k2bp_traversal_copy_pos(&(bs1[0]), &(bs2[1]));
-//  as2[1].i_t = as1[0].i_t; as2[1].i_l = as1[0].i_l; as2[1].i_p = as1[0].i_p;
-//  bs2[1].i_t = bs1[0].i_t; bs2[1].i_l = bs1[0].i_l; bs2[1].i_p = bs1[0].i_p;
   reck2bp_scanmul(&(as2[0]), a, &(bs1[1]), b, &(aux_c[1])); // X = {A0*B0, A0*B1}
   bs2[1].size = bs1[1].size; bs2[1].leaves = bs1[1].leaves;
 
   k2bp_traversal_copy_pos(&(bs1[1]), &(bs1[2]));
   k2bp_traversal_copy_pos(&(bs1[1]), &(bs2[2]));
-//  bs1[2].i_t = bs1[1].i_t; bs1[2].i_l = bs1[1].i_l; bs1[1].i_p = bs1[1].i_p;
-//  bs2[2].i_t = bs1[1].i_t; bs2[2].i_l = bs1[1].i_l;
   reck2bp_scanmul(&(as1[1]), a, &(bs1[2]), b, &(aux_c[2])); // X = {A0*B0, A0*B1, A1*B2}
   as2[1].size = as1[1].size; as2[1].leaves = as1[1].leaves;
 
   k2bp_traversal_copy_pos(&(as1[1]), &(as1[2]));
   k2bp_traversal_copy_pos(&(as1[1]), &(as2[2]));
-//  as1[2].i_t = as1[1].i_t; as1[2].i_l = as1[1].i_l;
-//  as2[2].i_t = as1[1].i_t; as2[2].i_l = as1[1].i_l;
 
   k2bp_traversal_copy_pos(&(bs1[2]), &(bs1[3]));
   k2bp_traversal_copy_pos(&(bs1[2]), &(bs2[3]));
-//  bs1[3].i_t = bs1[2].i_t; bs1[3].i_l = bs1[2].i_l;
-//  bs2[3].i_t = bs1[2].i_t; bs2[3].i_l = bs1[2].i_l;
 
   aux_c[0].threshold = aux_c[0].t.n;
   aux_c[2].threshold = aux_c[2].t.n;
@@ -2192,8 +2182,6 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
 
   k2bp_traversal_copy_pos(&(as1[2]), &(as1[3]));
   k2bp_traversal_copy_pos(&(as1[2]), &(as2[3]));
-//  as1[3].i_t = as1[2].i_t; as1[3].i_l = as1[2].i_l;
-//  as2[3].i_t = as1[2].i_t; as2[3].i_l = as1[2].i_l;
 
   reck2bp_scanmul(&(as1[3]), a, &(bs2[2]), b, &(aux_c[1])); // X = {A2*B0, A3*B2, _}
   as2[3].size = as1[3].size; as2[3].leaves = as1[3].leaves;
