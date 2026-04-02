@@ -55,6 +55,8 @@ static void reck2bp_decompress_subtrees(k2bp_traversal_t* pos_c, const k2bp_t* c
 static void k2bp_traverse(k2bp_traversal_t* pos_a, const k2bp_t* a);
 static void k2bp_traverse_and_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c);
 
+#define COUNT_PPCC(a, pos_a_i_t, l) count(bv_get_int(&(a->t), pos_a_i_t, l) | (-1ULL << l))
+
 void k2bp_compress_leaves(k2bp_t* a) {
   rrr_compress(&(a->cl), 63, a->l, a->n_l * 4);
   free(a->l);
@@ -1346,10 +1348,6 @@ static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* 
   pos_a->leaves = 0;
   int64_t obj_excess = pos_a->excess;
   uint64_t curr_pos = pos_a->i_t;
-  size_t rank_curr_pos = 0;
-  if(a->pointers.data != NULL) {
-    rank_curr_pos = rank_p(pos_a, a);
-  }
 
   bv_pb(&(c->t), 1);
   pos_a->i_t++;
@@ -1386,11 +1384,13 @@ static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* 
     assert(bv_get_int(&(c->t), c->t.n - 16, 16) == bits);
     pos_a->excess += exc_micro[bits];
     if(pos_a->i_t + 19 <= a->t.n) {
-      pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
-          (-1ULL << 19));
+//      pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
+//          (-1ULL << 19));
+      pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
     } else {
-      pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, (a->t.n - pos_a->i_t)) |
-          (-1ULL << (a->t.n - pos_a->i_t)));
+//      pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, (a->t.n - pos_a->i_t)) |
+//          (-1ULL << (a->t.n - pos_a->i_t)));
+      pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
     }
   }
   for(;;) {
@@ -1504,11 +1504,13 @@ static void k2bp_scandfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     }
     pos_a->excess += exc_micro[bits];
     if(pos_a->i_t + 19 <= a->t.n) {
-      pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
-          (-1ULL << 19));
+//      pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
+//          (-1ULL << 19));
+      pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
     } else {
-      pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, (a->t.n - pos_a->i_t)) |
-          (-1ULL << (a->t.n - pos_a->i_t)));
+//      pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, (a->t.n - pos_a->i_t)) |
+//          (-1ULL << (a->t.n - pos_a->i_t)));
+      pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, (a->t.n - pos_a->i_t));
     }
   }
   for(;;) {
@@ -1529,10 +1531,7 @@ static void k2bp_scandfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
   if(bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
-    bv_pb(&(c->t), 1);
-    bv_pb(&(c->t), 1);
-    bv_pb(&(c->t), 0);
-    bv_pb(&(c->t), 0);
+    bv_pb(&(c->t), 1); bv_pb(&(c->t), 1); bv_pb(&(c->t), 0); bv_pb(&(c->t), 0);
     pos_a->i_t += 4;
     pos_a->size = 2;
     pos_a->leaves = 1;
@@ -1559,10 +1558,6 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
   pos_a->leaves = 0;
   pos_a->size = 0;
   size_t curr_pos = pos_a->i_t;
-  size_t rank_curr_pos = 0;
-  if(a->pointers.data != NULL) {
-    rank_curr_pos = rank_p(pos_a, a);
-  }
   int64_t obj_excess = pos_a->excess;
   bv_pb(&(c->t), 1);
   pos_a->i_t++;
@@ -1600,8 +1595,9 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
     }
     bv_append_u16(&(c->t), bits);
     pos_a->excess += exc_micro[bits];
-    pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
-                           (-1ULL << 19));
+//    pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
+//                           (-1ULL << 19));
+    pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
   }
   if(pos_a->i_t % BLOCK_SIZE != 0) {
     size_t extra = BLOCK_SIZE - pos_a->i_t % BLOCK_SIZE;
@@ -1631,7 +1627,8 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
         return;
       }
     }
-    pos_a->leaves += count(bv_get_int(&(a->t), save_pos, extra + 3) | (-1ULL << (extra + 3)));
+//    pos_a->leaves += count(bv_get_int(&(a->t), save_pos, extra + 3) | (-1ULL << (extra + 3)));
+    pos_a->leaves += COUNT_PPCC(a, save_pos, extra + 3);
   }
 
   assert(pos_a->i_t % BLOCK_SIZE == 0);
@@ -1673,11 +1670,13 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
         bv_append_u16(&(c->t), bits);
         pos_a->excess += exc_micro[bits];
         if(pos_a->i_t + 19 <= a->t.n) {
-          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
-                                 (-1ULL << 19));
+//          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
+//                                 (-1ULL << 19));
+          pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
         } else {
-          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, (a->t.n - pos_a->i_t)) |
-                                 (-1ULL << (a->t.n - pos_a->i_t)));
+//          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, (a->t.n - pos_a->i_t)) |
+//                                 (-1ULL << (a->t.n - pos_a->i_t)));
+          pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, (a->t.n - pos_a->i_t));
         }
       }
 
@@ -1766,8 +1765,9 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
       }
     }
     pos_a->excess += exc_micro[bits];
-    pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
-                           (-1ULL << 19));
+//    pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
+//                           (-1ULL << 19));
+    pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
   }
   if(pos_a->i_t % BLOCK_SIZE != 0) {
     size_t extra = BLOCK_SIZE - pos_a->i_t % BLOCK_SIZE;
@@ -1784,7 +1784,8 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         return;
       }
     }
-    pos_a->leaves += count(bv_get_int(&(a->t), save_pos, extra + 3) | (-1ULL << (extra + 3)));
+//    pos_a->leaves += count(bv_get_int(&(a->t), save_pos, extra + 3) | (-1ULL << (extra + 3)));
+    pos_a->leaves += COUNT_PPCC(a, save_pos, extra + 3);
   }
 
   assert(pos_a->i_t % BLOCK_SIZE == 0);
@@ -1812,11 +1813,13 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         }
         pos_a->excess += exc_micro[bits];
         if(pos_a->i_t + 19 <= a->t.n) {
-          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
-                                 (-1ULL << 19));
+//          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, 19) |
+//                                 (-1ULL << 19));
+          pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
         } else {
-          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, (a->t.n - pos_a->i_t)) |
-                                 (-1ULL << (a->t.n - pos_a->i_t)));
+//          pos_a->leaves += count(bv_get_int(&(a->t), pos_a->i_t, (a->t.n - pos_a->i_t)) |
+//                                 (-1ULL << (a->t.n - pos_a->i_t)));
+          pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, (a->t.n - pos_a->i_t));
         }
       }
 
@@ -2039,7 +2042,6 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   }
 
   if(pos_a->msize == _K_) { // a is full of zeros
-    //printf("solve multiplication\n");
     size_t r_a, r_b;
     
     r_a = r_b = 0;
