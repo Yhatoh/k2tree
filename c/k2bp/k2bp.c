@@ -2136,8 +2136,9 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   bs2[0].size = bs1[0].size; bs2[0].leaves = bs1[0].leaves;
 
   k2bp_traversal_copy_pos(&(as1[0]), &(as1[1]));
-  k2bp_traversal_copy_pos(&(bs1[0]), &(bs1[1]));
   k2bp_traversal_copy_pos(&(as1[0]), &(as2[1]));
+
+  k2bp_traversal_copy_pos(&(bs1[0]), &(bs1[1]));
   k2bp_traversal_copy_pos(&(bs1[0]), &(bs2[1]));
   reck2bp_scanmul(&(as2[0]), a, &(bs1[1]), b, &(aux_c[1])); // X = {A0*B0, A0*B1}
   bs2[1].size = bs1[1].size; bs2[1].leaves = bs1[1].leaves;
@@ -2349,7 +2350,7 @@ static uint64_t k2bp_leaves_between_pointers(const k2bp_traversal_t* pos_a, size
 static uint8_t k2bp_check_and_move(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* new_pos_a) {
   if(bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
     k2bp_init_traversalinfo(pos_a, new_pos_a);
-    //pos_a->i_p = rank_p(pos_a, a);
+    pos_a->i_p = rank_p(pos_a, a);
     size_t det_a = iv_get(&(a->pointers), pos_a->i_p);
     new_pos_a->i_t = det_a;
     new_pos_a->i_p = rank_p(new_pos_a, a);
