@@ -1156,6 +1156,8 @@ static uint8_t count_p(const uint64_t num) {
 }
 
 static uint64_t rank_p(const k2bp_traversal_t* pos_a, const k2bp_t* a) {
+  if(a->pointers.data == NULL) return 0;
+
   const uint64_t block = pos_a->i_t / BLOCK_SIZE;
   uint64_t ret = pos_a->rank_pointers[block];
   size_t curr_i = BLOCK_SIZE * (pos_a->i_t / BLOCK_SIZE);
@@ -1481,8 +1483,8 @@ static void k2bp_scandfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     return;
   }
   if(bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
-    pos_a->i_t += 2;
-    pos_a->size = 1;
+    pos_a->i_t += 6;
+    pos_a->size = 3;
     pos_a->leaves = 0;
     pos_a->i_p++;
     return;
@@ -1519,7 +1521,7 @@ static void k2bp_scandfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
       pos_a->leaves++;
     }
-    if(pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
+    if(a->pointers.data != NULL && pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
       pos_a->i_p++;
     }
     if(bv_i(&(a->t), pos_a->i_t)) pos_a->excess++;
@@ -1674,7 +1676,7 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
         if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
           pos_a->leaves++;
         }
-        if(pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
+        if(a->pointers.data != NULL && pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
           pos_a->i_p++;
         }
         if(bv_i(&(a->t), pos_a->i_t)) {
@@ -1723,7 +1725,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   }
   if(bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
     pos_a->i_t += 6;
-    pos_a->size = 6;
+    pos_a->size = 3;
     pos_a->leaves = 0;
     pos_a->i_p++;
     return;
@@ -1776,7 +1778,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
       }
     }
     pos_a->leaves += COUNT_PPCC(a, save_pos, (extra + 3));
-    pos_a->leaves += COUNT_PPCPCC(a, save_pos, (extra + 6));
+    pos_a->i_p += COUNT_PPCPCC(a, save_pos, (extra + 6));
   }
 
   assert(pos_a->i_t % BLOCK_SIZE == 0);
