@@ -1793,8 +1793,8 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         pos_a->size = (pos_a->i_t - curr_pos) / 2;
         pos_a->leaves += count(bits | (-1ULL << (i + 1)));
         pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-        for(size_t i = 0; i < i + 1; i++)
-          if(bits & (1ULL << i)) printf("(");
+        for(size_t j = 0; j < i + 1; j++)
+          if(bits & (1ULL << j)) printf("(");
           else printf(")");
         printf("\n");
         printf("%" PRIu8 "\n", count_p(bits | (-1ULL << (i + 1))));
@@ -1830,8 +1830,8 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
               pos_a->size = (pos_a->i_t - curr_pos) / 2;
               pos_a->leaves += count(bits | (-1ULL << (i + 1)));
               pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-              for(size_t i = 0; i < i + 1; i++)
-                if(bits & (1ULL << i)) printf("(");
+              for(size_t j = 0; j < i + 1; j++)
+                if(bits & (1ULL << j)) printf("(");
                 else printf(")");
               printf("\n");
               printf("%" PRIu8 "\n", count_p(bits | (-1ULL << (i + 1))));
