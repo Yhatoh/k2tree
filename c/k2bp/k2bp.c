@@ -1456,7 +1456,7 @@ static void k2bp_traverse(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   if(pos_a->size > 0) {
     pos_a->i_t += pos_a->size * 2;
     pos_a->i_l += pos_a->leaves;
-    pos_a->i_p += rank_p(pos_a, a);
+    pos_a->i_p = rank_p(pos_a, a);
     return;
   }
 
