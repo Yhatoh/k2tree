@@ -1464,12 +1464,16 @@ static void k2bp_traverse(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     k2bp_excdfs(pos_a, a);
     if(pos_a->i_p != rank_p(pos_a, a)) {
       printf("excdfs %zu %" PRIu64 "\n", pos_a->i_p, rank_p(pos_a, a));
+      exit(1);
     }
     return;
   }
 
   k2bp_scandfs(pos_a, a);
-  printf("scandfs %zu %" PRIu64 "\n", pos_a->i_p, rank_p(pos_a, a));
+  if(pos_a->i_p != rank_p(pos_a, a)) {
+    printf("scandfs %zu %" PRIu64 "\n", pos_a->i_p, rank_p(pos_a, a));
+    exit(1);
+  }
 }
 
 static void k2bp_scandfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
@@ -1735,11 +1739,11 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     pos_a->i_p++;
     return;
   }
+  printf("check beginning %zu %" PRIu64 "\n", pos_a->i_p, rank_p(pos_a, a));
 
   pos_a->leaves = 0;
   pos_a->size = 0;
   size_t curr_pos = pos_a->i_t;
-  size_t rank_curr_pos = 0;
   int64_t obj_excess = pos_a->excess;
   pos_a->i_t++;
   size_t obj_pos = BLOCK_SIZE * ((pos_a->i_t + BLOCK_SIZE - 1) / BLOCK_SIZE);
@@ -1754,6 +1758,10 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         else pos_a->excess--;
 
         if(obj_excess == pos_a->excess + 1) {
+          for(size_t i = 0; i < i + 1; i++)
+            if(bits & (1ULL << i)) printf("(");
+            else printf(")");
+          printf("%" PRIu8 "\n", count_p(bits | (-1ULL << (i + 1))));
           pos_a->size = (pos_a->i_t - curr_pos) / 2;
           pos_a->leaves += count(bits | (-1ULL << (i + 1)));
           pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
@@ -1762,6 +1770,11 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         }
       }
     }
+    for(size_t i = 0; i < 21; i++)
+      if(bits & (1ULL << i)) printf("(");
+      else printf(")");
+    printf("%" PRIu8 "\n", COUNT_PPCPCC(a, pos_a->i_t, 21));
+
     pos_a->excess += exc_micro[bits];
     pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
     pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
@@ -1778,10 +1791,18 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         pos_a->size = (pos_a->i_t - curr_pos) / 2;
         pos_a->leaves += count(bits | (-1ULL << (i + 1)));
         pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
+        for(size_t i = 0; i < i + 1; i++)
+          if(bits & (1ULL << i)) printf("(");
+          else printf(")");
+        printf("%" PRIu8 "\n", count_p(bits | (-1ULL << (i + 1))));
         pos_a->i_l += pos_a->leaves;
         return;
       }
     }
+    for(size_t i = 0; i < extra + 6; i++)
+      if(bits & (1ULL << i)) printf("(");
+      else printf(")");
+    printf("%" PRIu8 "\n", COUNT_PPCPCC(a, save_pos, (extra + 6)));
     pos_a->leaves += COUNT_PPCC(a, save_pos, (extra + 3));
     pos_a->i_p += COUNT_PPCPCC(a, save_pos, (extra + 6));
   }
@@ -1805,11 +1826,19 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
               pos_a->size = (pos_a->i_t - curr_pos) / 2;
               pos_a->leaves += count(bits | (-1ULL << (i + 1)));
               pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
+              for(size_t i = 0; i < i + 1; i++)
+                if(bits & (1ULL << i)) printf("(");
+                else printf(")");
+              printf("%" PRIu8 "\n", count_p(bits | (-1ULL << (i + 1))));
               pos_a->i_l += pos_a->leaves;
               return;
             }
           }
         }
+        for(size_t i = 0; i < 21; i++)
+          if(bits & (1ULL << i)) printf("(");
+          else printf(")");
+        printf("%" PRIu8 "\n", COUNT_PPCPCC(a, pos_a->i_t, 21));
         pos_a->excess += exc_micro[bits];
         pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
         pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
