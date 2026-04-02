@@ -1371,7 +1371,6 @@ static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* 
           pos_a->leaves += count(bits | (-1ULL << (i + 1)));
           if(pos_a->flag_p == 0 && pos_a->leaves_pointers != NULL) {
             pos_a->i_p = rank_p(pos_a, a);
-            //pos_a->leaves += k2bp_leaves_between_pointers(pos_a, pos_a->i_p, rank_curr_pos);
             assert(pos_a->leaves <= a->n_l);
           }
           for(size_t i = 0; i < pos_a->leaves; i++) {
@@ -1410,7 +1409,6 @@ static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* 
       pos_a->size = (pos_a->i_t - curr_pos) / 2;
       if(pos_a->flag_p == 0 && pos_a->leaves_pointers != NULL) {
         pos_a->i_p = rank_p(pos_a, a);
-        //pos_a->leaves += k2bp_leaves_between_pointers(pos_a, pos_a->i_p, rank_curr_pos);
         assert(pos_a->leaves <= a->n_l);
       }
       for(size_t i = 0; i < pos_a->leaves; i++) {
@@ -1425,16 +1423,13 @@ static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* 
 
 static void precompute_info(k2bp_traversal_t* pos_a, k2bp_t* a) {
   if(a->l == NULL) {
-    //printf("decompress leaves\n");
     pos_a->flag_cl = 1;
     k2bp_decompress_leaves(a);
   }
 
   if(a->pointers.data != NULL) {
-    //printf("building rank\n");
     build_rank_p(pos_a, a);
     pos_a->flag_p = 1;
-    //printf("building leaves\n");
     build_leaves_pointers(pos_a, a);
     pos_a->leaves -= pos_a->leaves_pointers[a->n_p - 1];
     pos_a->flag_p = 0;
@@ -1443,12 +1438,10 @@ static void precompute_info(k2bp_traversal_t* pos_a, k2bp_t* a) {
 
 static void free_precompute_info(k2bp_traversal_t* pos_a, k2bp_t* a) {
   if(pos_a->flag_cl == 1) {
-    //printf("compress leaves\n");
     k2bp_compress_leaves(a);
   }
 
   if(a->pointers.data != NULL) {
-    //printf("free info\n");
     free(pos_a->rank_pointers);
     free(pos_a->leaves_pointers);
     free(pos_a->node_pointers);
@@ -2255,22 +2248,12 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
   assert(bv_i(&(b->t), pos_b->i_t) == 1);
   if(bv_get_int(&(a->t), pos_a->i_t, 2) == LEAF_0) {
-//    if(pos_b->size > 0) {
-//      k2bp_copy(pos_b, b, c);
-//    } else {
-//      k2bp_scandfs_copy(pos_b, b, c);
-//    }
     pos_a->i_t += 2;
     k2bp_traverse_and_copy(pos_b, b, c);
     return;
   }
 
   if(bv_get_int(&(b->t), pos_b->i_t, 2) == LEAF_0) {
-//    if(pos_a->size > 0) {
-//      k2bp_copy(pos_a, a, c);
-//    } else {
-//      k2bp_scandfs_copy(pos_a, a, c);
-//    }
     pos_b->i_t += 2;
     k2bp_traverse_and_copy(pos_a, a, c);
     return;
