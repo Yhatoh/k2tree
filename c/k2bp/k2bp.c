@@ -54,6 +54,8 @@ static void reck2bp_decompress_subtrees(k2bp_traversal_t* pos_c, const k2bp_t* c
 
 static void k2bp_traverse(k2bp_traversal_t* pos_a, const k2bp_t* a);
 static void k2bp_traverse_and_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c);
+static void k2bp_traversal_copy_pos(k2bp_traversal_t* s, k2bp_traversal_t* d);
+static void k2bp_reset(k2bp_t* a);
 
 #define COUNT_PPCC(a, pos_a_i_t, l) \
   (pos_a_i_t + l <= a->t.n ? count(bv_get_int(&(a->t), pos_a_i_t, l) | (-1ULL << l)) : \
@@ -2012,6 +2014,14 @@ static void k2bp_traversal_copy_pos(k2bp_traversal_t* s, k2bp_traversal_t* d) {
   d->i_p = s->i_p;
 }
 
+static void k2bp_reset(k2bp_t* a) {
+  k2bp_free(a);
+  bv_init(&(a->t));
+  a->maxn_l = 10;
+  a->n_l = 0;
+  a->l = (uint8_t*) malloc(sizeof(uint8_t) * a->maxn_l);
+}
+
 static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* pos_b, const k2bp_t* b, k2bp_t* c) {
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
   assert(bv_i(&(b->t), pos_b->i_t) == 1);
@@ -2162,6 +2172,7 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[2].n_l = 0; aux_c[2].t.n = 0;
   k2bp_free(&(aux_c[2]));
+  k2bp_reset(&(aux_c[0]));
 
   reck2bp_scanmul(&(as2[1]), a, &(bs1[3]), b, &(aux_c[0])); // X = {A1*B3, A0*B1, _}
   bs2[3].size = bs1[3].size; bs2[3].leaves = bs1[3].leaves;
@@ -2173,6 +2184,8 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   aux_c_pos[0].msize = aux_c_pos[0].msize / 2;
   aux_c_pos[1].msize = aux_c_pos[1].msize / 2;
   reck2bp_scansum(&(aux_c_pos[0]), &(aux_c[0]), &(aux_c_pos[1]), &(aux_c[1]), c);
+  k2bp_reset(&(aux_c[0]));
+  k2bp_reset(&(aux_c[1]));
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
 
@@ -2192,6 +2205,8 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   aux_c_pos[0].msize = aux_c_pos[0].msize / 2;
   aux_c_pos[1].msize = aux_c_pos[1].msize / 2;
   reck2bp_scansum(&(aux_c_pos[0]), &(aux_c[0]), &(aux_c_pos[1]), &(aux_c[1]), c);
+  k2bp_reset(&(aux_c[0]));
+  k2bp_reset(&(aux_c[1]));
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
 
