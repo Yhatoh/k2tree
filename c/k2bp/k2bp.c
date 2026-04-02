@@ -2004,6 +2004,12 @@ static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal
   bv_pb(&(c->t), 0);
 }
 
+static void k2bp_traversal_copy_pos(k2bp_traversal_t* s, k2bp_traversal_t* d) {
+  d->i_t = s->i_t;
+  d->i_l = s->i_l;
+  d->i_p = s->i_p;
+}
+
 static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* pos_b, const k2bp_t* b, k2bp_t* c) {
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
   assert(bv_i(&(b->t), pos_b->i_t) == 1);
@@ -2116,36 +2122,46 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
 
   size_t prev_n = c->t.n;
   if(as1[0].size == 0) {
-    as1[0].i_t = pos_a->i_t + 1; as1[0].i_l = pos_a->i_l;
-    as2[0].i_t = pos_a->i_t + 1; as2[0].i_l = pos_a->i_l;
+    as1[0].i_t = pos_a->i_t + 1; as1[0].i_l = pos_a->i_l; as1[0].i_p = pos_a->i_p;
+    as2[0].i_t = pos_a->i_t + 1; as2[0].i_l = pos_a->i_l; as2[0].i_p = pos_a->i_p;
   }
 
   if(bs1[0].size == 0) {
-    bs1[0].i_t = pos_b->i_t + 1; bs1[0].i_l = pos_b->i_l;
-    bs2[0].i_t = pos_b->i_t + 1; bs2[0].i_l = pos_b->i_l;
+    bs1[0].i_t = pos_a->i_t + 1; bs1[0].i_l = pos_a->i_l; bs1[0].i_p = pos_a->i_p;
+    bs2[0].i_t = pos_a->i_t + 1; bs2[0].i_l = pos_a->i_l; bs2[0].i_p = pos_a->i_p;
   }
   reck2bp_scanmul(&(as1[0]), a, &(bs1[0]), b, &(aux_c[0])); // X[0] = A0*B0
   as2[0].size = as1[0].size; as2[0].leaves = as1[0].leaves;
   bs2[0].size = bs1[0].size; bs2[0].leaves = bs1[0].leaves;
 
-  as1[1].i_t = as1[0].i_t; as1[1].i_l = as1[0].i_l;
-  bs1[1].i_t = bs1[0].i_t; bs1[1].i_l = bs1[0].i_l;
+  k2bp_traversal_copy_pos(&(as1[0]), &(as1[1]));
+  k2bp_traversal_copy_pos(&(bs1[0]), &(bs1[1]));
+//  as1[1].i_t = as1[0].i_t; as1[1].i_l = as1[0].i_l; as1[1].i_p = as1[0].i_p;
+//  bs1[1].i_t = bs1[0].i_t; bs1[1].i_l = bs1[0].i_l; bs1[1].i_p = bs1[0].i_p;
 
-  as2[1].i_t = as1[0].i_t; as2[1].i_l = as1[0].i_l;
-  bs2[1].i_t = bs1[0].i_t; bs2[1].i_l = bs1[0].i_l;
+  k2bp_traversal_copy_pos(&(as1[0]), &(as2[1]));
+  k2bp_traversal_copy_pos(&(bs1[0]), &(bs2[1]));
+//  as2[1].i_t = as1[0].i_t; as2[1].i_l = as1[0].i_l; as2[1].i_p = as1[0].i_p;
+//  bs2[1].i_t = bs1[0].i_t; bs2[1].i_l = bs1[0].i_l; bs2[1].i_p = bs1[0].i_p;
   reck2bp_scanmul(&(as2[0]), a, &(bs1[1]), b, &(aux_c[1])); // X = {A0*B0, A0*B1}
   bs2[1].size = bs1[1].size; bs2[1].leaves = bs1[1].leaves;
 
-  bs1[2].i_t = bs1[1].i_t; bs1[2].i_l = bs1[1].i_l;
-  bs2[2].i_t = bs1[1].i_t; bs2[2].i_l = bs1[1].i_l;
+  k2bp_traversal_copy_pos(&(bs1[1]), &(bs1[2]));
+  k2bp_traversal_copy_pos(&(bs1[1]), &(bs2[2]));
+//  bs1[2].i_t = bs1[1].i_t; bs1[2].i_l = bs1[1].i_l; bs1[1].i_p = bs1[1].i_p;
+//  bs2[2].i_t = bs1[1].i_t; bs2[2].i_l = bs1[1].i_l;
   reck2bp_scanmul(&(as1[1]), a, &(bs1[2]), b, &(aux_c[2])); // X = {A0*B0, A0*B1, A1*B2}
   as2[1].size = as1[1].size; as2[1].leaves = as1[1].leaves;
 
-  as1[2].i_t = as1[1].i_t; as1[2].i_l = as1[1].i_l;
-  as2[2].i_t = as1[1].i_t; as2[2].i_l = as1[1].i_l;
+  k2bp_traversal_copy_pos(&(as1[1]), &(as1[2]));
+  k2bp_traversal_copy_pos(&(as1[1]), &(as2[2]));
+//  as1[2].i_t = as1[1].i_t; as1[2].i_l = as1[1].i_l;
+//  as2[2].i_t = as1[1].i_t; as2[2].i_l = as1[1].i_l;
 
-  bs1[3].i_t = bs1[2].i_t; bs1[3].i_l = bs1[2].i_l;
-  bs2[3].i_t = bs1[2].i_t; bs2[3].i_l = bs1[2].i_l;
+  k2bp_traversal_copy_pos(&(bs1[2]), &(bs1[3]));
+  k2bp_traversal_copy_pos(&(bs1[2]), &(bs2[3]));
+//  bs1[3].i_t = bs1[2].i_t; bs1[3].i_l = bs1[2].i_l;
+//  bs2[3].i_t = bs1[2].i_t; bs2[3].i_l = bs1[2].i_l;
 
   aux_c[0].threshold = aux_c[0].t.n;
   aux_c[2].threshold = aux_c[2].t.n;
@@ -2174,8 +2190,10 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   reck2bp_scanmul(&(as1[2]), a, &(bs2[0]), b, &(aux_c[0])); // X = {A2*B0, _, _}
   as2[2].size = as1[2].size; as2[2].leaves = as1[2].size;
 
-  as1[3].i_t = as1[2].i_t; as1[3].i_l = as1[2].i_l;
-  as2[3].i_t = as1[2].i_t; as2[3].i_l = as1[2].i_l;
+  k2bp_traversal_copy_pos(&(as1[2]), &(as1[3]));
+  k2bp_traversal_copy_pos(&(as1[2]), &(as2[3]));
+//  as1[3].i_t = as1[2].i_t; as1[3].i_l = as1[2].i_l;
+//  as2[3].i_t = as1[2].i_t; as2[3].i_l = as1[2].i_l;
 
   reck2bp_scanmul(&(as1[3]), a, &(bs2[2]), b, &(aux_c[1])); // X = {A2*B0, A3*B2, _}
   as2[3].size = as1[3].size; as2[3].leaves = as1[3].leaves;
@@ -2513,6 +2531,7 @@ static void k2bp_splitinfo(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_
     splits[0].node = pos_a->node + 3;
     splits[0].size = GET_NODES(a->subtreeinfo[pos_a->node]);
     splits[0].leaves = a->leavesinfo[pos_a->node];
+    splits[0].i_p = pos_a->i_p;
 
     splits[1].i_l = splits[0].i_l + splits[0].leaves;
     splits[1].node = splits[0].node + GET_SKIPS(a->subtreeinfo[pos_a->node]);
@@ -2589,6 +2608,7 @@ static void k2bp_split(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trav
     splits[0].node = pos_a->node + 3;
     splits[0].size = GET_NODES(a->subtreeinfo[pos_a->node]);
     splits[0].leaves = a->leavesinfo[pos_a->node];
+    splits[0].i_p = pos_a->i_p;
 
     splits[1].i_t = splits[0].i_t + splits[0].size * 2;
     splits[1].i_l = splits[0].i_l + splits[0].leaves;
