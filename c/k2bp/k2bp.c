@@ -1735,6 +1735,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   pos_a->leaves = 0;
   pos_a->size = 0;
   size_t curr_pos = pos_a->i_t;
+  size_t rank_curr_pos = 0;
   int64_t obj_excess = pos_a->excess;
   pos_a->i_t++;
   size_t obj_pos = BLOCK_SIZE * ((pos_a->i_t + BLOCK_SIZE - 1) / BLOCK_SIZE);
@@ -1778,7 +1779,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
       }
     }
     pos_a->leaves += COUNT_PPCC(a, save_pos, (extra + 3));
-    pos_a->i_p += COUNT_PPCPCC(a, save_pos, (extra + 5));
+    pos_a->i_p += COUNT_PPCPCC(a, save_pos, (extra + 6));
   }
 
   assert(pos_a->i_t % BLOCK_SIZE == 0);
@@ -2520,11 +2521,13 @@ static void k2bp_splitinfo(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_
     splits[0].leaves = a->leavesinfo[pos_a->node];
     splits[0].i_p = pos_a->i_p;
 
+    splits[1].i_t = splits[0].i_t + splits[0].i_t * 2;
     splits[1].i_l = splits[0].i_l + splits[0].leaves;
     splits[1].node = splits[0].node + GET_SKIPS(a->subtreeinfo[pos_a->node]);
     splits[1].size = GET_NODES(a->subtreeinfo[pos_a->node + 1]);
     splits[1].leaves = a->leavesinfo[pos_a->node + 1];
 
+    splits[2].i_t = splits[1].i_t + splits[1].i_t * 2;
     splits[2].i_l = splits[1].i_l + splits[1].leaves;
     splits[2].node = splits[1].node + GET_SKIPS(a->subtreeinfo[pos_a->node + 1]);
     splits[2].size = GET_NODES(a->subtreeinfo[pos_a->node + 2]);
