@@ -2045,10 +2045,10 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
     size_t r_a, r_b;
     
     r_a = r_b = 0;
-    if(a->pointers.data != NULL)
-      r_a = rank_p(pos_a, a);
-    if(b->pointers.data != NULL)
-      r_b = rank_p(pos_b, b);
+//    if(a->pointers.data != NULL)
+//      r_a = rank_p(pos_a, a);
+//    if(b->pointers.data != NULL)
+//      r_b = rank_p(pos_b, b);
 
     uint8_t res = table_mul[k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? pos_a->leaves_pointers[r_a - 1] : 0))][k2bp_read_leaf(b, pos_b->i_l + (r_b > 0 ? pos_b->leaves_pointers[r_b - 1] : 0))];
     if(res == 0) {
@@ -2251,10 +2251,10 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
     size_t r_a, r_b;
     
     r_a = r_b = 0;
-    if(a->pointers.data != NULL)
-      r_a = rank_p(pos_a, a);
-    if(b->pointers.data != NULL)
-      r_b = rank_p(pos_b, b);
+//    if(a->pointers.data != NULL)
+//      r_a = rank_p(pos_a, a);
+//    if(b->pointers.data != NULL)
+//      r_b = rank_p(pos_b, b);
 
     k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? pos_a->leaves_pointers[r_a - 1] : 0)) |
                        k2bp_read_leaf(b, pos_b->i_l + (r_b > 0 ? pos_b->leaves_pointers[r_b - 1] : 0)));
