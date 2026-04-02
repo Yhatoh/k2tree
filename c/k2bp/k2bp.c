@@ -1735,7 +1735,6 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   pos_a->leaves = 0;
   pos_a->size = 0;
   size_t curr_pos = pos_a->i_t;
-  size_t rank_curr_pos = 0;
   int64_t obj_excess = pos_a->excess;
   pos_a->i_t++;
   size_t obj_pos = BLOCK_SIZE * ((pos_a->i_t + BLOCK_SIZE - 1) / BLOCK_SIZE);
@@ -1779,7 +1778,7 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
       }
     }
     pos_a->leaves += COUNT_PPCC(a, save_pos, (extra + 3));
-    pos_a->i_p += COUNT_PPCPCC(a, save_pos, (extra + 6));
+    pos_a->i_p += COUNT_PPCPCC(a, save_pos, (extra + 5));
   }
 
   assert(pos_a->i_t % BLOCK_SIZE == 0);
@@ -2349,7 +2348,7 @@ static uint64_t k2bp_leaves_between_pointers(const k2bp_traversal_t* pos_a, size
 static uint8_t k2bp_check_and_move(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* new_pos_a) {
   if(bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
     k2bp_init_traversalinfo(pos_a, new_pos_a);
-    pos_a->i_p = rank_p(pos_a, a);
+    //pos_a->i_p = rank_p(pos_a, a);
     size_t det_a = iv_get(&(a->pointers), pos_a->i_p);
     new_pos_a->i_t = det_a;
     new_pos_a->i_p = rank_p(new_pos_a, a);
