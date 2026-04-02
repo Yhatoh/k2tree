@@ -2018,7 +2018,6 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   assert(pos_b->i_l <= b->n_l);
 
   if(bv_get_int(&(a->t), pos_a->i_t, 2) == 1) { // a is full of zeros
-    //printf("copy b\n");
     bv_pb(&(c->t), 1);
     bv_pb(&(c->t), 0);
 
@@ -2028,7 +2027,6 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   }
 
   if(bv_get_int(&(b->t), pos_b->i_t, 2) == 1) { // a is full of zeros
-    //printf("copy a\n");
     bv_pb(&(c->t), 1);
     bv_pb(&(c->t), 0);
 
@@ -2216,9 +2214,13 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
     c->t.n -= 8;
   }
   pos_a->i_t = as1[3].i_t + 1;
-  pos_b->i_t = bs1[3].i_t + 1;
   pos_a->i_l = as1[3].i_l;
+  pos_a->i_p = as1[3].i_p;
+
+  pos_b->i_t = bs1[3].i_t + 1;
   pos_b->i_l = bs1[3].i_l;
+  pos_b->i_p = bs1[3].i_p;
+
   bv_pb(&(c->t), 0);
 }
 
