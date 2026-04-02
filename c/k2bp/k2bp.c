@@ -1249,7 +1249,7 @@ static void build_leaves_pointers(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 
   pos_a->leaves_pointers = (uint32_t*) malloc(sizeof(uint32_t) * a->n_p);
   pos_a->node_pointers = (uint32_t*) malloc(sizeof(uint32_t) * a->n_p);
-  pos_a->size_sub_pointers = (uint32_t*) malloc(sizeof(uint32_t) * a->n_p);
+  pos_a->size_sub_pointers = (uint64_t*) malloc(sizeof(uint64_t) * a->n_p);
 
   for(size_t i = 0; i < a->n_p; i++) {
     size_t start = iv_get(&(a->pointers), i);
@@ -1292,7 +1292,7 @@ static void build_leaves_pointers(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 static void build_rank_p(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   if(pos_a->rank_pointers != NULL) return;
   
-  pos_a->rank_pointers = (uint64_t*) malloc(sizeof(uint64_t) * SAMPLE_SIZE(a->t.n));
+  pos_a->rank_pointers = (uint32_t*) malloc(sizeof(uint32_t) * SAMPLE_SIZE(a->t.n));
   size_t block = 0;
   uint64_t prefix_sum = 0;
   size_t i;
