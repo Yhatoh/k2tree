@@ -1758,8 +1758,8 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         else pos_a->excess--;
 
         if(obj_excess == pos_a->excess + 1) {
-          for(size_t i = 0; i < i + 1; i++)
-            if(bits & (1ULL << i)) printf("(");
+          for(size_t j = 0; j < i + 1; j++)
+            if(bits & (1ULL << j)) printf("(");
             else printf(")");
           printf("\n");
           printf("%" PRIu8 "\n", count_p(bits | (-1ULL << (i + 1))));
