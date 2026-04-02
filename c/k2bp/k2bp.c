@@ -2172,7 +2172,6 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[2].n_l = 0; aux_c[2].t.n = 0;
   k2bp_free(&(aux_c[2]));
-  k2bp_reset(&(aux_c[0]));
 
   reck2bp_scanmul(&(as2[1]), a, &(bs1[3]), b, &(aux_c[0])); // X = {A1*B3, A0*B1, _}
   bs2[3].size = bs1[3].size; bs2[3].leaves = bs1[3].leaves;
@@ -2184,8 +2183,6 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   aux_c_pos[0].msize = aux_c_pos[0].msize / 2;
   aux_c_pos[1].msize = aux_c_pos[1].msize / 2;
   reck2bp_scansum(&(aux_c_pos[0]), &(aux_c[0]), &(aux_c_pos[1]), &(aux_c[1]), c);
-  k2bp_reset(&(aux_c[0]));
-  k2bp_reset(&(aux_c[1]));
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
 
@@ -2205,8 +2202,6 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   aux_c_pos[0].msize = aux_c_pos[0].msize / 2;
   aux_c_pos[1].msize = aux_c_pos[1].msize / 2;
   reck2bp_scansum(&(aux_c_pos[0]), &(aux_c[0]), &(aux_c_pos[1]), &(aux_c[1]), c);
-  k2bp_reset(&(aux_c[0]));
-  k2bp_reset(&(aux_c[1]));
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
 
@@ -2367,7 +2362,6 @@ static uint64_t k2bp_leaves_between_pointers(const k2bp_traversal_t* pos_a, size
 static uint8_t k2bp_check_and_move(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* new_pos_a) {
   if(bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
     k2bp_init_traversalinfo(pos_a, new_pos_a);
-    //pos_a->i_p = rank_p(pos_a, a);
     size_t det_a = iv_get(&(a->pointers), pos_a->i_p);
     new_pos_a->i_t = det_a;
     new_pos_a->i_p = rank_p(new_pos_a, a);
