@@ -2261,7 +2261,7 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
 //      k2bp_scandfs_copy(pos_b, b, c);
 //    }
     pos_a->i_t += 2;
-    k2bp_traverse(pos_b, b);
+    k2bp_traverse_and_copy(pos_b, b, c);
     return;
   }
 
@@ -2272,7 +2272,7 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
 //      k2bp_scandfs_copy(pos_a, a, c);
 //    }
     pos_b->i_t += 2;
-    k2bp_traverse(pos_a, a);
+    k2bp_traverse_and_copy(pos_a, a, c);
     return;
   }
 
