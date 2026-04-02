@@ -2042,6 +2042,15 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
     if(a->pointers.data != NULL) r_a = pos_a->i_p;
     if(b->pointers.data != NULL) r_b = pos_b->i_p;
 
+    if(pos_a->i_p != rank_p(pos_a, a)) {
+      printf("%zu %" PRIu64 "\n", pos_a->i_p, rank_p(pos_a, a));
+      exit(1);
+    }
+
+    if(pos_b->i_p != rank_p(pos_b, b)) {
+      printf("%zu %" PRIu64 "\n", pos_b->i_p, rank_p(pos_b, b));
+      exit(1);
+    }
 
     uint8_t res = table_mul[k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? pos_a->leaves_pointers[r_a - 1] : 0))]
                            [k2bp_read_leaf(b, pos_b->i_l + (r_b > 0 ? pos_b->leaves_pointers[r_b - 1] : 0))];
