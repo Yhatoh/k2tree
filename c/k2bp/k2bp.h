@@ -31,9 +31,9 @@ typedef struct k2bp_traversal_t {
   int16_t excess;
   size_t i_p;
   uint8_t flag_p;
-  uint64_t* rank_pointers;
+  uint32_t* rank_pointers;
   uint32_t* leaves_pointers;
-  uint64_t* node_pointers;
+  uint32_t* node_pointers;
   uint64_t* size_sub_pointers;
   uint8_t flag_cl;
 } k2bp_traversal_t;
