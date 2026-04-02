@@ -1587,7 +1587,6 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
           pos_a->leaves += count(bits | (-1ULL << (i + 1)));
           if(a->pointers.data != NULL) {
             pos_a->i_p = rank_p(pos_a, a);
-            //pos_a->leaves += k2bp_leaves_between_pointers(pos_a, pos_a->i_p, rank_curr_pos);
             assert(pos_a->leaves <= a->n_l);
           }
           for(size_t i = 0; i < pos_a->leaves; i++) {
@@ -1622,7 +1621,6 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
         pos_a->leaves += count(bits | (-1ULL << (i + 1)));
         if(a->pointers.data != NULL) {
           pos_a->i_p = rank_p(pos_a, a);
-          //pos_a->leaves += k2bp_leaves_between_pointers(pos_a, pos_a->i_p, rank_curr_pos);
           assert(pos_a->leaves <= a->n_l);
         }
         for(size_t i = 0; i < pos_a->leaves; i++) {
@@ -1661,7 +1659,6 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
               pos_a->leaves += count(bits | (-1ULL << (i + 1)));
               if(a->pointers.data != NULL) {
                 pos_a->i_p = rank_p(pos_a, a);
-                //pos_a->leaves += k2bp_leaves_between_pointers(pos_a, pos_a->i_p, rank_curr_pos);
                 assert(pos_a->leaves <= a->n_l);
               }
               for(size_t i = 0; i < pos_a->leaves; i++) {
@@ -1701,7 +1698,6 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
           pos_a->size = (pos_a->i_t - curr_pos) / 2;
           if(a->pointers.data != NULL) {
             pos_a->i_p = rank_p(pos_a, a);
-            //pos_a->leaves += k2bp_leaves_between_pointers(pos_a, pos_a->i_p, rank_curr_pos);
             assert(pos_a->leaves <= a->n_l);
           }
           for(size_t i = 0; i < pos_a->leaves; i++) {
@@ -2029,14 +2025,6 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
 
     pos_a->i_t += 2;
     k2bp_traverse(pos_b, b);
-//    if(pos_b->size > 0) {
-//      pos_b->i_t += pos_b->size * 2;
-//      pos_b->i_l += pos_b->leaves;
-//    } else if(b->exc_min_samples != NULL) {
-//      k2bp_excdfs(pos_b, b);
-//    } else {
-//      k2bp_scandfs(pos_b, b);
-//    }
     return;
   }
 
@@ -2047,14 +2035,6 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
 
     pos_b->i_t += 2;
     k2bp_traverse(pos_a, a);
-//    if(pos_a->size > 0) {
-//      pos_a->i_t += pos_a->size * 2;
-//      pos_a->i_l += pos_a->leaves;
-//    } else if(a->exc_min_samples != NULL) {
-//      k2bp_excdfs(pos_a, a);
-//    } else {
-//      k2bp_scandfs(pos_a, a);
-//    }
     return;
   }
 
