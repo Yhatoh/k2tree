@@ -1462,10 +1462,14 @@ static void k2bp_traverse(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 
   if(a->exc_min_samples != NULL) {
     k2bp_excdfs(pos_a, a);
+    if(pos_a->i_p != rank_p(pos_a, a)) {
+      printf("excdfs %zu %" PRIu64 "\n", pos_a->i_p, rank_p(pos_a, a));
+    }
     return;
   }
 
   k2bp_scandfs(pos_a, a);
+  printf("scandfs %zu %" PRIu64 "\n", pos_a->i_p, rank_p(pos_a, a));
 }
 
 static void k2bp_scandfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
