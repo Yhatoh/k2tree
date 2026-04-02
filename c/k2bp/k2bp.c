@@ -1739,7 +1739,6 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     pos_a->i_p++;
     return;
   }
-  printf("check beginning %zu %" PRIu64 "\n", pos_a->i_p, rank_p(pos_a, a));
 
   pos_a->leaves = 0;
   pos_a->size = 0;
@@ -1758,11 +1757,6 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         else pos_a->excess--;
 
         if(obj_excess == pos_a->excess + 1) {
-          for(size_t j = 0; j < i + 1; j++)
-            if(bits & (1ULL << j)) printf("(");
-            else printf(")");
-          printf("\n");
-          printf("-1 %" PRIu8 "\n", count_p(bits | (-1ULL << (i + 1))));
           pos_a->size = (pos_a->i_t - curr_pos) / 2;
           pos_a->leaves += count(bits | (-1ULL << (i + 1)));
           pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
@@ -1771,12 +1765,6 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         }
       }
     }
-    for(size_t i = 0; i < 21; i++)
-      if(bv_get_int(&(a->t), pos_a->i_t, 21) & (1ULL << i)) printf("(");
-      else printf(")");
-    printf("\n");
-    printf("0 %" PRIu8 "\n", COUNT_PPCPCC(a, pos_a->i_t, 21));
-
     pos_a->excess += exc_micro[bits];
     pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
     pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
@@ -1793,20 +1781,10 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         pos_a->size = (pos_a->i_t - curr_pos) / 2;
         pos_a->leaves += count(bits | (-1ULL << (i + 1)));
         pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-        for(size_t j = 0; j < i + 1; j++)
-          if(bits & (1ULL << j)) printf("(");
-          else printf(")");
-        printf("\n");
-        printf("1 %" PRIu8 "\n", count_p(bits | (-1ULL << (i + 1))));
         pos_a->i_l += pos_a->leaves;
         return;
       }
     }
-    for(size_t i = 0; i < extra + 6; i++)
-      if(bv_get_int(&(a->t), save_pos, extra + 6) & (1ULL << i)) printf("(");
-      else printf(")");
-    printf("\n");
-    printf("2 %" PRIu8 "\n", COUNT_PPCPCC(a, save_pos, (extra + 6)));
     pos_a->leaves += COUNT_PPCC(a, save_pos, (extra + 3));
     pos_a->i_p += COUNT_PPCPCC(a, save_pos, (extra + 6));
   }
@@ -1830,21 +1808,11 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
               pos_a->size = (pos_a->i_t - curr_pos) / 2;
               pos_a->leaves += count(bits | (-1ULL << (i + 1)));
               pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-              for(size_t j = 0; j < i + 1; j++)
-                if(bits & (1ULL << j)) printf("(");
-                else printf(")");
-              printf("\n");
-              printf("3 %" PRIu8 "\n", count_p(bits | (-1ULL << (i + 1))));
               pos_a->i_l += pos_a->leaves;
               return;
             }
           }
         }
-        for(size_t i = 0; i < 21; i++)
-          if(bv_get_int(&(a->t), pos_a->i_t, 21) & (1ULL << i)) printf("(");
-          else printf(")");
-        printf("\n");
-        printf("4 %" PRIu8 "\n", COUNT_PPCPCC(a, pos_a->i_t, 21));
         pos_a->excess += exc_micro[bits];
         pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
         pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
@@ -2401,7 +2369,7 @@ static uint64_t k2bp_leaves_between_pointers(const k2bp_traversal_t* pos_a, size
 static uint8_t k2bp_check_and_move(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* new_pos_a) {
   if(bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
     k2bp_init_traversalinfo(pos_a, new_pos_a);
-    pos_a->i_p = rank_p(pos_a, a);
+    //pos_a->i_p = rank_p(pos_a, a);
     size_t det_a = iv_get(&(a->pointers), pos_a->i_p);
     new_pos_a->i_t = det_a;
     new_pos_a->i_p = rank_p(new_pos_a, a);
