@@ -14,32 +14,32 @@ CSR_SRC    = $(wildcard $(CSR_DIR)/*.c)
 # Running: make debug
 debug: CFLAGS = -g -O0
 debug: all
-# ---------------------------------------------------------------------------
+	# ---------------------------------------------------------------------------
 
 # Rules for each tool
 bv_test: bv.c $(UTIL_SRC)
-        $(CC) $^ $(CFLAGS) -o bv.x
+	$(CC) $^ $(CFLAGS) -o bv.x
 
 k2bp_build: k2bp_build.c $(UTIL_SRC) $(K2BP_SRC) $(CSR_SRC) $(LIBSAIS)
-        $(CC) $^ $(CFLAGS) -o k2bp_build.x
+	$(CC) $^ $(CFLAGS) -o k2bp_build.x
 
 k2bp_info: k2bp_info.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
-        $(CC) $^ $(CFLAGS) -o k2bp_info.x
+	$(CC) $^ $(CFLAGS) -o k2bp_info.x
 
 k2bp_addinfo: k2bp_addinfo.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
-        $(CC) $^ $(CFLAGS) -lm -o k2bp_addinfo.x
+	$(CC) $^ $(CFLAGS) -lm -o k2bp_addinfo.x
 
 k2bp_sum: k2bp_sum.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
-        $(CC) $^ $(CFLAGS) -lm -o k2bp_sum.x
+	$(CC) $^ $(CFLAGS) -lm -o k2bp_sum.x
 
 k2bp_mul: k2bp_mul.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
-        $(CC) $^ $(CFLAGS) -lm -o k2bp_mul.x
+	$(CC) $^ $(CFLAGS) -lm -o k2bp_mul.x
 
 k2bp_compress: k2bp_compress.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
-        $(CC) $^ $(CFLAGS) -lm -o k2bp_compress.x
+	$(CC) $^ $(CFLAGS) -lm -o k2bp_compress.x
 
 genrandmatrix: genrandmatrix.c
-        $(CC) $^ $(CFLAGS) -o genrandmatrix.x
+	$(CC) $^ $(CFLAGS) -o genrandmatrix.x
 
 all: bv_test k2bp_build k2bp_info k2bp_addinfo k2bp_sum k2bp_mul genrandmatrix k2bp_compress
 
@@ -47,4 +47,4 @@ release: CFLAGS += -DNDEBUG
 release: all
 
 clean:
-        rm -f *.x
+	rm -f *.x
