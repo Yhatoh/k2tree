@@ -1343,7 +1343,7 @@ static void build_leaves_pointers(k2bp_traversal_t* pos_a, k2bp_t* a) {
 //                                  k2bp_leaves_between_pointers(pos_a, rank_p(&pos_start, a), amount_p) +
 //                                  iv_get(&(pos_a->leaves_pointers), i - 1));
       iv_set(&(a->leaves_pointers), i, pos_start.leaves +
-                                  k2bp_leaves_between_pointers(pos_a, rank_p(&pos_start, a), amount_p) +
+                                  k2bp_leaves_between_pointers(a, rank_p(&pos_start, a), amount_p) +
                                   iv_get(&(a->leaves_pointers), i - 1));
 
     if(a->subtreeinfo != NULL)
