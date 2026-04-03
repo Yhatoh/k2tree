@@ -10,6 +10,7 @@
 #define GET_NODES(x) (x & ((1ULL << NUM_SUPPORT) - 1))
 #define GET_SKIPS(x) (x >> NUM_SUPPORT)
 #define ENCODE(x, y) (x << NUM_SUPPORT) | y
+#define HAS_POINTERS(a) (a->pointers.data != NULL)
 
 #define _K_ 2
 #define BLOCK_SIZE 256
@@ -65,6 +66,7 @@ typedef struct k2bp_t {
   uint16_t* exc_samples;
   uint8_t* leaves_samples; // this is specific for block <= 256
                            // if you want bigger blocks you should change this type
+  uint8_t* pointers_samples;
 
   // subtree information
   size_t n_info;
@@ -78,7 +80,7 @@ typedef struct k2bp_t {
 
 } k2bp_t;
 
-#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, {0, 0, 0, {0, 0, NULL}, {0, 0, NULL}}, NULL, NULL, NULL, 0, 0, NULL, NULL, 0, {0, 0, NULL}}
+#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, {0, 0, 0, {0, 0, NULL}, {0, 0, NULL}}, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, 0, {0, 0, NULL}}
 
 // k2 tree operations
 size_t k2bp_build_from_textfile(k2bp_t* a, const char* f, size_t fsize);
