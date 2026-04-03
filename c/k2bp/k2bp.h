@@ -15,7 +15,7 @@
 #define BLOCK_SIZE 256
 #define SAMPLE_SIZE(n) ((n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
 
-#define BLOCK_SIZE_RANK 256
+#define BLOCK_SIZE_RANK 2048
 #define SAMPLE_SIZE_RANK(n) ((n + BLOCK_SIZE_RANK - 1) / BLOCK_SIZE_RANK + 1)
 
 #define LEAF_0 1

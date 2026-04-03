@@ -1167,8 +1167,7 @@ static uint64_t rank_p(const k2bp_traversal_t* pos_a, const k2bp_t* a) {
     uint64_t bits = bv_get_int(&(a->t), curr_i, 64);
     ret += count_p(bits);
     if(curr_i + 64 < pos_a->i_t) {
-      uint64_t len = (curr_i + 69 < a->t.n ? 10 :  a->t.n - (curr_i + 59));
-      ret += count_p(bv_get_int(&(a->t), curr_i + 59, len) | (((uint64_t) -1) << len));
+      ret += COUNT_PPCPCC(a, curr_i + 59, 10);
     }
   }
 
@@ -1306,7 +1305,7 @@ static void build_rank_p(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 
     uint64_t bits = bv_get_int(&(a->t), i, 64);
     prefix_sum += count_p(bits);
-    prefix_sum += count_p(bv_get_int(&(a->t), i + 59, 10) | (((uint64_t) -1) << 10));
+    prefix_sum += COUNT_PPCPCC(a, i + 59, 10);
   }
 
   for(; i + 6 < a->t.n; i++) {
