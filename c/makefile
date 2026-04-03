@@ -5,18 +5,13 @@ K2BP_DIR = k2bp
 CSR_DIR  = csr
 LIBSAIS  = ../libsais/liblibsais.a
 
-# Collect common source groups
 UTIL_SRC   = $(wildcard $(UTIL_DIR)/*.c)
 K2BP_SRC   = $(wildcard $(K2BP_DIR)/*.c)
 CSR_SRC    = $(wildcard $(CSR_DIR)/*.c)
 
-# ----- DEBUG MODE ----------------------------------------------------------
-# Running: make debug
 debug: CFLAGS = -g -O0
 debug: all
-	# ---------------------------------------------------------------------------
 
-# Rules for each tool
 bv_test: bv.c $(UTIL_SRC)
 	$(CC) $^ $(CFLAGS) -o bv.x
 
