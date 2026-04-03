@@ -1315,6 +1315,7 @@ static void build_leaves_pointers(k2bp_traversal_t* pos_a, const k2bp_t* a) {
       pos_start.i_t += p_size * 2;
       pos_start.size = p_size;
       pos_start.leaves = p_leaves;
+      pos_start.i_p = rank_p(&pos_start, a);
     }
 
     if(i == 0)
