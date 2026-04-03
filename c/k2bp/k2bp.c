@@ -1160,9 +1160,9 @@ static uint8_t count_p(const uint64_t num) {
 static uint64_t rank_p(const k2bp_traversal_t* pos_a, const k2bp_t* a) {
   if(a->pointers.data == NULL) return 0;
 
-  const uint64_t block = pos_a->i_t / BLOCK_SIZE;
+  const uint64_t block = pos_a->i_t / BLOCK_SIZE_RANK;
   uint64_t ret = pos_a->rank_pointers[block];
-  size_t curr_i = BLOCK_SIZE * (pos_a->i_t / BLOCK_SIZE);
+  size_t curr_i = BLOCK_SIZE_RANK * (pos_a->i_t / BLOCK_SIZE_RANK);
   for(; curr_i + 64 < pos_a->i_t; curr_i += 64) {
     uint64_t bits = bv_get_int(&(a->t), curr_i, 64);
     ret += count_p(bits);
@@ -1294,12 +1294,12 @@ static void build_leaves_pointers(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 static void build_rank_p(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   if(pos_a->rank_pointers != NULL) return;
   
-  pos_a->rank_pointers = (uint32_t*) malloc(sizeof(uint32_t) * SAMPLE_SIZE(a->t.n));
+  pos_a->rank_pointers = (uint32_t*) malloc(sizeof(uint32_t) * SAMPLE_SIZE_RANK(a->t.n));
   size_t block = 0;
   uint64_t prefix_sum = 0;
   size_t i;
   for(i = 0; i + 64 < a->t.n; i += 64) {
-    if(i % BLOCK_SIZE == 0) {
+    if(i % BLOCK_SIZE_RANK == 0) {
       pos_a->rank_pointers[block] = prefix_sum;
       block++;
     }
@@ -1310,7 +1310,7 @@ static void build_rank_p(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   }
 
   for(; i + 6 < a->t.n; i++) {
-    if(i % BLOCK_SIZE == 0) {
+    if(i % BLOCK_SIZE_RANK == 0) {
       pos_a->rank_pointers[block] = prefix_sum;
       block++;
     }
