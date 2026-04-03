@@ -879,7 +879,8 @@ void k2bp_build_exc_sampling(k2bp_t* a) {
       a->exc_samples[block] = excess;
       a->exc_min_samples[block] = min_excess;
       a->leaves_samples[block] = leaves;
-      a->pointers_samples[block] = pointers;
+      if(HAS_POINTERS(a))
+        a->pointers_samples[block] = pointers;
       block++;
       min_excess = LLONG_MAX;
       leaves = 0;
