@@ -1376,7 +1376,7 @@ static void k2bp_traverse_and_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2b
 static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
   assert(!HAS_POINTERS(a));
-  if(bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
+  if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
     bv_pb(&(c->t), 1);
     bv_pb(&(c->t), 1);
     bv_pb(&(c->t), 0);
@@ -1390,7 +1390,7 @@ static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* 
     return;
   }
   
-  if(bv_get_int(&(a->t), pos_a->i_t, 2) == LEAF_0) {
+  if(pos_a->i_t + 2 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 2) == LEAF_0) {
     bv_pb(&(c->t), 1);
     bv_pb(&(c->t), 0);
     pos_a->i_t += 2;
