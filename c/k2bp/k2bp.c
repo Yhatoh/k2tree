@@ -1536,7 +1536,8 @@ static void k2bp_scandfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         if(obj_excess == pos_a->excess + 1) {
           pos_a->size = (pos_a->i_t - curr_pos) / 2;
           pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-          pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
+          if(HAS_POINTERS(a))
+            pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
           pos_a->i_l += pos_a->leaves;
           return;
         }
@@ -1845,7 +1846,8 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     }
     pos_a->excess = a->exc_samples[block];
     pos_a->leaves += a->leaves_samples[block];
-    pos_a->i_p += a->pointers_samples[block];
+    if(HAS_POINTERS(a))
+      pos_a->i_p += a->pointers_samples[block];
     pos_a->i_t += BLOCK_SIZE;
     block++;
   }
