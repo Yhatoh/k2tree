@@ -873,7 +873,8 @@ void k2bp_build_exc_sampling(k2bp_t* a) {
     a->exc_samples[i] = 0;
     a->exc_min_samples[i] = 0;
     a->leaves_samples[i] = 0;
-    a->pointers_samples[i] = 0;
+    if(HAS_POINTERS(a))
+      a->pointers_samples[i] = 0;
   }
   uint16_t excess = 1;
   uint64_t min_excess = 1;
