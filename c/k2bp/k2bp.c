@@ -1172,7 +1172,7 @@ static uint64_t rank_p(const k2bp_traversal_t* pos_a, const k2bp_t* a) {
   }
 
   for(; curr_i < pos_a->i_t; curr_i++) {
-    if(curr_i + 6 > pos_a->i_t) break;
+    if(curr_i + 6 > a->t.n) break;
     if(bv_get_int(&(a->t), curr_i, 6) == LEAF_P) ret++;
   }
   return ret;
@@ -1290,13 +1290,6 @@ static void build_leaves_pointers(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   }
 }
 
-static uint64_t brute_force_rank(uint64_t i, const k2bp_t* a) {
-  uint64_t ret = 0;
-  for(size_t i = 0; i + 6 <= a->t.n; i++) {
-    if(bv_get_int(&(a->t), i, 6) == LEAF_P) ret++;
-  }
-  return ret;
-}
 static void build_rank_p(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   if(pos_a->rank_pointers != NULL) return;
   
@@ -1325,14 +1318,6 @@ static void build_rank_p(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 
   pos_a->rank_pointers[block] = prefix_sum;
   block++;
-  
-  for(size_t i = 0; i < a->t.n; i++) {
-    pos_a->i_t = i;
-    if(rank_p(pos_a, a) != brute_force_rank(i, a)) {
-      printf("%" PRIu64 " %" PRIu64 "\n", rank_p(pos_a, a), brute_force_rank(i, a));
-      exit(1);
-    }
-  }
 }
 
 static void k2bp_traverse_and_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
