@@ -1,3 +1,4 @@
+CC = gcc
 CFLAGS  = -O3
 LDFLAGS =
 UTIL_DIR = util
