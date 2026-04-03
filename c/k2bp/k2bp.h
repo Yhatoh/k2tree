@@ -16,7 +16,7 @@
 #define BLOCK_SIZE 256
 #define SAMPLE_SIZE(n) ((n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
 
-#define BLOCK_SIZE_RANK 512
+#define BLOCK_SIZE_RANK 256
 #define SAMPLE_SIZE_RANK(n) ((n + BLOCK_SIZE_RANK - 1) / BLOCK_SIZE_RANK + 1)
 
 #define LEAF_0 1
@@ -39,16 +39,15 @@ typedef struct k2bp_traversal_t {
 //  uint32_t* leaves_pointers;
 //  uint32_t* node_pointers;
 //  uint64_t* size_sub_pointers;
-//  iv_t rank_pointers;
-//  iv_t leaves_pointers;
-//  iv_t node_pointers;
-//  iv_t size_sub_pointers;
+  iv_t rank_pointers;
+  iv_t leaves_pointers;
+  iv_t node_pointers;
+  iv_t size_sub_pointers;
   uint8_t flag_cl;
 } k2bp_traversal_t;
 
 //#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, 0}
-//#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, NULL}, {0, 0, NULL}, {0, 0, NULL}, {0, 0, NULL}, 0}
-#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, NULL}, {0, 0, NULL}, {0, 0, NULL}, {0, 0, NULL}, 0}
 
 typedef struct k2bp_t {
   size_t msize; // pow 2 matrix size
@@ -84,13 +83,9 @@ typedef struct k2bp_t {
   size_t n_p;
   iv_t pointers;
 
-  iv_t rank_pointers;
-  iv_t leaves_pointers;
-  iv_t node_pointers;
-  iv_t size_sub_pointers;
 } k2bp_t;
 
-#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, {0, 0, 0, {0, 0, NULL}, {0, 0, NULL}}, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, 0, {0, 0, NULL}, {0, 0, NULL}, {0, 0, NULL}, {0, 0, NULL}, {0, 0, NULL}}
+#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, {0, 0, 0, {0, 0, NULL}, {0, 0, NULL}}, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, 0, {0, 0, NULL}}
 
 // k2 tree operations
 size_t k2bp_build_from_textfile(k2bp_t* a, const char* f, size_t fsize);
