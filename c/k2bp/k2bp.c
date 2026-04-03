@@ -1297,7 +1297,7 @@ static void build_leaves_pointers(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 //  pos_a->size_sub_pointers = (uint64_t*) malloc(sizeof(uint64_t) * a->n_p);
   iv_init(&(pos_a->leaves_pointers), a->n_p, ceil_log2(a->n_l));
   iv_init(&(pos_a->node_pointers), a->n_p, ceil_log2(a->n_info));
-  iv_init(&(pos_a->size_sub_pointers), a->n_p, ceil_log2(a->t.n));
+  iv_init(&(pos_a->size_sub_pointers), a->n_p, ceil_log2(a->t.n / 2));
 
   for(size_t i = 0; i < a->n_p; i++) {
     size_t start = iv_get(&(a->pointers), i);
