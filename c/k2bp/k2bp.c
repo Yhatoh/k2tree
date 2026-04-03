@@ -810,6 +810,9 @@ size_t k2bp_show_stats(k2bp_t *a, const char *fname, FILE *f) {
   if(a->pointers.data != NULL) {
     fprintf(f, " pointers: %zu\n", a->n_p);
   }
+  if(a->subtreeinfo != NULL) {
+    fprintf(f, " elements subtree info: %zu\n", a->n_info);
+  }
   size_t bp_bytes = sizeof(bv_t) + (a->t.n + 64 - 1) / 64 * sizeof(uint64_t);
   fprintf(f, " size by parts\n");
   fprintf(f, "  bp  size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", bp_bytes, bp_bytes * CHAR_BIT, (double) bp_bytes * CHAR_BIT / nz);
