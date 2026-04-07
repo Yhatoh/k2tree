@@ -16,7 +16,7 @@
 #define BLOCK_SIZE 256
 #define SAMPLE_SIZE(n) ((n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
 
-#define BLOCK_SIZE_RANK 2048 // apparently this make slow 
+#define BLOCK_SIZE_RANK 256 // apparently this make slow 
                              // faster matrix-matrix multiplication, this should be reduce
 #define SAMPLE_SIZE_RANK(n) ((n + BLOCK_SIZE_RANK - 1) / BLOCK_SIZE_RANK + 1)
 
@@ -43,12 +43,11 @@ typedef struct k2bp_traversal_t {
   iv_t rank_pointers;
   iv_t leaves_pointers;
   iv_t node_pointers;
-  iv_t size_sub_pointers;
   uint8_t flag_cl;
 } k2bp_traversal_t;
 
 //#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, 0}
-#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, NULL}, {0, 0, NULL}, {0, 0, NULL}, {0, 0, NULL}, 0}
+#define K2BP_TRAVERSAL_INITIALIZER {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, NULL}, {0, 0, NULL}, {0, 0, NULL}, 0}
 
 typedef struct k2bp_t {
   size_t msize; // pow 2 matrix size
