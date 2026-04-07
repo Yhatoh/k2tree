@@ -1301,7 +1301,7 @@ static void build_leaves_pointers(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 //  pos_a->size_sub_pointers = (uint64_t*) malloc(sizeof(uint64_t) * a->n_p);
   iv_init(&(pos_a->leaves_pointers), a->n_p, ceil_log2(a->n_l));
   iv_init(&(pos_a->node_pointers), a->n_p, ceil_log2(a->n_info));
-  iv_init(&(pos_a->size_sub_pointers), a->n_p, ceil_log2(a->t.n / 2));
+  //iv_init(&(pos_a->size_sub_pointers), a->n_p, ceil_log2(a->t.n / 2));
 
   for(size_t i = 0; i < a->n_p; i++) {
     size_t start = iv_get(&(a->pointers), i);
@@ -1343,7 +1343,7 @@ static void build_leaves_pointers(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     //pos_a->node_pointers[i] = p_node;
     //pos_a->size_sub_pointers[i] = pos_start.size;
     iv_set(&(pos_a->node_pointers), i, p_node);
-    iv_set(&(pos_a->size_sub_pointers), i, pos_start.size);
+    //iv_set(&(pos_a->size_sub_pointers), i, pos_start.size);
   }
 }
 
@@ -1503,7 +1503,7 @@ static void free_precompute_info(k2bp_traversal_t* pos_a, k2bp_t* a) {
     iv_free(&(pos_a->rank_pointers));
     iv_free(&(pos_a->leaves_pointers));
     iv_free(&(pos_a->node_pointers));
-    iv_free(&(pos_a->size_sub_pointers));
+    //iv_free(&(pos_a->size_sub_pointers));
   }
 }
 
@@ -2417,7 +2417,7 @@ static uint8_t k2bp_check_and_move(k2bp_traversal_t* pos_a, const k2bp_t* a, k2b
 //    new_pos_a->node = pos_a->node_pointers[pos_a->i_p];
 //    new_pos_a->size = pos_a->size_sub_pointers[pos_a->i_p];
     new_pos_a->node = iv_get(&(pos_a->node_pointers), pos_a->i_p);
-    new_pos_a->size = iv_get(&(pos_a->size_sub_pointers), pos_a->i_p);
+    //new_pos_a->size = iv_get(&(pos_a->size_sub_pointers), pos_a->i_p);
     new_pos_a->excess = pos_a->excess;
     new_pos_a->flag_p = 1;
     return 1;
@@ -2503,7 +2503,7 @@ static void k2bp_copy_traversalinfo(const k2bp_traversal_t* pos_a, k2bp_traversa
   copy_a->rank_pointers = pos_a->rank_pointers;
   copy_a->leaves_pointers = pos_a->leaves_pointers;
   copy_a->node_pointers = pos_a->node_pointers;
-  copy_a->size_sub_pointers = pos_a->size_sub_pointers;
+  //copy_a->size_sub_pointers = pos_a->size_sub_pointers;
 }
 
 static void k2bp_init_traversalinfo(const k2bp_traversal_t* pos_a, k2bp_traversal_t* copy_a) {
@@ -2523,7 +2523,7 @@ static void k2bp_init_traversalinfo(const k2bp_traversal_t* pos_a, k2bp_traversa
   copy_a->rank_pointers = pos_a->rank_pointers;
   copy_a->leaves_pointers = pos_a->leaves_pointers;
   copy_a->node_pointers = pos_a->node_pointers;
-  copy_a->size_sub_pointers = pos_a->size_sub_pointers;
+  //copy_a->size_sub_pointers = pos_a->size_sub_pointers;
 }
 
 static void k2bp_splitinfo(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* splits) {
@@ -2565,10 +2565,10 @@ static void k2bp_splitinfo(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_
   splits[2].node_pointers = pos_a->node_pointers;
   splits[3].node_pointers = pos_a->node_pointers;
 
-  splits[0].size_sub_pointers = pos_a->size_sub_pointers;
-  splits[1].size_sub_pointers = pos_a->size_sub_pointers;
-  splits[2].size_sub_pointers = pos_a->size_sub_pointers;
-  splits[3].size_sub_pointers = pos_a->size_sub_pointers;
+  //splits[0].size_sub_pointers = pos_a->size_sub_pointers;
+  //splits[1].size_sub_pointers = pos_a->size_sub_pointers;
+  //splits[2].size_sub_pointers = pos_a->size_sub_pointers;
+  //splits[3].size_sub_pointers = pos_a->size_sub_pointers;
 
   splits[0].flag_p = pos_a->flag_p;
   splits[1].flag_p = pos_a->flag_p;
@@ -2639,10 +2639,10 @@ static void k2bp_split(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trav
   splits[2].leaves_pointers = pos_a->leaves_pointers;
   splits[3].leaves_pointers = pos_a->leaves_pointers;
  
-  splits[0].size_sub_pointers = pos_a->size_sub_pointers;
-  splits[1].size_sub_pointers = pos_a->size_sub_pointers;
-  splits[2].size_sub_pointers = pos_a->size_sub_pointers;
-  splits[3].size_sub_pointers = pos_a->size_sub_pointers;
+//  splits[0].size_sub_pointers = pos_a->size_sub_pointers;
+//  splits[1].size_sub_pointers = pos_a->size_sub_pointers;
+//  splits[2].size_sub_pointers = pos_a->size_sub_pointers;
+//  splits[3].size_sub_pointers = pos_a->size_sub_pointers;
 
   splits[0].node_pointers = pos_a->node_pointers;
   splits[1].node_pointers = pos_a->node_pointers;
