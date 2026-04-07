@@ -157,7 +157,7 @@ void bv_load_from_file(bv_t* z, const char* fname) {
   if(w != 1) quit("bv_load_from_file: error reading n from file", __LINE__, __FILE__);
   z->maxn = (z->n + 64 - 1) / 64;
   z->a = (uint64_t*) malloc(sizeof(uint64_t) * z->maxn);
-  w = fread(z->a, sizeof(size_t), z->maxn, in);
+  w = fread(z->a, sizeof(uint64_t), z->maxn, in);
   if(w != z->maxn) quit("bv_load_from_file: error reading n from file", __LINE__, __FILE__);
   fclose(in);
 }
