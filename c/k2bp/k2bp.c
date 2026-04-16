@@ -70,7 +70,7 @@ static void k2bp_traverse(k2bp_traversal_t* pos_a, const k2bp_t* a);
 static void k2bp_traverse_and_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c);
 static void k2bp_traversal_copy_pos(k2bp_traversal_t* s, k2bp_traversal_t* d);
 static void k2bp_reset(k2bp_t* a);
-static void k2bp_grow(k2bp_t* a, size_t node, size_t leaves);
+static void k2bp_grow_leaves(k2bp_t* a, size_t i);
 
 
 #define COUNT_PPCC(a, pos_a_i_t, l) \
@@ -2012,6 +2012,7 @@ static uint8_t k2bp_move_a_block(k2bp_traversal_t* pos_a, const k2bp_t* a, size_
   pos_a->i_t += BLOCK_SIZE;
   return 1;
 }
+
 static uint8_t k2bp_move_a_superblock(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t super_block) {
   pos_a->excess = a->super_exc_samples[super_block];
   pos_a->leaves += a->super_leaves_samples[super_block];
@@ -2019,6 +2020,15 @@ static uint8_t k2bp_move_a_superblock(k2bp_traversal_t* pos_a, const k2bp_t* a, 
     pos_a->i_p += a->super_pointers_samples[super_block];
   pos_a->i_t += SUPER_BLOCK_SIZE;
   return 1;
+}
+
+static void k2bp_grow_leaves(k2bp_t* a, size_t i) {
+  a->n_l += i;
+  if(a->n_l >= a->maxn_l) {
+    a->maxn_l = a->n_l;
+    a->l = (uint8_t*) realloc(a->l, (a->maxn_l + 1) / 2);
+  }
+  a->n_l -= i;
 }
 
 static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* pos_b, const k2bp_t* b, k2bp_t* c) {
@@ -2351,6 +2361,7 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   aux_c_pos[0].msize = aux_c_pos[0].msize / 2;
   aux_c_pos[2].msize = aux_c_pos[2].msize / 2;
   bv_grow(&(c->t), aux_c[0].t.n + aux_c[2].t.n);
+  k2bp_grow_leaves(c, aux_c[0].n_l + aux_c[2].n_l);
   reck2bp_scansum(&(aux_c_pos[0]), &(aux_c[0]), &(aux_c_pos[2]), &(aux_c[2]), c);
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[2].n_l = 0; aux_c[2].t.n = 0;
@@ -2366,6 +2377,7 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   aux_c_pos[0].msize = aux_c_pos[0].msize / 2;
   aux_c_pos[1].msize = aux_c_pos[1].msize / 2;
   bv_grow(&(c->t), aux_c[0].t.n + aux_c[1].t.n);
+  k2bp_grow_leaves(c, aux_c[0].n_l + aux_c[1].n_l);
   reck2bp_scansum(&(aux_c_pos[0]), &(aux_c[0]), &(aux_c_pos[1]), &(aux_c[1]), c);
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
@@ -2386,6 +2398,7 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   aux_c_pos[0].msize = aux_c_pos[0].msize / 2;
   aux_c_pos[1].msize = aux_c_pos[1].msize / 2;
   bv_grow(&(c->t), aux_c[0].t.n + aux_c[1].t.n);
+  k2bp_grow_leaves(c, aux_c[0].n_l + aux_c[1].n_l);
   reck2bp_scansum(&(aux_c_pos[0]), &(aux_c[0]), &(aux_c_pos[1]), &(aux_c[1]), c);
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
@@ -2399,6 +2412,7 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   aux_c_pos[0].msize = aux_c_pos[0].msize / 2;
   aux_c_pos[1].msize = aux_c_pos[1].msize / 2;
   bv_grow(&(c->t), aux_c[0].t.n + aux_c[1].t.n);
+  k2bp_grow_leaves(c, aux_c[0].n_l + aux_c[1].n_l);
   reck2bp_scansum(&(aux_c_pos[0]), &(aux_c[0]), &(aux_c_pos[1]), &(aux_c[1]), c);
 
   k2bp_free(&(aux_c[0]));
