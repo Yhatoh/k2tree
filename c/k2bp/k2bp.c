@@ -1565,7 +1565,7 @@ static void free_precompute_info(k2bp_traversal_t* pos_a, k2bp_t* a) {
     iv_free(&(pos_a->rank_pointers));
     iv_free(&(pos_a->leaves_pointers));
     free(a->super_exc_min_samples);
-    free(a->super_exc_min_samples);
+    free(a->super_exc_samples);
     free(a->super_leaves_samples);
     free(a->super_pointers_samples);
     //iv_free(&(pos_a->node_pointers));
