@@ -134,9 +134,9 @@ void bv_grow(bv_t* z, size_t i) {
   z->n += i;
   while(z->n > z->maxn * 64) {
     z->maxn *= 2;
-    z->a = (uint64_t*) realloc(z->a, sizeof(uint64_t) * z->maxn);
-    if(z->a == NULL) quit("realloc failed",__LINE__,__FILE__);
   }
+  z->a = (uint64_t*) realloc(z->a, sizeof(uint64_t) * z->maxn);
+  if(z->a == NULL) quit("realloc failed",__LINE__,__FILE__);
 }
 
 uint64_t bv_size_in_bits(const bv_t* z) {
