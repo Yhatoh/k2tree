@@ -844,7 +844,7 @@ size_t k2bp_show_stats(k2bp_t *a, const char *fname, FILE *f) {
   size_t exc_bytes = 0;
   size_t mic_bytes = 0;
   if(a->exc_min_samples != NULL) {
-    exc_bytes = SAMPLE_SIZE(a->t.n) * (sizeof(uint16_t) * 2 + sizeof(uint8_t));
+    exc_bytes = SAMPLE_SIZE(a->t.n) * (sizeof(uint8_t) * 2 + sizeof(uint8_t));
     if(HAS_POINTERS(a)) exc_bytes += SAMPLE_SIZE(a->t.n) * sizeof(uint8_t);
     mic_bytes = 65536 * sizeof(uint8_t) * 2;
   }
