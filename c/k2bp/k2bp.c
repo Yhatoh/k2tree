@@ -14,6 +14,7 @@
 #include "../util/dsu.h"
 #include "../util/rrr.h"
 #include "../../libsais/include/libsais64.h"
+#include "../util/dac.h"
 
 static size_t binsearch(uint64_t *ia, size_t n, uint64_t x);
 static uint64_t *create_ia(FILE *f, size_t *n, size_t *msize, size_t xsize);
@@ -860,6 +861,13 @@ size_t k2bp_show_stats(k2bp_t *a, const char *fname, FILE *f) {
     pointer_bytes = ((a->pointers.n * a->pointers.w + 64 - 1) / 64) * sizeof(uint64_t) + sizeof(iv_t);
   }
   fprintf(f, "  ptr size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", pointer_bytes, pointer_bytes * CHAR_BIT, (double) pointer_bytes * CHAR_BIT / nz);
+  uint32_t* check = (uint32_t*) malloc(sizeof(uint32_t) * a->n_p);
+  for(size_t i = 0; i < a->n_p; i++){
+    check[i] = iv_get(&(a->pointers), i);
+  }
+  dac_t* dac_check = dac_build(check, a->n_p);
+  fprintf(f, "  check dac %" PRIu64 " bits, %.3lf bits x nonzero\n", dac_bits(dac_check), (double) dac_bits(dac_check) / nz);
+  dac_free(dac_check);
   size_t total_bytes = bp_bytes + l_bytes + exc_bytes + sub_bytes + sizeof(size_t) * 3 + pointer_bytes;
   fprintf(f, " total size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", total_bytes, total_bytes * CHAR_BIT, (double) total_bytes * CHAR_BIT / nz);
 
