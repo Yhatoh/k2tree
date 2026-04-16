@@ -1365,7 +1365,10 @@ static void build_leaves_pointers(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   assert(pos_a->rank_pointers.data != NULL);
 
   iv_init(&(pos_a->leaves_pointers), a->n_p, ceil_log2(a->n_l));
-  iv_init(&(pos_a->node_pointers), a->n_p, ceil_log2(a->n_info));
+  if(a->n_info == 0)
+    iv_init(&(pos_a->node_pointers), a->n_p, 1);
+  else
+    iv_init(&(pos_a->node_pointers), a->n_p, ceil_log2(a->n_info));
 
   for(size_t i = 0; i < a->n_p; i++) {
     size_t start = iv_get(&(a->pointers), i);
