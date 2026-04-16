@@ -16,6 +16,9 @@
 #define BLOCK_SIZE 256
 #define SAMPLE_SIZE(n) ((n + BLOCK_SIZE - 1) / BLOCK_SIZE + 1)
 
+#define SUPER_BLOCK_SIZE 8192 // extra fast traversal, specific for compressed BP
+#define SAMPLE_SIZE_SUPER(n) ((n + SUPER_BLOCK_SIZE - 1) / SUPER_BLOCK_SIZE + 1)
+
 #define BLOCK_SIZE_RANK 4096 // apparently this make slow 
                              // faster matrix-matrix multiplication, this should be reduce
 #define SAMPLE_SIZE_RANK(n) ((n + BLOCK_SIZE_RANK - 1) / BLOCK_SIZE_RANK + 1)
@@ -67,11 +70,11 @@ typedef struct k2bp_t {
   // tree support helper
   //  child support
   //  amount of leaves for a subtree
-  uint16_t* exc_min_samples;
+  uint16_t* exc_min_samples; // I think this two can be reduce to uint8_t test it later
   uint16_t* exc_samples;
   uint8_t* leaves_samples; // this is specific for block <= 256
                            // if you want bigger blocks you should change this type
-  uint8_t* pointers_samples;
+  uint8_t* pointers_samples; // only for compressed version
 
   // subtree information
   size_t n_info;
@@ -83,9 +86,18 @@ typedef struct k2bp_t {
   size_t n_p;
   iv_t pointers;
 
+  // extra sampling for compressed version
+  uint16_t* super_exc_min_samples; // I think this two can be reduce to uint8_t test it later
+  uint16_t* super_exc_samples;
+  uint16_t* super_leaves_samples;
+  uint16_t* super_pointers_samples;
+
 } k2bp_t;
 
-#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, {0, 0, 0, {0, 0, NULL}, {0, 0, NULL}}, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, 0, {0, 0, NULL}}
+#define K2BP_INITIALIZER {0, 0, 0, {0, 0, NULL}, 0, 0, NULL, \
+                          {0, 0, 0, {0, 0, NULL}, {0, 0, NULL}}, \
+                          NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, \
+                          0, {0, 0, NULL}, NULL, NULL, NULL, NULL}
 
 // k2 tree operations
 size_t k2bp_build_from_textfile(k2bp_t* a, const char* f, size_t fsize);
