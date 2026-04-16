@@ -484,10 +484,10 @@ void k2bp_save_to_file(const k2bp_t* a, const char* fname) {
     if(f == NULL)
       quit("k2bp_save_to_file: file cannot be open", __LINE__, __FILE__);
 
-    w = fwrite(a->exc_min_samples, sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
+    w = fwrite(a->exc_min_samples, sizeof(uint8_t), SAMPLE_SIZE(a->t.n), f);
     if(w != SAMPLE_SIZE(a->t.n))
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
-    w = fwrite(a->exc_samples, sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
+    w = fwrite(a->exc_samples, sizeof(uint8_t), SAMPLE_SIZE(a->t.n), f);
     if(w != SAMPLE_SIZE(a->t.n))
       quit("k2bp_save_to_file: error writing in file", __LINE__, __FILE__);
     w = fwrite(a->leaves_samples, sizeof(uint8_t), SAMPLE_SIZE(a->t.n), f);
@@ -660,13 +660,13 @@ void k2bp_load_from_file(k2bp_t* a, const char* fname) {
 
   f = fopen(exc_name, "r");
   if(f != NULL) {
-    a->exc_min_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE(a->t.n));
-    w = fread(a->exc_min_samples, sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
+    a->exc_min_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE(a->t.n));
+    w = fread(a->exc_min_samples, sizeof(uint8_t), SAMPLE_SIZE(a->t.n), f);
     if(w != SAMPLE_SIZE(a->t.n))
       quit("k2bp_load_from_file: error reading from file", __LINE__, __FILE__);
 
-    a->exc_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE(a->t.n));
-    w = fread(a->exc_samples, sizeof(uint16_t), SAMPLE_SIZE(a->t.n), f);
+    a->exc_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE(a->t.n));
+    w = fread(a->exc_samples, sizeof(uint8_t), SAMPLE_SIZE(a->t.n), f);
     if(w != SAMPLE_SIZE(a->t.n))
       quit("k2bp_load_from_file: error reading from file", __LINE__, __FILE__);
 
@@ -860,15 +860,12 @@ size_t k2bp_show_stats(k2bp_t *a, const char *fname, FILE *f) {
     pointer_bytes = ((a->pointers.n * a->pointers.w + 64 - 1) / 64) * sizeof(uint64_t) + sizeof(iv_t);
   }
   fprintf(f, "  ptr size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", pointer_bytes, pointer_bytes * CHAR_BIT, (double) pointer_bytes * CHAR_BIT / nz);
-  //size_t total_bytes = bp_bytes + l_bytes + exc_bytes + sub_bytes + mic_bytes + sizeof(size_t) * 3 + pointer_bytes;
   size_t total_bytes = bp_bytes + l_bytes + exc_bytes + sub_bytes + sizeof(size_t) * 3 + pointer_bytes;
   fprintf(f, " total size: %zu bytes, %zu bits, %.3lf bits x nonzero\n", total_bytes, total_bytes * CHAR_BIT, (double) total_bytes * CHAR_BIT / nz);
 
   return total_bytes;
 }
 
-// build excess sampling
-// this helps for small trees across `a`
 void k2bp_build_exc_sampling(k2bp_t* a) {
   assert(a != NULL);
   if(a->exc_samples != NULL) { // clean what is there
@@ -883,8 +880,8 @@ void k2bp_build_exc_sampling(k2bp_t* a) {
     }
   }
 
-  a->exc_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE(a->t.n));
-  a->exc_min_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE(a->t.n));
+  a->exc_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE(a->t.n));
+  a->exc_min_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE(a->t.n));
   a->leaves_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE(a->t.n));
   if(HAS_POINTERS(a))
     a->pointers_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE(a->t.n));
@@ -938,15 +935,16 @@ void k2bp_build_super_exc_sampling(k2bp_t* a) {
     free(a->super_exc_samples);
     free(a->super_exc_min_samples);
     free(a->super_leaves_samples);
-    a->super_exc_samples = a->super_leaves_samples = a->super_exc_min_samples = NULL;
+    a->super_exc_samples = a->super_exc_min_samples = NULL;
+    a->super_leaves_samples = NULL;
     if(HAS_POINTERS(a)) {
       free(a->super_pointers_samples);
       a->super_pointers_samples = NULL;
     }
   }
 
-  a->super_exc_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE_SUPER(a->t.n));
-  a->super_exc_min_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE_SUPER(a->t.n));
+  a->super_exc_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE_SUPER(a->t.n));
+  a->super_exc_min_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE_SUPER(a->t.n));
   a->super_leaves_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE_SUPER(a->t.n));
   if(HAS_POINTERS(a))
     a->super_pointers_samples = (uint16_t*) malloc(sizeof(uint16_t) * SAMPLE_SIZE_SUPER(a->t.n));
@@ -1371,10 +1369,6 @@ static void build_leaves_pointers(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   assert(pos_a->rank_pointers.data != NULL);
 
   iv_init(&(pos_a->leaves_pointers), a->n_p, ceil_log2(a->n_l));
-//  if(a->n_info == 0)
-//    iv_init(&(pos_a->node_pointers), a->n_p, 1);
-//  else
-//    iv_init(&(pos_a->node_pointers), a->n_p, ceil_log2(a->n_info));
 
   for(size_t i = 0; i < a->n_p; i++) {
     size_t start = iv_get(&(a->pointers), i);
@@ -1409,7 +1403,6 @@ static void build_leaves_pointers(k2bp_traversal_t* pos_a, const k2bp_t* a) {
       if(pos_start.size >= a->threshold)
         assert(p_size == pos_start.size && p_leaves == pos_start.leaves);
 
-    //iv_set(&(pos_a->node_pointers), i, p_node);
   }
 }
 
@@ -1568,9 +1561,8 @@ static void free_precompute_info(k2bp_traversal_t* pos_a, k2bp_t* a) {
     free(a->super_exc_samples);
     free(a->super_leaves_samples);
     free(a->super_pointers_samples);
-    a->super_exc_min_samples = a->super_exc_samples =
-      a->super_leaves_samples = a->super_pointers_samples = NULL;
-    //iv_free(&(pos_a->node_pointers));
+    a->super_exc_min_samples = a->super_exc_samples = NULL;
+    a->super_leaves_samples = a->super_pointers_samples = NULL;
   }
 }
 
@@ -2555,7 +2547,6 @@ static uint8_t k2bp_check_and_move(k2bp_traversal_t* pos_a, const k2bp_t* a, k2b
     new_pos_a->i_t = det_a;
     new_pos_a->i_p = rank_p(new_pos_a, a);
     new_pos_a->i_l = pos_a->i_l + k2bp_leaves_between_pointers(pos_a, pos_a->i_p, new_pos_a->i_p);
-//    new_pos_a->node = iv_get(&(pos_a->node_pointers), pos_a->i_p);
     new_pos_a->excess = pos_a->excess;
     new_pos_a->flag_p = 1;
     return 1;
@@ -2640,7 +2631,6 @@ static void k2bp_copy_traversalinfo(const k2bp_traversal_t* pos_a, k2bp_traversa
   copy_a->flag_p = pos_a->flag_p;
   copy_a->rank_pointers = pos_a->rank_pointers;
   copy_a->leaves_pointers = pos_a->leaves_pointers;
-//  copy_a->node_pointers = pos_a->node_pointers;
 }
 
 static void k2bp_init_traversalinfo(const k2bp_traversal_t* pos_a, k2bp_traversal_t* copy_a) {
@@ -2695,11 +2685,6 @@ static void k2bp_splitinfo(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_
   splits[1].leaves_pointers = pos_a->leaves_pointers;
   splits[2].leaves_pointers = pos_a->leaves_pointers;
   splits[3].leaves_pointers = pos_a->leaves_pointers;
-
-//  splits[0].node_pointers = pos_a->node_pointers;
-//  splits[1].node_pointers = pos_a->node_pointers;
-//  splits[2].node_pointers = pos_a->node_pointers;
-//  splits[3].node_pointers = pos_a->node_pointers;
 
   splits[0].flag_p = pos_a->flag_p;
   splits[1].flag_p = pos_a->flag_p;
@@ -2770,11 +2755,6 @@ static void k2bp_split(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trav
   splits[2].leaves_pointers = pos_a->leaves_pointers;
   splits[3].leaves_pointers = pos_a->leaves_pointers;
  
-//  splits[0].node_pointers = pos_a->node_pointers;
-//  splits[1].node_pointers = pos_a->node_pointers;
-//  splits[2].node_pointers = pos_a->node_pointers;
-//  splits[3].node_pointers = pos_a->node_pointers;
-
   splits[0].flag_p = pos_a->flag_p;
   splits[1].flag_p = pos_a->flag_p;
   splits[2].flag_p = pos_a->flag_p;
