@@ -1568,6 +1568,8 @@ static void free_precompute_info(k2bp_traversal_t* pos_a, k2bp_t* a) {
     free(a->super_exc_samples);
     free(a->super_leaves_samples);
     free(a->super_pointers_samples);
+    a->super_exc_min_samples = a->super_exc_samples =
+      a->super_leaves_samples = a->super_pointers_samples = NULL;
     //iv_free(&(pos_a->node_pointers));
   }
 }
