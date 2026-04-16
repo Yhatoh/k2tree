@@ -14,7 +14,6 @@
 #include "../util/dsu.h"
 #include "../util/rrr.h"
 #include "../../libsais/include/libsais64.h"
-#include "../util/dac.h"
 
 static size_t binsearch(uint64_t *ia, size_t n, uint64_t x);
 static uint64_t *create_ia(FILE *f, size_t *n, size_t *msize, size_t xsize);
