@@ -1584,6 +1584,7 @@ static void k2bp_traverse(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 
   if(HAS_POINTERS(a) && a->super_exc_min_samples != NULL) {
     k2bp_super_excdfs(pos_a, a);
+    return;
   }
   if(a->exc_min_samples != NULL) {
     k2bp_excdfs(pos_a, a);
