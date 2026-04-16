@@ -2350,7 +2350,7 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   k2bp_init_traversalinfo(pos_a, &(aux_c_pos[2]));
   aux_c_pos[0].msize = aux_c_pos[0].msize / 2;
   aux_c_pos[2].msize = aux_c_pos[2].msize / 2;
-  k2bp_grow(c, (aux_c[0].t.n + aux_c[2].t.n), (aux_c[0].n_l + aux_c[2].n_l));
+  bv_reserve(&(c->t), c->t.n + aux_c[0].t.n + aux_c[2].t.n);
   reck2bp_scansum(&(aux_c_pos[0]), &(aux_c[0]), &(aux_c_pos[2]), &(aux_c[2]), c);
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[2].n_l = 0; aux_c[2].t.n = 0;
@@ -2365,7 +2365,7 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   k2bp_init_traversalinfo(pos_a, &(aux_c_pos[1]));
   aux_c_pos[0].msize = aux_c_pos[0].msize / 2;
   aux_c_pos[1].msize = aux_c_pos[1].msize / 2;
-  k2bp_grow(c, (aux_c[0].t.n + aux_c[1].t.n), (aux_c[0].n_l + aux_c[1].n_l));
+  bv_reserve(&(c->t), c->t.n + aux_c[0].t.n + aux_c[1].t.n);
   reck2bp_scansum(&(aux_c_pos[0]), &(aux_c[0]), &(aux_c_pos[1]), &(aux_c[1]), c);
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
@@ -2385,7 +2385,7 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   k2bp_init_traversalinfo(pos_a, &(aux_c_pos[1]));
   aux_c_pos[0].msize = aux_c_pos[0].msize / 2;
   aux_c_pos[1].msize = aux_c_pos[1].msize / 2;
-  k2bp_grow(c, (aux_c[0].t.n + aux_c[1].t.n), (aux_c[0].n_l + aux_c[1].n_l));
+  bv_reserve(&(c->t), c->t.n + aux_c[0].t.n + aux_c[1].t.n);
   reck2bp_scansum(&(aux_c_pos[0]), &(aux_c[0]), &(aux_c_pos[1]), &(aux_c[1]), c);
   aux_c[0].n_l = 0; aux_c[0].t.n = 0;
   aux_c[1].n_l = 0; aux_c[1].t.n = 0;
@@ -2398,7 +2398,7 @@ static void reck2bp_scanmul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
   k2bp_init_traversalinfo(pos_a, &(aux_c_pos[1]));
   aux_c_pos[0].msize = aux_c_pos[0].msize / 2;
   aux_c_pos[1].msize = aux_c_pos[1].msize / 2;
-  k2bp_grow(c, (aux_c[0].t.n + aux_c[1].t.n), (aux_c[0].n_l + aux_c[1].n_l));
+  bv_reserve(&(c->t), c->t.n + aux_c[0].t.n + aux_c[1].t.n);
   reck2bp_scansum(&(aux_c_pos[0]), &(aux_c[0]), &(aux_c_pos[1]), &(aux_c[1]), c);
 
   k2bp_free(&(aux_c[0]));
@@ -2858,18 +2858,6 @@ static void k2bp_split(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trav
     k2bp_scandfs(&aux_pos, a);
     splits[3].size = aux_pos.size;
     splits[3].leaves = aux_pos.leaves;
-  }
-}
-
-static void k2bp_grow(k2bp_t* a, size_t nodes, size_t leaves) {
-  if(a->maxn_l <= a->n_l + leaves) {
-    a->maxn_l += leaves;
-    a->l = (uint8_t*) realloc(a->l, (a->maxn_l + 1) / 2);
-  }
-
-  if(a->t.maxn <= (a->t.n + nodes + 64 - 1) / 64) {
-    a->t.maxn += (nodes + 64 - 1) / 64;
-    a->t.a = (uint64_t*) realloc(a->t.a, a->t.maxn);
   }
 }
 
