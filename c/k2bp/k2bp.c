@@ -43,7 +43,13 @@ static void k2bp_build_super_exc_sampling(k2bp_t* a);
 static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a);
 static void k2bp_scandfs(k2bp_traversal_t* pos_a, const k2bp_t* a);
 static void k2bp_super_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a);
+// helper functions for more `readable` code
 static uint8_t k2bp_scan16_word(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t pos_begin, int64_t obj_excess);
+static uint8_t k2bp_scan(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t pos_begin, int64_t obj_excess);
+static uint8_t k2bp_scanextra(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t pos_begin, int64_t obj_excess);
+static uint8_t k2bp_checkscan_special_nodes(k2bp_traversal_t* pos_a, const k2bp_t* a);
+static uint8_t k2bp_move_a_block(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t block);
+static uint8_t k2bp_move_a_superblock(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t super_block);
 
 // split info pos_a into the k^2 child
 static void k2bp_split(const k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* splits);
@@ -1579,26 +1585,8 @@ static void k2bp_traverse(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 
 static void k2bp_scandfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
-  if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
-    pos_a->i_t += 4;
-    pos_a->size = 2;
-    pos_a->leaves = 1;
-    pos_a->i_l++;
+  if(k2bp_checkscan_special_nodes(pos_a, a))
     return;
-  }
-  if(pos_a->i_t + 2 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 2) == LEAF_0) {
-    pos_a->i_t += 2;
-    pos_a->size = 1;
-    pos_a->leaves = 0;
-    return;
-  }
-  if(pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
-    pos_a->i_t += 6;
-    pos_a->size = 3;
-    pos_a->leaves = 0;
-    pos_a->i_p++;
-    return;
-  }
 
   pos_a->size = 0;
   pos_a->leaves = 0;
@@ -1606,47 +1594,14 @@ static void k2bp_scandfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   uint64_t curr_pos = pos_a->i_t;
   pos_a->i_t++;
   for(; pos_a->i_t + 16 <= a->t.n; pos_a->i_t += 16) {
-//    uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, 16);
-//    // found microblock
-//    if(obj_excess >= pos_a->excess + exc_min_micro[bits] + 1) {
-//      for(uint8_t i = 0; i < 16; i++) {
-//        pos_a->i_t++;
-//        if(bits & (1ULL << i)) pos_a->excess++;
-//        else pos_a->excess--;
-//        if(obj_excess == pos_a->excess + 1) {
-//          pos_a->size = (pos_a->i_t - curr_pos) / 2;
-//          pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-//          if(HAS_POINTERS(a))
-//            pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-//          pos_a->i_l += pos_a->leaves;
-//          return;
-//        }
-//      }
-//    }
-//    pos_a->excess += exc_micro[bits];
-//    pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
-//    pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
     if(k2bp_scan16_word(pos_a, a, curr_pos, obj_excess)) {
       // found end
       return;
     }
   }
-  for(;;) {
-    if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
-      pos_a->leaves++;
-    }
-    if(HAS_POINTERS(a) && pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
-      pos_a->i_p++;
-    }
-    if(bv_i(&(a->t), pos_a->i_t)) pos_a->excess++;
-    else pos_a->excess--;
-    pos_a->i_t++;
-    if(obj_excess == pos_a->excess + 1) {
-      pos_a->size = (pos_a->i_t - curr_pos) / 2;
-      pos_a->i_l += pos_a->leaves;
-      return;
-    }
-  }
+  if(k2bp_scan(pos_a, a, curr_pos, obj_excess))
+    return;
+  assert(0);
 }
 
 static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
@@ -1811,26 +1766,8 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
 
 static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
-  if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
-    pos_a->i_t += 4;
-    pos_a->size = 2;
-    pos_a->leaves = 1;
-    pos_a->i_l++;
+  if(k2bp_checkscan_special_nodes(pos_a, a))
     return;
-  }
-  if(pos_a->i_t + 2 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 2) == LEAF_0) {
-    pos_a->i_t += 2;
-    pos_a->size = 1;
-    pos_a->leaves = 0;
-    return;
-  }
-  if(pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
-    pos_a->i_t += 6;
-    pos_a->size = 3;
-    pos_a->leaves = 0;
-    pos_a->i_p++;
-    return;
-  }
 
   pos_a->leaves = 0;
   pos_a->size = 0;
@@ -1840,50 +1777,13 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   size_t obj_pos = BLOCK_SIZE * ((pos_a->i_t + BLOCK_SIZE - 1) / BLOCK_SIZE);
   // micro tables
   for(; pos_a->i_t + 16 < obj_pos; pos_a->i_t += 16) {
-//    uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, 16);
-//    // found micro block
-//    if(obj_excess >= pos_a->excess + exc_min_micro[bits] + 1) {
-//      for(uint8_t i = 0; i < 16; i++) {
-//        pos_a->i_t++;
-//        if(bits & (1ULL << i)) pos_a->excess++;
-//        else pos_a->excess--;
-//
-//        if(obj_excess == pos_a->excess + 1) {
-//          pos_a->size = (pos_a->i_t - curr_pos) / 2;
-//          pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-//          pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-//          pos_a->i_l += pos_a->leaves;
-//          return;
-//        }
-//      }
-//    }
-//    pos_a->excess += exc_micro[bits];
-//    pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
-//    pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
     if(k2bp_scan16_word(pos_a, a, curr_pos, obj_excess)) {
       // found
       return;
     }
   }
-  if(pos_a->i_t % BLOCK_SIZE != 0) {
-    size_t extra = BLOCK_SIZE - pos_a->i_t % BLOCK_SIZE;
-    uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, extra);
-    size_t save_pos = pos_a->i_t;
-    for(uint8_t i = 0; i < extra; i++) {
-      pos_a->i_t++;
-      if(bits & (1ULL << i)) pos_a->excess++;
-      else pos_a->excess--;
-      if(obj_excess == pos_a->excess + 1) {
-        pos_a->size = (pos_a->i_t - curr_pos) / 2;
-        pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-        pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-        pos_a->i_l += pos_a->leaves;
-        return;
-      }
-    }
-    pos_a->leaves += COUNT_PPCC(a, save_pos, (extra + 3));
-    pos_a->i_p += COUNT_PPCPCC(a, save_pos, (extra + 5));
-  }
+  if(k2bp_scanextra(pos_a, a, curr_pos, obj_excess))
+    return;
 
   assert(pos_a->i_t % BLOCK_SIZE == 0);
 
@@ -1893,25 +1793,6 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     // found block
     if(obj_excess > a->exc_min_samples[block]) {
       for(; pos_a->i_t + 16 <= a->t.n; pos_a->i_t += 16) {
-//        uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, 16);
-//        // found microblock
-//        if(obj_excess >= pos_a->excess + exc_min_micro[bits] + 1) {
-//          for(uint8_t i = 0; i < 16; i++) {
-//            pos_a->i_t++;
-//            if(bits & (1ULL << i)) pos_a->excess++;
-//            else pos_a->excess--;
-//            if(obj_excess == pos_a->excess + 1) {
-//              pos_a->size = (pos_a->i_t - curr_pos) / 2;
-//              pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-//              pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-//              pos_a->i_l += pos_a->leaves;
-//              return;
-//            }
-//          }
-//        }
-//        pos_a->excess += exc_micro[bits];
-//        pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
-//        pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
         if(k2bp_scan16_word(pos_a, a, curr_pos, obj_excess)) {
           // found
           return;
@@ -1919,28 +1800,11 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
       }
 
       // is in the last bits of the tree
-      for(;;) {
-        if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
-          pos_a->leaves++;
-        }
-        if(pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
-          pos_a->i_p++;
-        }
-        if(bv_i(&(a->t), pos_a->i_t)) pos_a->excess++;
-        else pos_a->excess--;
-        pos_a->i_t++;
-        if(obj_excess == pos_a->excess + 1) {
-          pos_a->size = (pos_a->i_t - curr_pos) / 2;
-          pos_a->i_l += pos_a->leaves;
-          return;
-        }
-      }
+      if(k2bp_scan(pos_a, a, curr_pos, obj_excess))
+        return;
+      assert(0);
     }
-    pos_a->excess = a->exc_samples[block];
-    pos_a->leaves += a->leaves_samples[block];
-    if(HAS_POINTERS(a))
-      pos_a->i_p += a->pointers_samples[block];
-    pos_a->i_t += BLOCK_SIZE;
+    k2bp_move_a_block(pos_a, a, block);
     block++;
   }
 }
@@ -1952,26 +1816,8 @@ static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
 //  then is basically excdfs from there
 static void k2bp_super_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
-  if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
-    pos_a->i_t += 4;
-    pos_a->size = 2;
-    pos_a->leaves = 1;
-    pos_a->i_l++;
+  if(k2bp_checkscan_special_nodes(pos_a, a))
     return;
-  }
-  if(pos_a->i_t + 2 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 2) == LEAF_0) {
-    pos_a->i_t += 2;
-    pos_a->size = 1;
-    pos_a->leaves = 0;
-    return;
-  }
-  if(pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
-    pos_a->i_t += 6;
-    pos_a->size = 3;
-    pos_a->leaves = 0;
-    pos_a->i_p++;
-    return;
-  }
 
   pos_a->leaves = 0;
   pos_a->size = 0;
@@ -1984,49 +1830,11 @@ static void k2bp_super_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
     size_t obj_pos = BLOCK_SIZE * ((pos_a->i_t + BLOCK_SIZE - 1) / BLOCK_SIZE);
     // micro tables
     for(; pos_a->i_t + 16 < obj_pos; pos_a->i_t += 16) {
-//      uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, 16);
-//      // found micro block
-//      if(obj_excess >= pos_a->excess + exc_min_micro[bits] + 1) {
-//        for(uint8_t i = 0; i < 16; i++) {
-//          pos_a->i_t++;
-//          if(bits & (1ULL << i)) pos_a->excess++;
-//          else pos_a->excess--;
-//
-//          if(obj_excess == pos_a->excess + 1) {
-//            pos_a->size = (pos_a->i_t - curr_pos) / 2;
-//            pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-//            pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-//            pos_a->i_l += pos_a->leaves;
-//            return;
-//          }
-//        }
-//      }
-//      pos_a->excess += exc_micro[bits];
-//      pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
-//      pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
       if(k2bp_scan16_word(pos_a, a, curr_pos, obj_excess)) {
         return;
       }
     }
-    if(pos_a->i_t % BLOCK_SIZE != 0) {
-      size_t extra = BLOCK_SIZE - pos_a->i_t % BLOCK_SIZE;
-      uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, extra);
-      size_t save_pos = pos_a->i_t;
-      for(uint8_t i = 0; i < extra; i++) {
-        pos_a->i_t++;
-        if(bits & (1ULL << i)) pos_a->excess++;
-        else pos_a->excess--;
-        if(obj_excess == pos_a->excess + 1) {
-          pos_a->size = (pos_a->i_t - curr_pos) / 2;
-          pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-          pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-          pos_a->i_l += pos_a->leaves;
-          return;
-        }
-      }
-      pos_a->leaves += COUNT_PPCC(a, save_pos, (extra + 3));
-      pos_a->i_p += COUNT_PPCPCC(a, save_pos, (extra + 5));
-    }
+    k2bp_scanextra(pos_a, a, curr_pos, obj_excess);
 
     assert(pos_a->i_t % BLOCK_SIZE == 0);
 
@@ -2036,53 +1844,17 @@ static void k2bp_super_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
       // found block
       if(obj_excess > a->exc_min_samples[block]) {
         for(; pos_a->i_t + 16 <= a->t.n; pos_a->i_t += 16) {
-//          uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, 16);
-//          // found microblock
-//          if(obj_excess >= pos_a->excess + exc_min_micro[bits] + 1) {
-//            for(uint8_t i = 0; i < 16; i++) {
-//              pos_a->i_t++;
-//              if(bits & (1ULL << i)) pos_a->excess++;
-//              else pos_a->excess--;
-//              if(obj_excess == pos_a->excess + 1) {
-//                pos_a->size = (pos_a->i_t - curr_pos) / 2;
-//                pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-//                pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-//                pos_a->i_l += pos_a->leaves;
-//                return;
-//              }
-//            }
-//          }
-//          pos_a->excess += exc_micro[bits];
-//          pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
-//          pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
           if(k2bp_scan16_word(pos_a, a, curr_pos, obj_excess)) {
             return;
           }
         }
 
         // is in the last bits of the tree
-        for(;;) {
-          if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
-            pos_a->leaves++;
-          }
-          if(pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
-            pos_a->i_p++;
-          }
-          if(bv_i(&(a->t), pos_a->i_t)) pos_a->excess++;
-          else pos_a->excess--;
-          pos_a->i_t++;
-          if(obj_excess == pos_a->excess + 1) {
-            pos_a->size = (pos_a->i_t - curr_pos) / 2;
-            pos_a->i_l += pos_a->leaves;
-            return;
-          }
-        }
+        if(k2bp_scan(pos_a, a, curr_pos, obj_excess))
+          return;
+        assert(0);
       }
-      pos_a->excess = a->exc_samples[block];
-      pos_a->leaves += a->leaves_samples[block];
-      if(HAS_POINTERS(a))
-        pos_a->i_p += a->pointers_samples[block];
-      pos_a->i_t += BLOCK_SIZE;
+      k2bp_move_a_block(pos_a, a, block);
       block++;
     }
   }
@@ -2091,58 +1863,19 @@ static void k2bp_super_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
   size_t obj_pos = BLOCK_SIZE * ((pos_a->i_t + BLOCK_SIZE - 1) / BLOCK_SIZE);
   // micro tables
   for(; pos_a->i_t + 16 < obj_pos; pos_a->i_t += 16) {
-//    uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, 16);
-//    // found micro block
-//    if(obj_excess >= pos_a->excess + exc_min_micro[bits] + 1) {
-//      for(uint8_t i = 0; i < 16; i++) {
-//        pos_a->i_t++;
-//        if(bits & (1ULL << i)) pos_a->excess++;
-//        else pos_a->excess--;
-//
-//        if(obj_excess == pos_a->excess + 1) {
-//          pos_a->size = (pos_a->i_t - curr_pos) / 2;
-//          pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-//          pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-//          pos_a->i_l += pos_a->leaves;
-//          return;
-//        }
-//      }
-//    }
-//    pos_a->excess += exc_micro[bits];
-//    pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
-//    pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
     if(k2bp_scan16_word(pos_a, a, curr_pos, obj_excess)) {
       return;
     }
   }
-  if(pos_a->i_t % BLOCK_SIZE != 0) {
-    size_t extra = BLOCK_SIZE - pos_a->i_t % BLOCK_SIZE;
-    uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, extra);
-    size_t save_pos = pos_a->i_t;
-    for(uint8_t i = 0; i < extra; i++) {
-      pos_a->i_t++;
-      if(bits & (1ULL << i)) pos_a->excess++;
-      else pos_a->excess--;
-      if(obj_excess == pos_a->excess + 1) {
-        pos_a->size = (pos_a->i_t - curr_pos) / 2;
-        pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-        pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-        pos_a->i_l += pos_a->leaves;
-        return;
-      }
-    }
-    pos_a->leaves += COUNT_PPCC(a, save_pos, (extra + 3));
-    pos_a->i_p += COUNT_PPCPCC(a, save_pos, (extra + 5));
-  }
+
+  if(k2bp_scanextra(pos_a, a, curr_pos, obj_excess))
+    return;
 
   assert(pos_a->i_t % BLOCK_SIZE == 0);
   size_t super_obj_pos = SUPER_BLOCK_SIZE * ((pos_a->i_t + SUPER_BLOCK_SIZE - 1) / SUPER_BLOCK_SIZE);
   size_t curr_block = pos_a->i_t / BLOCK_SIZE;
   for(; pos_a->i_t < super_obj_pos; pos_a->i_t += BLOCK_SIZE) {
-    pos_a->excess = a->exc_samples[curr_block];
-    pos_a->leaves += a->leaves_samples[curr_block];
-    if(HAS_POINTERS(a))
-      pos_a->i_p += a->pointers_samples[curr_block];
+    k2bp_move_a_block(pos_a, a, curr_block);
     curr_block++;
   }
 
@@ -2157,61 +1890,21 @@ static void k2bp_super_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         // found block
         if(obj_excess > a->exc_min_samples[block]) {
           for(; pos_a->i_t + 16 <= a->t.n; pos_a->i_t += 16) {
-//            uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, 16);
-//            // found microblock
-//            if(obj_excess >= pos_a->excess + exc_min_micro[bits] + 1) {
-//              for(uint8_t i = 0; i < 16; i++) {
-//                pos_a->i_t++;
-//                if(bits & (1ULL << i)) pos_a->excess++;
-//                else pos_a->excess--;
-//                if(obj_excess == pos_a->excess + 1) {
-//                  pos_a->size = (pos_a->i_t - curr_pos) / 2;
-//                  pos_a->leaves += count(bits | (-1ULL << (i + 1)));
-//                  pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
-//                  pos_a->i_l += pos_a->leaves;
-//                  return;
-//                }
-//              }
-//            }
-//            pos_a->excess += exc_micro[bits];
-//            pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
-//            pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
-            if(k2bp_scan16_word(pos_a, a, curr_pos, obj_excess)) {
+            if(k2bp_scan16_word(pos_a, a, curr_pos, obj_excess))
               return;
-            }
           }
 
           // is in the last bits of the tree
-          for(;;) {
-            if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
-              pos_a->leaves++;
-            }
-            if(pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
-              pos_a->i_p++;
-            }
-            if(bv_i(&(a->t), pos_a->i_t)) pos_a->excess++;
-            else pos_a->excess--;
-            pos_a->i_t++;
-            if(obj_excess == pos_a->excess + 1) {
-              pos_a->size = (pos_a->i_t - curr_pos) / 2;
-              pos_a->i_l += pos_a->leaves;
-              return;
-            }
-          }
+          if(k2bp_scan(pos_a, a, curr_pos, obj_excess))
+            return;
+
+          assert(0);
         }
-        pos_a->excess = a->exc_samples[block];
-        pos_a->leaves += a->leaves_samples[block];
-        if(HAS_POINTERS(a))
-          pos_a->i_p += a->pointers_samples[block];
-        pos_a->i_t += BLOCK_SIZE;
+        k2bp_move_a_block(pos_a, a, block);
         block++;
       }
     }
-    pos_a->excess = a->exc_samples[super_block];
-    pos_a->leaves += a->leaves_samples[super_block];
-    if(HAS_POINTERS(a))
-      pos_a->i_p += a->pointers_samples[super_block];
-    pos_a->i_t += SUPER_BLOCK_SIZE;
+    k2bp_move_a_superblock(pos_a, a, super_block);
     super_block++;
   }
 }
@@ -2237,6 +1930,90 @@ static uint8_t k2bp_scan16_word(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t
   pos_a->leaves += COUNT_PPCC(a, pos_a->i_t, 19);
   pos_a->i_p += COUNT_PPCPCC(a, pos_a->i_t, 21);
   return 0;
+}
+
+static uint8_t k2bp_scan(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t pos_begin, int64_t obj_excess) {
+  for(;;) {
+    if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
+      pos_a->leaves++;
+    }
+    if(pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
+      pos_a->i_p++;
+    }
+    if(bv_i(&(a->t), pos_a->i_t)) pos_a->excess++;
+    else pos_a->excess--;
+    pos_a->i_t++;
+    if(obj_excess == pos_a->excess + 1) {
+      pos_a->size = (pos_a->i_t - pos_begin) / 2;
+      pos_a->i_l += pos_a->leaves;
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static uint8_t k2bp_scanextra(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t pos_begin, int64_t obj_excess) {
+  if(pos_a->i_t % BLOCK_SIZE != 0) {
+    size_t extra = BLOCK_SIZE - pos_a->i_t % BLOCK_SIZE;
+    uint64_t bits = bv_get_int(&(a->t), pos_a->i_t, extra);
+    size_t save_pos = pos_a->i_t;
+    for(uint8_t i = 0; i < extra; i++) {
+      pos_a->i_t++;
+      if(bits & (1ULL << i)) pos_a->excess++;
+      else pos_a->excess--;
+      if(obj_excess == pos_a->excess + 1) {
+        pos_a->size = (pos_a->i_t - pos_begin) / 2;
+        pos_a->leaves += count(bits | (-1ULL << (i + 1)));
+        pos_a->i_p += count_p(bits | (-1ULL << (i + 1)));
+        pos_a->i_l += pos_a->leaves;
+        return 1;
+      }
+    }
+    pos_a->leaves += COUNT_PPCC(a, save_pos, (extra + 3));
+    pos_a->i_p += COUNT_PPCPCC(a, save_pos, (extra + 5));
+  }
+  return 0;
+}
+
+static uint8_t k2bp_checkscan_special_nodes(k2bp_traversal_t* pos_a, const k2bp_t* a) {
+  if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
+    pos_a->i_t += 4;
+    pos_a->size = 2;
+    pos_a->leaves = 1;
+    pos_a->i_l++;
+    return 1;
+  }
+  if(pos_a->i_t + 2 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 2) == LEAF_0) {
+    pos_a->i_t += 2;
+    pos_a->size = 1;
+    pos_a->leaves = 0;
+    return 1;
+  }
+  if(pos_a->i_t + 6 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
+    pos_a->i_t += 6;
+    pos_a->size = 3;
+    pos_a->leaves = 0;
+    pos_a->i_p++;
+    return 1;
+  }
+  return 0;
+}
+
+static uint8_t k2bp_move_a_block(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t block) {
+  pos_a->excess = a->exc_samples[block];
+  pos_a->leaves += a->leaves_samples[block];
+  if(HAS_POINTERS(a))
+    pos_a->i_p += a->pointers_samples[block];
+  pos_a->i_t += BLOCK_SIZE;
+  return 1;
+}
+static uint8_t k2bp_move_a_superblock(k2bp_traversal_t* pos_a, const k2bp_t* a, size_t super_block) {
+  pos_a->excess = a->super_exc_samples[super_block];
+  pos_a->leaves += a->super_leaves_samples[super_block];
+  if(HAS_POINTERS(a))
+    pos_a->i_p += a->super_pointers_samples[super_block];
+  pos_a->i_t += SUPER_BLOCK_SIZE;
+  return 1;
 }
 
 static void reck2bp_mul(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* pos_b, const k2bp_t* b, k2bp_t* c) {
