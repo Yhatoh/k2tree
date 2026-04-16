@@ -1845,7 +1845,8 @@ static void k2bp_super_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
         return;
       }
     }
-    k2bp_scanextra(pos_a, a, curr_pos, obj_excess);
+    if(k2bp_scanextra(pos_a, a, curr_pos, obj_excess))
+      return;
 
     assert(pos_a->i_t % BLOCK_SIZE == 0);
 
