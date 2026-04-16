@@ -2869,7 +2869,7 @@ static void k2bp_grow(k2bp_t* a, size_t nodes, size_t leaves) {
 
   if(a->t.maxn <= a->t.n + nodes) {
     a->t.maxn += (nodes + 64 - 1) / 64;
-    a->t.a = (uint64_t) realloc(a->t.a, a->t.maxn);
+    a->t.a = (uint64_t*) realloc(a->t.a, a->t.maxn);
   }
 }
 
