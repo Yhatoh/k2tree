@@ -1776,19 +1776,28 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
 
 static void k2bp_dfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
-  if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
-    bv_pb(&(c->t), 1); bv_pb(&(c->t), 1); bv_pb(&(c->t), 0); bv_pb(&(c->t), 0);
-    k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l));
-    c->m += __builtin_popcount(k2bp_read_leaf(a, pos_a->i_l));
-    pos_a->i_t += 4;
-    pos_a->i_l++;
-    return;
-  }
 
   if(pos_a->i_t + 2 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 2) == LEAF_0) {
     bv_pb(&(c->t), 1);
     bv_pb(&(c->t), 0);
     pos_a->i_t += 2;
+    return;
+  }
+
+  if(pos_a->msize == _K_) {
+    bv_pb(&(c->t), 1);
+    bv_pb(&(c->t), 1);
+    bv_pb(&(c->t), 0);
+    bv_pb(&(c->t), 0);
+
+    size_t r_a;
+    r_a = 0;
+    if(HAS_POINTERS(a)) r_a = pos_a->i_p;
+
+    k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? iv_get(&(pos_a->leaves_pointers), r_a - 1) : 0)));
+    pos_a->i_t += 4;
+    pos_a->i_l += 1;
+    c->m += __builtin_popcount(k2bp_read_leaf(c, c->n_l - 1));
     return;
   }
 
@@ -1804,14 +1813,33 @@ static void k2bp_dfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
     }
   }
 
+  k2bp_traversal_t aux_a[4] = {K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER,
+                               K2BP_TRAVERSAL_INITIALIZER};
+
+  k2bp_splitinfo(pos_a, a, aux_a);
+
+  aux_a[0].i_t = pos_a->i_t + 1;
+  aux_a[0].i_l = pos_a->i_l;
+
   bv_pb(&(c->t), 1);
-  pos_a->i_t++;
-  k2bp_dfs_copy(pos_a, a, c);
-  k2bp_dfs_copy(pos_a, a, c);
-  k2bp_dfs_copy(pos_a, a, c);
-  k2bp_dfs_copy(pos_a, a, c);
+  k2bp_dfs_copy(&(aux_a[0]), a, c);
+  aux_a[1].i_t = aux_a[0].i_t;
+  aux_a[1].i_l = aux_a[0].i_l;
+
+  k2bp_dfs_copy(&(aux_a[1]), a, c);
+  aux_a[2].i_t = aux_a[1].i_t;
+  aux_a[2].i_l = aux_a[1].i_l;
+
+  k2bp_dfs_copy(&(aux_a[2]), a, c);
+  aux_a[3].i_t = aux_a[2].i_t;
+  aux_a[3].i_l = aux_a[2].i_l;
+
+  k2bp_dfs_copy(&(aux_a[3]), a, c);
+  pos_a->i_t = aux_a[3].i_t + 1;
+  pos_a->i_l = aux_a[3].i_l;
   bv_pb(&(c->t), 0);
-  pos_a->i_t++;
 }
 
 static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
