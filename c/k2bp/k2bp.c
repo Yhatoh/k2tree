@@ -2712,19 +2712,19 @@ void reck2bp_mv(k2bp_traversal_t* pos_a, const k2bp_t* a, double* x, double* y) 
   pos_aux.i_t = pos_a->i_t + 1;
   pos_aux.i_l = pos_a->i_l;
 
-  reck2bp_mv(pos_a, a, x, y);
+  reck2bp_mv(&pos_aux, a, x, y);
 
   pos_aux.x = pos_a->x;
   pos_aux.y = pos_a->y + pos_a->msize / 2;
-  reck2bp_mv(pos_a, a, x, y);
+  reck2bp_mv(&pos_aux, a, x, y);
 
   pos_aux.x = pos_a->x + pos_a->msize / 2;
   pos_aux.y = pos_a->y;
-  reck2bp_mv(pos_a, a, x, y);
+  reck2bp_mv(&pos_aux, a, x, y);
 
   pos_aux.x = pos_a->x + pos_a->msize / 2;
   pos_aux.y = pos_a->y + pos_a->msize / 2;
-  reck2bp_mv(pos_a, a, x, y);
+  reck2bp_mv(&pos_aux, a, x, y);
   pos_a->i_t = pos_aux.i_t + 1;
   pos_a->i_l = pos_aux.i_l;
 }
