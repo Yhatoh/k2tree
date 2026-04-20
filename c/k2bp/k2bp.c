@@ -316,13 +316,13 @@ void k2bp_scansum(k2bp_t *a, k2bp_t *b, k2bp_t *c) {
   pos_a.leaves = a->n_l;
   pos_b.leaves = b->n_l;
 
-  precompute_info(&pos_a, a, 0);
-  precompute_info(&pos_b, b, 0);
+  precompute_info(&pos_a, a, 1);
+  precompute_info(&pos_b, b, 1);
 
   reck2bp_scansum(&pos_a, a, &pos_b, b, c);
 
-  free_precompute_info(&pos_a, a, 0);
-  free_precompute_info(&pos_b, b, 0);
+  free_precompute_info(&pos_a, a, 1);
+  free_precompute_info(&pos_b, b, 1);
   return;
 }
 
@@ -1808,11 +1808,12 @@ static void k2bp_dfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
     bv_pb(&(c->t), 0);
     bv_pb(&(c->t), 0);
 
-    size_t r_a;
-    r_a = 0;
-    if(HAS_POINTERS(a)) r_a = pos_a->i_p;
-
-    k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? iv_get(&(pos_a->leaves_pointers), r_a - 1) : 0)));
+//    size_t r_a;
+//    r_a = 0;
+//    if(HAS_POINTERS(a)) r_a = pos_a->i_p;
+//
+//    k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? iv_get(&(pos_a->leaves_pointers), r_a - 1) : 0)));
+    k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l));
     pos_a->i_t += 4;
     pos_a->i_l += 1;
     c->m += __builtin_popcount(k2bp_read_leaf(c, c->n_l - 1));
@@ -1823,10 +1824,12 @@ static void k2bp_dfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
     k2bp_traversal_t new_pos_a = K2BP_TRAVERSAL_INITIALIZER;
 
     uint8_t flag_a = k2bp_check_and_move(pos_a, a, &new_pos_a);
+    new_pos_a.i_l = pos_a->i_l;
     if(flag_a) { // it was a pointer
       k2bp_dfs_copy(&new_pos_a, a, c);
       pos_a->i_t += 6;
       pos_a->i_p++;
+      pos_a->i_l = new_pos_a.i_l;
       return;
     }
   }
@@ -2554,13 +2557,15 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
     bv_pb(&(c->t), 0);
 
     size_t r_a, r_b;
-    
-    r_a = r_b = 0;
-    if(HAS_POINTERS(a)) r_a = pos_a->i_p;
-    if(HAS_POINTERS(b)) r_b = pos_b->i_p;
-
-    k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? iv_get(&(pos_a->leaves_pointers), r_a - 1) : 0)) |
-                       k2bp_read_leaf(b, pos_b->i_l + (r_b > 0 ? iv_get(&(pos_b->leaves_pointers), r_b - 1) : 0)));
+//    
+//    r_a = r_b = 0;
+//    if(HAS_POINTERS(a)) r_a = pos_a->i_p;
+//    if(HAS_POINTERS(b)) r_b = pos_b->i_p;
+//
+//    k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l + (r_a > 0 ? iv_get(&(pos_a->leaves_pointers), r_a - 1) : 0)) |
+//                       k2bp_read_leaf(b, pos_b->i_l + (r_b > 0 ? iv_get(&(pos_b->leaves_pointers), r_b - 1) : 0)));
+    k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l) |
+                       k2bp_read_leaf(b, pos_b->i_l));
     pos_a->i_t += 4;
     pos_b->i_t += 4;
     pos_b->i_l += 1;
@@ -2576,23 +2581,29 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
 
     uint8_t flag_a = k2bp_check_and_move(pos_a, a, &new_pos_a);
     uint8_t flag_b = k2bp_check_and_move(pos_b, b, &new_pos_b);
+    new_pos_a.i_l = pos_a->i_l;
+    new_pos_b.i_l = pos_b->i_l;
     if(flag_a && flag_b) {
       reck2bp_scansum(&new_pos_a, a, &new_pos_b, b, c);
       pos_a->i_t += 6;
       pos_a->i_p++;
+      pos_a->i_l = new_pos_a.i_l;
 
       pos_b->i_t += 6;
       pos_b->i_p++;
+      pos_b->i_l = new_pos_b.i_l;
       return;
     } else if(flag_a) {
       reck2bp_scansum(&new_pos_a, a, pos_b, b, c);
       pos_a->i_t += 6;
       pos_a->i_p++;
+      pos_a->i_l = new_pos_a.i_l;
       return;
     } else if(flag_b) {
       reck2bp_scansum(pos_a, a, &new_pos_b, b, c);
       pos_b->i_t += 6;
       pos_b->i_p++;
+      pos_b->i_l = new_pos_b.i_l;
       return;
     }
   }
