@@ -1843,7 +1843,7 @@ static void k2bp_dfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
   k2bp_dfs_copy(&(aux_a[3]), a, c);
   pos_a->i_t = aux_a[3].i_t + 1;
   pos_a->i_l = aux_a[3].i_l;
-  pos_a->i_l = aux_a[3].i_p;
+  pos_a->i_p = aux_a[3].i_p;
   bv_pb(&(c->t), 0);
 }
 
