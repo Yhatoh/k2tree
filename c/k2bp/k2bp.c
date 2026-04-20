@@ -64,6 +64,7 @@ static uint64_t k2bp_leaves_between_pointers(const k2bp_traversal_t* pos_a, size
 // traverse and copy subtree in a to c
 static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c);
 static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c);
+static void k2bp_dfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c);
 static void reck2bp_decompress_subtrees(k2bp_traversal_t* pos_c, const k2bp_t* c, k2bp_t* a);
 
 static void k2bp_traverse(k2bp_traversal_t* pos_a, const k2bp_t* a);
@@ -1444,7 +1445,12 @@ static void k2bp_traverse_and_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2b
     } else {
       k2bp_scandfs_copy(pos_a, a, c);
     }
+    return;
   }
+
+  // brute-force copy, is actually a decompression with less steps
+  // only usefull for sum with pointers
+  k2bp_dfs_copy(pos_a, a, c);
 }
 
 static void k2bp_scandfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
@@ -1620,7 +1626,7 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
     pos_a->i_l++;
     return;
   }
-  if(pos_a->i_t + 2 <= a->t.n &&bv_get_int(&(a->t), pos_a->i_t, 2) == LEAF_0) {
+  if(pos_a->i_t + 2 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 2) == LEAF_0) {
     bv_pb(&(c->t), 1);
     bv_pb(&(c->t), 0);
     pos_a->i_t += 2;
@@ -1766,6 +1772,46 @@ static void k2bp_excdfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c
     pos_a->i_t += BLOCK_SIZE;
     block++;
   }
+}
+
+static void k2bp_dfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
+  assert(bv_i(&(a->t), pos_a->i_t) == 1);
+  if(pos_a->i_t + 4 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 4) == LEAF_1) {
+    bv_pb(&(c->t), 1); bv_pb(&(c->t), 1); bv_pb(&(c->t), 0); bv_pb(&(c->t), 0);
+    k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l));
+    c->m += __builtin_popcount(k2bp_read_leaf(a, pos_a->i_l));
+    pos_a->i_t += 4;
+    pos_a->i_l++;
+    return;
+  }
+
+  if(pos_a->i_t + 2 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 2) == LEAF_0) {
+    bv_pb(&(c->t), 1);
+    bv_pb(&(c->t), 0);
+    pos_a->i_t += 2;
+    return;
+  }
+
+  if(HAS_POINTERS(a)) {
+    k2bp_traversal_t new_pos_a = K2BP_TRAVERSAL_INITIALIZER;
+
+    uint8_t flag_a = k2bp_check_and_move(pos_a, a, &new_pos_a);
+    if(flag_a) { // it was a pointer
+      k2bp_dfs_copy(pos_a, a, c);
+      pos_a->i_t += 6;
+      pos_a->i_p++;
+      return;
+    }
+  }
+
+  bv_pb(&(c->t), 1);
+  pos_a->i_t++;
+  k2bp_dfs_copy(pos_a, a, c);
+  k2bp_dfs_copy(pos_a, a, c);
+  k2bp_dfs_copy(pos_a, a, c);
+  k2bp_dfs_copy(pos_a, a, c);
+  bv_pb(&(c->t), 0);
+  pos_a->i_t++;
 }
 
 static void k2bp_excdfs(k2bp_traversal_t* pos_a, const k2bp_t* a) {
