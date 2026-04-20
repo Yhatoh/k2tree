@@ -127,5 +127,6 @@ void k2bp_sum(k2bp_t* a, k2bp_t* b, k2bp_t* c);
 void k2bp_scansum(k2bp_t* a, k2bp_t* b, k2bp_t* c);
 void k2bp_mul(k2bp_t* a, k2bp_t* b, k2bp_t* c);
 void k2bp_scanmul(k2bp_t* a, k2bp_t* b, k2bp_t* c);
+void k2bp_mv(k2bp_t* a, double* x, double* y);
 
 #endif
