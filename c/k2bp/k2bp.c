@@ -1797,7 +1797,7 @@ static void k2bp_dfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
 
     uint8_t flag_a = k2bp_check_and_move(pos_a, a, &new_pos_a);
     if(flag_a) { // it was a pointer
-      k2bp_dfs_aopy(&new_pos_a, a, c);
+      k2bp_dfs_copy(&new_pos_a, a, c);
       pos_a->i_t += 6;
       pos_a->i_p++;
       return;
