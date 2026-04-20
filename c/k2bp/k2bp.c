@@ -60,6 +60,7 @@ static void k2bp_copy_traversalinfo(const k2bp_traversal_t* pos_a, k2bp_traversa
 
 // check if is a pointer the node and move if that is the case
 static uint8_t k2bp_check_and_move(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* new_pos_a);
+static uint8_t k2bp_check_and_move_scan(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* new_pos_a);
 static uint64_t k2bp_leaves_between_pointers(const k2bp_traversal_t* pos_a, size_t rank_r, size_t rank_l);
 
 // traverse and copy subtree in a to c
@@ -1823,8 +1824,7 @@ static void k2bp_dfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
   if(HAS_POINTERS(a)) {
     k2bp_traversal_t new_pos_a = K2BP_TRAVERSAL_INITIALIZER;
 
-    uint8_t flag_a = k2bp_check_and_move(pos_a, a, &new_pos_a);
-    new_pos_a.i_l = pos_a->i_l;
+    uint8_t flag_a = k2bp_check_and_move_scan(pos_a, a, &new_pos_a);
     if(flag_a) { // it was a pointer
       k2bp_dfs_copy(&new_pos_a, a, c);
       pos_a->i_t += 6;
@@ -2580,10 +2580,8 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
     k2bp_traversal_t new_pos_a = K2BP_TRAVERSAL_INITIALIZER;
     k2bp_traversal_t new_pos_b = K2BP_TRAVERSAL_INITIALIZER;
 
-    uint8_t flag_a = k2bp_check_and_move(pos_a, a, &new_pos_a);
-    uint8_t flag_b = k2bp_check_and_move(pos_b, b, &new_pos_b);
-    new_pos_a.i_l = pos_a->i_l;
-    new_pos_b.i_l = pos_b->i_l;
+    uint8_t flag_a = k2bp_check_and_move_scan(pos_a, a, &new_pos_a);
+    uint8_t flag_b = k2bp_check_and_move_scan(pos_b, b, &new_pos_b);
     if(flag_a && flag_b) {
       reck2bp_scansum(&new_pos_a, a, &new_pos_b, b, c);
       pos_a->i_t += 6;
@@ -2747,6 +2745,20 @@ static uint8_t k2bp_check_and_move(k2bp_traversal_t* pos_a, const k2bp_t* a, k2b
     new_pos_a->i_t = det_a;
     new_pos_a->i_p = rank_p(new_pos_a, a);
     new_pos_a->i_l = pos_a->i_l + k2bp_leaves_between_pointers(pos_a, pos_a->i_p, new_pos_a->i_p);
+    new_pos_a->excess = pos_a->excess;
+    new_pos_a->flag_p = 1;
+    return 1;
+  }
+  return 0;
+}
+
+static uint8_t k2bp_check_and_move_scan(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_traversal_t* new_pos_a) {
+  if(bv_get_int(&(a->t), pos_a->i_t, 6) == LEAF_P) {
+    k2bp_init_traversalinfo(pos_a, new_pos_a);
+    size_t det_a = iv_get(&(a->pointers), pos_a->i_p);
+    new_pos_a->i_t = det_a;
+    new_pos_a->i_p = rank_p(new_pos_a, a);
+    new_pos_a->i_l = pos_a->i_l;
     new_pos_a->excess = pos_a->excess;
     new_pos_a->flag_p = 1;
     return 1;
