@@ -28,6 +28,9 @@ k2bp_addinfo: k2bp_addinfo.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
 k2bp_sum: k2bp_sum.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
 	$(CC) $^ $(CFLAGS) -lm -o k2bp_sum.x
 
+k2bp_sum: k2bp_mv.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
+	$(CC) $^ $(CFLAGS) -lm -o k2bp_mv.x
+
 k2bp_mul: k2bp_mul.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
 	$(CC) $^ $(CFLAGS) -lm -o k2bp_mul.x
 
