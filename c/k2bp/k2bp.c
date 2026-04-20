@@ -2711,6 +2711,7 @@ void reck2bp_mv(k2bp_traversal_t* pos_a, const k2bp_t* a, double* x, double* y) 
   pos_aux.y = pos_a->y;
   pos_aux.i_t = pos_a->i_t + 1;
   pos_aux.i_l = pos_a->i_l;
+  pos_aux.i_p = pos_a->i_p;
 
   reck2bp_mv(&pos_aux, a, x, y);
 
@@ -2727,6 +2728,7 @@ void reck2bp_mv(k2bp_traversal_t* pos_a, const k2bp_t* a, double* x, double* y) 
   reck2bp_mv(&pos_aux, a, x, y);
   pos_a->i_t = pos_aux.i_t + 1;
   pos_a->i_l = pos_aux.i_l;
+  pos_a->i_p = pos_aux.i_p;
 }
 
 static uint64_t k2bp_leaves_between_pointers(const k2bp_traversal_t* pos_a, size_t rank_r, size_t rank_l) {
