@@ -140,7 +140,7 @@ void k2bp_copy(k2bp_traversal_t* pos_src, const k2bp_t* src, k2bp_t* dest) {
   }
   for(;pos_src->i_t < end_tree; pos_src->i_t++) {
     bv_pb(&(dest->t), bv_i(&(src->t), pos_src->i_t));
-    assert(bv_i(&(dest->t), dest->t.n - 1) == bv_i(&(dest->t), pos_src->i_t));
+    assert(bv_i(&(dest->t), dest->t.n - 1) == bv_i(&(src->t), pos_src->i_t));
   }
   for(size_t i = 0; i < pos_src->leaves; i++) {
     k2bp_write_leaf(dest, k2bp_read_leaf(src, pos_src->i_l + i));
@@ -2567,9 +2567,10 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
     k2bp_write_leaf(c, k2bp_read_leaf(a, pos_a->i_l) |
                        k2bp_read_leaf(b, pos_b->i_l));
     pos_a->i_t += 4;
+    pos_a->i_l += 1;
+
     pos_b->i_t += 4;
     pos_b->i_l += 1;
-    pos_a->i_l += 1;
     c->m += __builtin_popcount(k2bp_read_leaf(c, c->n_l - 1));
     return;
   }
