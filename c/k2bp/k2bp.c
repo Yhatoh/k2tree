@@ -1822,23 +1822,28 @@ static void k2bp_dfs_copy(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_t* c) {
 
   aux_a[0].i_t = pos_a->i_t + 1;
   aux_a[0].i_l = pos_a->i_l;
+  aux_a[0].i_p = pos_a->i_p;
 
   bv_pb(&(c->t), 1);
   k2bp_dfs_copy(&(aux_a[0]), a, c);
   aux_a[1].i_t = aux_a[0].i_t;
   aux_a[1].i_l = aux_a[0].i_l;
+  aux_a[1].i_p = aux_a[0].i_p;
 
   k2bp_dfs_copy(&(aux_a[1]), a, c);
   aux_a[2].i_t = aux_a[1].i_t;
   aux_a[2].i_l = aux_a[1].i_l;
+  aux_a[2].i_p = aux_a[1].i_p;
 
   k2bp_dfs_copy(&(aux_a[2]), a, c);
   aux_a[3].i_t = aux_a[2].i_t;
   aux_a[3].i_l = aux_a[2].i_l;
+  aux_a[3].i_p = aux_a[2].i_p;
 
   k2bp_dfs_copy(&(aux_a[3]), a, c);
   pos_a->i_t = aux_a[3].i_t + 1;
   pos_a->i_l = aux_a[3].i_l;
+  pos_a->i_l = aux_a[3].i_p;
   bv_pb(&(c->t), 0);
 }
 
@@ -2588,38 +2593,48 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
 
   aux_a[0].i_t = pos_a->i_t + 1;
   aux_a[0].i_l = pos_a->i_l;
+  aux_a[0].i_p = pos_a->i_p;
 
   aux_b[0].i_t = pos_b->i_t + 1;
   aux_b[0].i_l = pos_b->i_l;
+  aux_b[0].i_p = pos_b->i_p;
 
   bv_pb(&(c->t), 1);
   reck2bp_scansum(&(aux_a[0]), a, &(aux_b[0]), b, c);
   aux_a[1].i_t = aux_a[0].i_t;
   aux_a[1].i_l = aux_a[0].i_l;
+  aux_a[1].i_p = aux_a[0].i_p;
 
   aux_b[1].i_t = aux_b[0].i_t;
   aux_b[1].i_l = aux_b[0].i_l;
+  aux_b[1].i_p = aux_b[0].i_p;
 
   reck2bp_scansum(&(aux_a[1]), a, &(aux_b[1]), b, c);
   aux_a[2].i_t = aux_a[1].i_t;
   aux_a[2].i_l = aux_a[1].i_l;
+  aux_a[2].i_p = aux_a[1].i_p;
 
   aux_b[2].i_t = aux_b[1].i_t;
   aux_b[2].i_l = aux_b[1].i_l;
+  aux_b[2].i_p = aux_b[1].i_p;
 
   reck2bp_scansum(&(aux_a[2]), a, &(aux_b[2]), b, c);
   aux_a[3].i_t = aux_a[2].i_t;
   aux_a[3].i_l = aux_a[2].i_l;
+  aux_a[3].i_p = aux_a[2].i_p;
 
   aux_b[3].i_t = aux_b[2].i_t;
   aux_b[3].i_l = aux_b[2].i_l;
+  aux_b[3].i_p = aux_b[2].i_p;
   reck2bp_scansum(&(aux_a[3]), a, &(aux_b[3]), b, c);
 
   pos_a->i_t = aux_a[3].i_t + 1;
   pos_a->i_l = aux_a[3].i_l;
+  pos_a->i_p = aux_a[3].i_p;
   
   pos_b->i_t = aux_b[3].i_t + 1;
   pos_b->i_l = aux_b[3].i_l;
+  pos_b->i_p = aux_b[3].i_p;
   bv_pb(&(c->t), 0);
 }
 
