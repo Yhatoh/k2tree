@@ -2659,7 +2659,7 @@ static void reck2bp_scansum(k2bp_traversal_t* pos_a, const k2bp_t* a, k2bp_trave
 void reck2bp_mv(k2bp_traversal_t* pos_a, const k2bp_t* a, double* x, double* y) {
   assert(pos_a->i_t < a->t.n && pos_a->i_l <= a->n_l);
   assert(bv_i(&(a->t), pos_a->i_t) == 1);
-  if(pos_a->i_t + 1 < a->t.n && bv_i(&(a->t), pos_a->i_t + 1) == 0) {
+  if(pos_a->i_t + 2 <= a->t.n && bv_get_int(&(a->t), pos_a->i_t, 2) == LEAF_0) {
     pos_a->i_t += 2;
     return;
   }
@@ -2668,14 +2668,18 @@ void reck2bp_mv(k2bp_traversal_t* pos_a, const k2bp_t* a, double* x, double* y) 
     uint8_t leaf = k2bp_read_leaf(a, pos_a->i_l);
     pos_a->i_l++;
     pos_a->i_t += 4;
-    if(leaf & 1)
+    if(leaf & 1) {
       y[pos_a->y] += x[pos_a->x];
-    if(leaf & 2)
+    }
+    if(leaf & 2) {
       y[pos_a->y + 1] += x[pos_a->x];
-    if(leaf & 4)
+    }
+    if(leaf & 4) {
       y[pos_a->y] += x[pos_a->x + 1];
-    if(leaf & 8)
+    }
+    if(leaf & 8) {
       y[pos_a->y + 1] += x[pos_a->x + 1];
+    }
     return;
   }
 
@@ -2701,19 +2705,19 @@ void reck2bp_mv(k2bp_traversal_t* pos_a, const k2bp_t* a, double* x, double* y) 
   pos_aux.i_t = pos_a->i_t + 1;
   pos_aux.i_l = pos_a->i_l;
 
-  reck2bp_mv(pos_a, a, x, y);
+  reck2bp_mv(&pos_aux, a, x, y);
 
   pos_aux.x = pos_a->x;
   pos_aux.y = pos_a->y + pos_a->msize / 2;
-  reck2bp_mv(pos_a, a, x, y);
+  reck2bp_mv(&pos_aux, a, x, y);
 
   pos_aux.x = pos_a->x + pos_a->msize / 2;
   pos_aux.y = pos_a->y;
-  reck2bp_mv(pos_a, a, x, y);
+  reck2bp_mv(&pos_aux, a, x, y);
 
   pos_aux.x = pos_a->x + pos_a->msize / 2;
   pos_aux.y = pos_a->y + pos_a->msize / 2;
-  reck2bp_mv(pos_a, a, x, y);
+  reck2bp_mv(&pos_aux, a, x, y);
   pos_a->i_t = pos_aux.i_t + 1;
   pos_a->i_l = pos_aux.i_l;
 }
