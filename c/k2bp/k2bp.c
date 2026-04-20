@@ -267,9 +267,10 @@ void k2bp_sum(k2bp_t *a, k2bp_t *b, k2bp_t *c) {
   c->rmsize = a->rmsize;
 
   bv_init(&(c->t));
-  c->maxn_l = 10;
+  bv_reserve(&(c->t), (a->t.n + b->t.n + 64 - 1) / 64);
+  c->maxn_l = a->n_l + b->n_l;
   c->n_l = 0;
-  c->l = (uint8_t*) malloc(sizeof(uint8_t) * c->maxn_l);
+  c->l = (uint8_t*) malloc(sizeof(uint8_t) * (c->maxn_l + 1) / 2);
   c->m = 0;
 
   k2bp_traversal_t pos_a = K2BP_TRAVERSAL_INITIALIZER;
