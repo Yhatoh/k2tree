@@ -2706,6 +2706,7 @@ void reck2bp_mv(k2bp_traversal_t* pos_a, const k2bp_t* a, double* x, double* y) 
   }
 
   k2bp_traversal_t pos_aux = K2BP_TRAVERSAL_INITIALIZER;
+  k2bp_init_traversalinfo(pos_a, &pos_aux);
   pos_aux.msize = pos_a->msize / 2;
   pos_aux.x = pos_a->x;
   pos_aux.y = pos_a->y;
