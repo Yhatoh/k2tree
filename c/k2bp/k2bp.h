@@ -10,7 +10,7 @@
 #define GET_NODES(x) (x & ((1ULL << NUM_SUPPORT) - 1))
 #define GET_SKIPS(x) (x >> NUM_SUPPORT)
 #define ENCODE(x, y) (x << NUM_SUPPORT) | y
-#define HAS_POINTERS(a) (a->pointers.data != NULL)
+#define HAS_POINTERS(a) (a->pointers.data != NULL && a->n_p > 0)
 
 #define _K_ 2
 #define BLOCK_SIZE 256
