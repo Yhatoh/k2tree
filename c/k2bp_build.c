@@ -75,6 +75,9 @@ int main(int argc, char* argv[]) {
     k2bp_save_to_file(&a, k2fname);
   }
 
+  if(v) {
+    k2bp_show_stats(&a, argv[1], stderr);
+  }
   if(check) {
     if(v)
       printf("checking compression\n");

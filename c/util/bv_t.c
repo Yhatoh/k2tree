@@ -163,6 +163,14 @@ void bv_load_from_file(bv_t* z, const char* fname) {
   fclose(in);
 }
 
+void bv_copy(const bv_t* src, bv_t* dest) {
+  dest->n = src->n;
+  dest->maxn = src->maxn;
+  dest->a = (uint64_t*) malloc(sizeof(uint64_t) * dest->maxn);
+  for(size_t i = 0; i < dest->maxn; i++)
+    dest->a[i] = src->a[i];
+}
+
 // write error message and exit
 static void quit(const char *msg, int line, char *file) {
   if(errno==0)  fprintf(stderr,"== %d == %s\n",getpid(), msg);

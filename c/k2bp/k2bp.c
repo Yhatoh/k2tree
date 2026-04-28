@@ -151,6 +151,44 @@ void k2bp_copy(k2bp_traversal_t* pos_src, const k2bp_t* src, k2bp_t* dest) {
   pos_src->i_l += pos_src->leaves;
 }
 
+void k2bp_duplicate(k2bp_t* src, k2bp_t* dest) {
+  assert(!HAS_POINTERS(src));
+  dest->msize = src->msize;
+  dest->rmsize = src->rmsize;
+  dest->m = src->m;
+
+  bv_copy(&src->t, &dest->t);
+
+  if(dest->l == NULL) {
+    k2bp_decompress_leaves(src);
+  }
+
+  dest->n_l = src->n_l;
+  dest->l = (uint8_t*) malloc(sizeof(uint8_t) * (dest->n_l + 1) / 2);
+
+  for(size_t i = 0; i < (dest->n_l + 1) / 2; i++)
+    dest->l[i] = src->l[i];
+
+  dest->exc_min_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE(dest->t.n));
+  dest->exc_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE(dest->t.n));
+  dest->leaves_samples = (uint8_t*) malloc(sizeof(uint8_t) * SAMPLE_SIZE(dest->t.n));
+  for(size_t i = 0; i < SAMPLE_SIZE(dest->t.n); i++) {
+    dest->exc_min_samples[i] = src->exc_min_samples[i];
+    dest->exc_samples[i] = src->exc_samples[i];
+    dest->leaves_samples[i] = src->leaves_samples[i];
+  }
+
+  dest->n_info = src->n_info;
+  if(dest->n_info > 0) {
+    dest->subtreeinfo = (uint64_t*) malloc(sizeof(uint64_t) * dest->n_info);
+    dest->leavesinfo = (uint32_t*) malloc(sizeof(uint32_t) * dest->n_info);
+    for(size_t i = 0; i < dest->n_info; i++) {
+      dest->subtreeinfo[i] = src->subtreeinfo[i];
+      dest->leavesinfo[i] = src->leavesinfo[i];
+    }
+  }
+}
+
 // build k2 tree with BP representation
 // from file `fname`, file has to be a text file with format
 //  x1 y1

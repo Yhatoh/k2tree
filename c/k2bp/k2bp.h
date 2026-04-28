@@ -112,6 +112,7 @@ void k2bp_decompress_subtrees(k2bp_t* c, k2bp_t* a);
 void k2bp_compress_leaves(k2bp_t* a);
 void k2bp_decompress_leaves(k2bp_t* a);
 void k2bp_copy(k2bp_traversal_t* pos_src, const k2bp_t* src, k2bp_t* dest);
+void k2bp_duplicate(k2bp_t* src, k2bp_t* dest);
 
 // k2 tree information
 size_t k2bp_show_stats(k2bp_t* a, const char* fname, FILE* f);

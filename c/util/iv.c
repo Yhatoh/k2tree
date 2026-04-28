@@ -45,3 +45,11 @@ void iv_free(iv_t* z) {
   z->w = 0;
   free(z->data);
 }
+
+void iv_copy(const iv_t* src, iv_t* dest) {
+  dest->n = src->n;
+  dest->w = src->w;
+  dest->data = (uint64_t*) malloc(sizeof(uint64_t) * (((src->n*src->w)+64-1)/64+2));
+  for(size_t i = 0; i < (((src->n*src->w)+64-1)/64+2); i++)
+    dest->data[i] = src->data[i];
+}

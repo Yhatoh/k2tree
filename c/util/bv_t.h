@@ -26,5 +26,6 @@ uint64_t bv_get_int(const bv_t* z, size_t i, uint8_t len); // tested
 uint64_t bv_size_in_bits(const bv_t* z);
 void bv_save_to_file(const bv_t* z, const char* fname);
 void bv_load_from_file(bv_t* z, const char* fname);
+void bv_copy(const bv_t* src, bv_t* dest);
 
 #endif
