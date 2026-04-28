@@ -34,13 +34,16 @@ k2bp_mv: k2bp_mv.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
 k2bp_mul: k2bp_mul.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
 	$(CC) $^ $(CFLAGS) -lm -o k2bp_mul.x
 
+k2bp_tclos: k2bp_tclos.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
+	$(CC) $^ $(CFLAGS) -lm -o k2bp_tclos.x
+
 k2bp_compress: k2bp_compress.c $(UTIL_SRC) $(K2BP_SRC) $(LIBSAIS)
 	$(CC) $^ $(CFLAGS) -lm -o k2bp_compress.x
 
 genrandmatrix: genrandmatrix.c
 	$(CC) $^ $(CFLAGS) -o genrandmatrix.x
 
-all: bv_test k2bp_build k2bp_info k2bp_addinfo k2bp_sum k2bp_mul genrandmatrix k2bp_compress k2bp_mv
+all: bv_test k2bp_build k2bp_info k2bp_addinfo k2bp_sum k2bp_mul genrandmatrix k2bp_compress k2bp_mv k2bp_tclos
 
 release: CFLAGS += -DNDEBUG
 release: all
